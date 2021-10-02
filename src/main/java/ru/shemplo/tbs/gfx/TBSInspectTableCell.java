@@ -85,10 +85,10 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
         final var dateColumn = makeTBSTableColumn ("Date", Coupon::getDate, false, false, 100.0);
         table.getColumns ().add (dateColumn);
         
-        final var amountColumn = makeTBSTableColumn ("Amount", Coupon::getAmount, true, true, 90.0);
+        final var amountColumn = makeTBSTableColumn ("Amount", Coupon::getAmount, false, true, 90.0);
         table.getColumns ().add (amountColumn);
         
-        final var reliableColumn = makeTBSTableColumn ("Reliable?", Coupon::isReliable, true, true, 90.0);
+        final var reliableColumn = makeTBSTableColumn ("Reliable?", Coupon::isReliable, false, true, 90.0);
         table.getColumns ().add (reliableColumn);
         
         final var profile = TBSUIApplication.getInstance ().getProfile ();

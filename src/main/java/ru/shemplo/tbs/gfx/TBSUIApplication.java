@@ -87,22 +87,22 @@ public class TBSUIApplication extends Application {
         final var currencyColumn = makeTBSTableColumn ("Currency", Bond::getCurrency, false, false, 90.0);
         table.getColumns ().add (currencyColumn);
         
-        final var scoreColumn = makeTBSTableColumn ("Score", Bond::getScore, true, true, 90.0);
+        final var scoreColumn = makeTBSTableColumn ("Score", Bond::getScore, false, true, 90.0);
         table.getColumns ().add (scoreColumn);
         
-        final var pureCreditColumn = makeTBSTableColumn ("Pure credit", Bond::getPureCredit, true, true, 90.0);
+        final var pureCreditColumn = makeTBSTableColumn ("Pure credit", Bond::getPureCredit, false, true, 90.0);
         table.getColumns ().add (pureCreditColumn);
         
-        final var couponsCreditColumn = makeTBSTableColumn ("Coupons", Bond::getCouponsCredit, true, true, 90.0);
+        final var couponsCreditColumn = makeTBSTableColumn ("Coupons", Bond::getCouponsCredit, false, true, 90.0);
         table.getColumns ().add (couponsCreditColumn);
         
-        final var priceColumn = makeTBSTableColumn ("Price", Bond::getLastPrice, true, true, 90.0);
+        final var priceColumn = makeTBSTableColumn ("Price", Bond::getLastPrice, false, true, 90.0);
         table.getColumns ().add (priceColumn);
         
-        final var nominalColumn = makeTBSTableColumn ("Nominal", Bond::getNominalValue, true, false, 90.0);
+        final var nominalColumn = makeTBSTableColumn ("Nominal", Bond::getNominalValue, false, false, 90.0);
         table.getColumns ().add (nominalColumn);
         
-        final var couponsPerYearColumn = makeTBSTableColumn ("C / Y", Bond::getCouponsPerYear, true, false, 50.0);
+        final var couponsPerYearColumn = makeTBSTableColumn ("C / Y", Bond::getCouponsPerYear, false, false, 50.0);
         table.getColumns ().add (couponsPerYearColumn);
         
         final var nextCouponColumn = makeTBSTableColumn ("Next coupon", Bond::getNextCoupon, false, false, 100.0);
@@ -117,7 +117,7 @@ public class TBSUIApplication extends Application {
         final var monthsColumn = makeTBSTableColumn ("Months", bnd -> bnd.getMonthTillEnd () % 12, false, false, 50.0);
         table.getColumns ().add (monthsColumn);
         
-        final var percentageColumn = makeTBSTableColumn ("MOEX %", Bond::getPercentage, true, true, 50.0);
+        final var percentageColumn = makeTBSTableColumn ("MOEX %", Bond::getPercentage, false, true, 50.0);
         table.getColumns ().add (percentageColumn);
         
         return table;
