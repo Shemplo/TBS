@@ -8,9 +8,7 @@
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-    <maven.compiler.source>16</maven.compiler.source>
-    <maven.compiler.target>16</maven.compiler.target>
+    <javafx.version>16</javafx.version>
   </properties>
   
   <build>
@@ -20,10 +18,6 @@
         <version>3.8.1</version>
         <configuration>
           <release>16</release>
-          <compilerArgs>
-            <arg>--add-modules</arg>
-            <arg>java.se, java.desktop</arg>
-          </compilerArgs>
         </configuration>
       </plugin>
     </plugins>
@@ -62,27 +56,27 @@
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-base</artifactId>
-      <version>12.0.2</version>
+      <version>${javafx.version}</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
-      <version>12.0.2</version>
+      <version>${javafx.version}</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-fxml</artifactId>
-      <version>12.0.2</version>
+      <version>${javafx.version}</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-graphics</artifactId>
-      <version>12.0.2</version>
+      <version>${javafx.version}</version>
     </dependency>
     <dependency>
       <groupId>com.panemu</groupId>
       <artifactId>tiwulfx</artifactId>
-      <version>3.0</version>
+      <version>3.2</version>
     </dependency>
     <dependency>
       <groupId>javax.activation</groupId>
