@@ -22,7 +22,7 @@ sandbox/production; commented parameters, some of them can have NULL value)
 * Link `🌐` allows to open bonds page in Tinkoff investment
 * Link `🔍` allows to inspect known coupons of corresponding bond
 * Credit values are calculated with consideration to the inflation with the equation: 
-let `S` some sum, let `D` number of a days and `I` is inflation in percents than
+let `S` some sum, let `D` number of a days and `I` is inflation in percents then
 `s` value equals to `S / (1 + I)^(D / 365)` is sum that corresponding to `S` in `D` days
 * In case of coupon value is unknown then latest known value (or 0.0) will be used with
 discount of 0.9 modifier due to this value is not reliable and it's some penalty to final score
