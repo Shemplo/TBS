@@ -17,7 +17,8 @@ _score value is not a ground truth but we try to make it more objective as possi
     ```
     java -jar tinkoff-bond-scanner-{version}.jar {profile name|path to custom profile}
     
-    Examples: `java -jar tinkoff-bond-scanner-1.0.jar DEFAULT_RUB` or `java -jar tinkoff-bond-scanner-1.0.jar custom.xml`
+    Examples: `java -jar tinkoff-bond-scanner-1.0.jar DEFAULT_RUB` 
+           or `java -jar tinkoff-bond-scanner-1.0.jar custom.xml`
     ```
     
     * You can also manually package application to `JAR` file by calling
