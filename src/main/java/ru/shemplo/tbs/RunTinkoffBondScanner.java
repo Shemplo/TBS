@@ -30,7 +30,11 @@ public class RunTinkoffBondScanner {
     public static void main (String ... args) {
         Locale.setDefault (Locale.ENGLISH);
         
-        final var profile = TBSProfile.DEFAULT_RUB;
+        final var profile = TBSProfiler.fetchProfile (args);
+        if (profile == null) {
+            log.error ("Profile is not defined. Terminating scanner...");
+            return;
+        }
         
         @SuppressWarnings ("resource")
         final var scanner = new Scanner (System.in);
@@ -52,7 +56,7 @@ public class RunTinkoffBondScanner {
         }
     }
     
-    private static void initializeProfile (TBSProfile profile) {
+    private static void initializeProfile (ITBSProfile profile) {
         try {
             log.info ("Reading token from file...");
             final var token = Files.readString (Paths.get (profile.getTokenFilename ()));
@@ -62,7 +66,7 @@ public class RunTinkoffBondScanner {
         }
     }
     
-    private static void openConnection (TBSProfile profile, String token) {
+    private static void openConnection (ITBSProfile profile, String token) {
         log.info ("Connecting to Tinkoff API...");
         log.info ("Profile: {}", profile);
         try (final var client = new OkHttpOpenApi (token, !profile.isHighResponsible ())) {
@@ -77,7 +81,7 @@ public class RunTinkoffBondScanner {
         }
     }
     
-    private static void searchForBonds (TBSProfile profile, OpenApi client) {
+    private static void searchForBonds (ITBSProfile profile, OpenApi client) {
         log.info ("Loading data abount bonds from Tinkoff and MOEX...");
         final var bonds = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
             . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ()))
@@ -87,7 +91,7 @@ public class RunTinkoffBondScanner {
         analizeBonds (profile, bonds);
     }
     
-    private static void analizeBonds (TBSProfile profile, List <Bond> bonds) {
+    private static void analizeBonds (ITBSProfile profile, List <Bond> bonds) {
         log.info ("Analizing loaded bonds (total: {})...", bonds.size ());
         bonds.forEach (bond -> bond.updateScore (profile));
         
@@ -95,7 +99,7 @@ public class RunTinkoffBondScanner {
         dumpBonds (profile, bonds);
     }
     
-    private static void dumpBonds (TBSProfile profile, List <Bond> bonds) {
+    private static void dumpBonds (ITBSProfile profile, List <Bond> bonds) {
         log.info ("Dumping bonds to a binary file...");
         try (
             final var fos = new FileOutputStream (DUMP_FILE);
@@ -122,7 +126,7 @@ public class RunTinkoffBondScanner {
         }
     }
     
-    private static void showResults (TBSProfile profile, List <Bond> bonds) {
+    private static void showResults (ITBSProfile profile, List <Bond> bonds) {
         log.info ("Starting UI...");
         new Thread (() -> {
             Application.launch (TBSUIApplication.class);

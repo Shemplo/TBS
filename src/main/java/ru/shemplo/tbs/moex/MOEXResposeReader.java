@@ -11,7 +11,6 @@ import ru.shemplo.tbs.moex.xml.Document;
 public class MOEXResposeReader {
     
     public static Document read (URL url) {
-        
         try {
             final var context = JAXBContext.newInstance (Document.class);
             return (Document) context.createUnmarshaller ().unmarshal (url);

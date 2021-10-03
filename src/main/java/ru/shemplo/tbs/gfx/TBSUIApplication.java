@@ -22,7 +22,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import lombok.Getter;
 import ru.shemplo.tbs.Bond;
-import ru.shemplo.tbs.TBSProfile;
+import ru.shemplo.tbs.ITBSProfile;
 
 public class TBSUIApplication extends Application {
 
@@ -36,7 +36,7 @@ public class TBSUIApplication extends Application {
     private Stage stage;
     
     @Getter
-    private TBSProfile profile;
+    private ITBSProfile profile;
     
     @Override
     public void start (Stage stage) throws Exception {
@@ -52,8 +52,8 @@ public class TBSUIApplication extends Application {
         stage.show ();
         
         root.getChildren ().add (profileDetails = new Text ());
-        VBox.setMargin (profileDetails, new Insets (8.0));
-        profileDetails.setFont (Font.font ("Consolas"));
+        profileDetails.setFont (Font.font ("Consolas", 10.0));
+        VBox.setMargin (profileDetails, new Insets (12.0));
         
         root.getChildren ().add (table = initializeTable ());
         instance = this;
@@ -135,14 +135,6 @@ public class TBSUIApplication extends Application {
         final var column = new TableColumn <Bond, Bond> (name);
         column.setCellFactory (__ -> new TBSTableCell <> (converter, colorized));
         column.setCellValueFactory (cell -> {
-            /*
-            final var value = converter.apply (cell.getValue ());
-            if (value instanceof Double d) {
-                return new SimpleStringProperty (String.format ("%.1f", d));
-            } else {
-                return new SimpleStringProperty (String.valueOf (value));
-            }
-            */
             return new SimpleObjectProperty <> (cell.getValue ());
         });
         column.setSortable (sortable);
@@ -151,7 +143,7 @@ public class TBSUIApplication extends Application {
         return column;
     }
     
-    public void applyData (TBSProfile profile, List <Bond> bonds) {
+    public void applyData (ITBSProfile profile, List <Bond> bonds) {
         profileDetails.setText (profile.getProfileDescription ());
         table.setItems (FXCollections.observableArrayList (bonds));
         this.profile = profile;

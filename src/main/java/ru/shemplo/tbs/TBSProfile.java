@@ -8,7 +8,7 @@ import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 @Getter
 @RequiredArgsConstructor
-public enum TBSProfile {
+public enum TBSProfile implements ITBSProfile {
     
     DEFAULT_RUB ("token.txt", true, 
         /*max results          */ 30, 
@@ -21,7 +21,7 @@ public enum TBSProfile {
         /*max price            */ 1000.0,
         /*currencies           */ Set.of (Currency.RUB), 
         /*coupon values modes  */ Set.of (CouponValueMode.FIXED, CouponValueMode.NOT_FIXED),
-        /*banned E             */ Set.of (-1L)
+        /*banned emitters      */ Set.of (-1L)
     ),
     
     RISCKY_RUB ("token.txt", true, 
@@ -35,7 +35,7 @@ public enum TBSProfile {
         /*max price            */ 1100.0,
         /*currencies           */ Set.of (Currency.RUB), 
         /*coupon values modes  */ Set.of (CouponValueMode.FIXED, CouponValueMode.NOT_FIXED),
-        /*banned E             */ Set.of (-1L)
+        /*banned emitters      */ Set.of (-1L)
     )
     
     ;
@@ -51,38 +51,5 @@ public enum TBSProfile {
     private final Set <Currency> currencies;
     private final Set <CouponValueMode> couponValuesModes;
     private final Set <Long> bannedEmitters;
-    
-    public boolean testBond (Bond bond) {
-        return bond != null && currencies.contains (bond.getCurrency ())
-            && couponValuesModes.contains (bond.getCouponValuesMode ())
-            && !bannedEmitters.contains (bond.getEmitterId ())
-            && (maxDaysToCoupon == null ? true : bond.getDaysToCoupon () <= maxDaysToCoupon)
-            && (couponsPerYear == null ? true : bond.getCouponsPerYear () >= couponsPerYear)
-            && (monthsTillEnd == null ? true : bond.getMonthToEnd () >= monthsTillEnd)
-            && (minPercentage == null ? true : bond.getPercentage () >= minPercentage)
-            && (maxPrice == null ? true : bond.getLastPrice () <= maxPrice)
-            && (nominalValue == null ? true : bond.getNominalValue () >= nominalValue);
-    }
-    
-    public long getSafeMinMonths () {
-        return monthsTillEnd == null ? 0 : monthsTillEnd;
-    }
-    
-    public double getSafeMaxPrice (double bondLastPrice) {
-        return maxPrice == null ? bondLastPrice * 1.1 : maxPrice;
-    }
-    
-    public long getSafeMaxDaysToCoupon () {
-        return maxDaysToCoupon == null ? 0 : maxDaysToCoupon;
-    }
-    
-    public String getProfileDescription () {
-        return String.format (
-            "Name: %s,  Max results: %d,  Inflation: %.1f%%,  Months: %d [↥],  C / Y: %d [↥],  Days to C: %d [↧],"
-            + "  Nominal: %.1f [↥],  MOEX %%: %.1f [↥],  Price: %.1f [↧],  Currencies: %s,  C modes: %s", 
-            name (), maxResults, inflation * 100, monthsTillEnd, couponsPerYear, maxDaysToCoupon, 
-            nominalValue, minPercentage, maxPrice, currencies, couponValuesModes
-        );
-    }
     
 }

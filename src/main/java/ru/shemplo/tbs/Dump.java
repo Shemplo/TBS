@@ -12,7 +12,7 @@ public class Dump implements Serializable {
 
     private static final long serialVersionUID = 1L;
     
-    private final TBSProfile profile;
+    private final ITBSProfile profile;
     private final List <Bond> bonds;
     
 }

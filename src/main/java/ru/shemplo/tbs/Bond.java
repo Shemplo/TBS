@@ -121,7 +121,7 @@ public class Bond implements Serializable {
     private boolean reliableCoupons;
     private double score = 0.0;
     
-    public void updateScore (TBSProfile profile) {
+    public void updateScore (ITBSProfile profile) {
         final var now = LocalDate.now ();
         
         final var months = now.until (end, ChronoUnit.MONTHS);
