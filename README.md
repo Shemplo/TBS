@@ -8,7 +8,7 @@ _score value is not a ground truth but we try to make it as more objective as po
 * [Tinkoff investment Java SDK](https://github.com/TinkoffCreditSystems/invest-openapi-java-sdk) - to retrieve list of available bonds in Tinkoff investment
 * [MOEX](https://iss.moex.com/) - to retrieve bond details (name, dates, coupons, price, ...)
 
-### Requiremnts
+### Requirements
 
 * Installed JRE 16+
 
