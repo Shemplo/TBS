@@ -9,8 +9,9 @@ import lombok.ToString;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 @Getter
+@Builder
 @ToString
-@RequiredArgsConstructor (onConstructor = @__(@Builder))
+@RequiredArgsConstructor
 public class TBSCustomProfile implements ITBSProfile {
     
     private static final long serialVersionUID = 1L;
