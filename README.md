@@ -58,5 +58,5 @@ let `S` some sum, let `D` number of a days and `I` is inflation in percents then
 * In case of coupon value is unknown then latest known value (or 0.0) will be used with
 discount of 0.9 modifier due to this value is not reliable and it's some penalty to final score
 * There is no guarantee that prices that are mentioned in table are still the same when
-table is shown and used for some time. This value is retrieved one when bond data is requested
+table is shown and used for some time. This value is retrieved once when bond data is requested
 from MOEX (before table is shown).
