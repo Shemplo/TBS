@@ -46,7 +46,7 @@ public class TBSUIApplication extends Application {
         final var scene = new Scene (root);
         
         stage.getIcons ().add (TBSApplicationIcons.window);
-        stage.setTitle ("Tinkoff Bonds Scanner | v0.0.1");
+        stage.setTitle ("Tinkoff Bonds Scanner | v1.0");
         stage.setMaximized (true);
         stage.setScene (scene);
         stage.show ();
