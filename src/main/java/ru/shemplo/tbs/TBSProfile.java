@@ -22,6 +22,20 @@ public enum TBSProfile {
         /*currencies           */ Set.of (Currency.RUB), 
         /*coupon values modes  */ Set.of (CouponValueMode.FIXED, CouponValueMode.NOT_FIXED),
         /*banned E             */ Set.of (-1L)
+    ),
+    
+    RISCKY_RUB ("token.txt", true, 
+        /*max results          */ 10, 
+        /*inflation            */ 0.065,
+        /*min months till end  */ 16L, 
+        /*min coupons per year */ null, 
+        /*max days till coupon */ 60L, 
+        /*min nominal          */ 1000.0,
+        /*min percentage       */ 10.0,
+        /*max price            */ 1100.0,
+        /*currencies           */ Set.of (Currency.RUB), 
+        /*coupon values modes  */ Set.of (CouponValueMode.FIXED, CouponValueMode.NOT_FIXED),
+        /*banned E             */ Set.of (-1L)
     )
     
     ;

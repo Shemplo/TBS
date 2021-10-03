@@ -5,7 +5,9 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
@@ -32,6 +34,8 @@ public class Bond implements Serializable {
     private long emitterId;
     
     private double nominalValue, percentage, lastPrice;
+    
+    private NavigableSet <LocalDate> offers = new TreeSet <> ();
     private List <Coupon> coupons = new ArrayList <> ();
     
     private String primaryBoard;
@@ -64,12 +68,18 @@ public class Bond implements Serializable {
         
         if (MOEX_COUPONS_URL != null) {
             final var MOEXCoupons = MOEXResposeReader.read (MOEX_COUPONS_URL);
+            MOEXCoupons.getOffers ().map (Data::getRows).ifPresent (offs -> {
+                for (final var offer : Optional.ofNullable (offs.getRows ()).orElse (List.of ())) {
+                    Optional.ofNullable (offer.getOfferLocalDate ()).ifPresent (offers::add);
+                }
+            });
+            
             MOEXCoupons.getCoupons ().map (Data::getRows).ifPresent (cops -> {
-                double previous = 0.0;
+                Coupon previous = new Coupon (LocalDate.of (1970, 1, 1), 0.0, true, "");
+                final var now = LocalDate.now ();
+                
                 for (final var coupon : Optional.ofNullable (cops.getRows ()).orElse (List.of ())) {
-                    final var c = new Coupon (coupon, previous);
-                    previous = c.getAmount ();
-                    coupons.add (c);
+                    coupons.add (previous = new Coupon (coupon, previous, offers, now));
                 }
             });
         }

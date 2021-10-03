@@ -66,13 +66,19 @@ public class TBSUIApplication extends Application {
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
         
-        final var exploreButtonColumn = new TableColumn <Bond, Bond> ();
-        exploreButtonColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
-        exploreButtonColumn.setCellFactory (__ -> new TBSExploreTableCell ());
-        exploreButtonColumn.setMinWidth (30);
-        table.getColumns ().add (exploreButtonColumn);
+        final var exploreTinkoffColumn = new TableColumn <Bond, Bond> ("T");
+        exploreTinkoffColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
+        exploreTinkoffColumn.setCellFactory (__ -> new TBSExploreTableCell (true));
+        exploreTinkoffColumn.setMinWidth (30);
+        table.getColumns ().add (exploreTinkoffColumn);
         
-        final var ispectButtonColumn = new TableColumn <Bond, Bond> ();
+        final var exploreMOEXColumn = new TableColumn <Bond, Bond> ("M");
+        exploreMOEXColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
+        exploreMOEXColumn.setCellFactory (__ -> new TBSExploreTableCell (false));
+        exploreMOEXColumn.setMinWidth (30);
+        table.getColumns ().add (exploreMOEXColumn);
+        
+        final var ispectButtonColumn = new TableColumn <Bond, Bond> ("C");
         ispectButtonColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
         ispectButtonColumn.setCellFactory (__ -> new TBSInspectTableCell ());
         ispectButtonColumn.setMinWidth (30);

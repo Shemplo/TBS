@@ -2,6 +2,7 @@ package ru.shemplo.tbs.gfx;
 
 import java.util.function.Function;
 
+import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -15,6 +16,11 @@ public class TBSTableCell <F, S> extends TableCell <F, F> {
     private final boolean colorizeNumbers;
     
     private static final Font COLOR_FONT = Font.font ("Consolas", FontWeight.NORMAL, 12.0);
+    
+    public TBSTableCell (Function <F, S> converter, boolean colorizeNumbers, Pos textAlignment) {
+        this.converter = converter; this.colorizeNumbers = colorizeNumbers;
+        setAlignment (textAlignment);
+    }
     
     @Override
     protected void updateItem (F item, boolean empty) {

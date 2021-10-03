@@ -34,6 +34,10 @@ public class Document {
         return findData ("coupons");
     }
     
+    public Optional <Data> getOffers () {
+        return findData ("offers");
+    }
+    
     public Optional <Data> getMarketData () {
         return findData ("marketdata");
     }

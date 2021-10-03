@@ -82,6 +82,9 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
         
+        final var symbolColumn = makeTBSTableColumn ("", Coupon::getSymbol, false, false, Pos.BASELINE_CENTER, 30.0);
+        table.getColumns ().add (symbolColumn);
+        
         final var dateColumn = makeTBSTableColumn ("Date", Coupon::getDate, false, false, 100.0);
         table.getColumns ().add (dateColumn);
         
@@ -103,8 +106,15 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
     public static <T> TableColumn <Coupon, Coupon> makeTBSTableColumn (
         String name, Function <Coupon, T> converter, boolean sortable, boolean colorized, double minWidth
     ) {
+        return makeTBSTableColumn (name, converter, sortable, colorized, Pos.BASELINE_LEFT, minWidth);
+    }
+    
+    public static <T> TableColumn <Coupon, Coupon> makeTBSTableColumn (
+        String name, Function <Coupon, T> converter, boolean sortable, boolean colorized, 
+        Pos textAlignment, double minWidth
+    ) {
         final var column = new TableColumn <Coupon, Coupon> (name);
-        column.setCellFactory (__ -> new TBSTableCell <> (converter, colorized));
+        column.setCellFactory (__ -> new TBSTableCell <> (converter, colorized, textAlignment));
         column.setCellValueFactory (cell -> {
             return new SimpleObjectProperty <> (cell.getValue ());
         });

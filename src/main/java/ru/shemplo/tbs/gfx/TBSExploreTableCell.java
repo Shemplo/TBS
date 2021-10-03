@@ -5,15 +5,16 @@ import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import ru.shemplo.tbs.Bond;
 
 public class TBSExploreTableCell extends TBSTableCell <Bond, Void> {
 
-    public TBSExploreTableCell () {
+    private boolean openInTinkoff;
+    
+    public TBSExploreTableCell (boolean openInTinkoff) {
         super (__ -> null, false);
+        this.openInTinkoff = openInTinkoff;
         
-        setTextAlignment (TextAlignment.CENTER);
         setAlignment (Pos.CENTER);
     }
     
@@ -26,9 +27,15 @@ public class TBSExploreTableCell extends TBSTableCell <Bond, Void> {
             final var link = new Text ("🌐");
             link.setOnMouseClicked (me -> {
                 if (me.getButton () == MouseButton.PRIMARY) {
-                    TBSUIApplication.getInstance ().openLinkInBrowser (String.format (
-                        "https://www.tinkoff.ru/invest/bonds/%s/", item.getCode ()
-                    ));
+                    if (openInTinkoff) {                        
+                        TBSUIApplication.getInstance ().openLinkInBrowser (String.format (
+                            "https://www.tinkoff.ru/invest/bonds/%s/", item.getCode ()
+                        ));
+                    } else {
+                        TBSUIApplication.getInstance ().openLinkInBrowser (String.format (
+                            "https://www.moex.com/ru/issue.aspx?code=%s&utm_source=www.moex.com", item.getCode ()
+                        ));
+                    }
                 }
             });
             link.setCursor (Cursor.HAND);

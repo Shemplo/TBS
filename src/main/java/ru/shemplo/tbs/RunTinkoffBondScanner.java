@@ -36,8 +36,11 @@ public class RunTinkoffBondScanner {
         final var scanner = new Scanner (System.in);
         
         if (DUMP_FILE.exists () && DUMP_FILE.canRead ()) {
-            System.out.print ("There are dumped bonds (" + new Date (DUMP_FILE.lastModified ()) 
-                                + "). Do you want to restore them (`y` or `n`)? ");
+            System.out.print (
+                "There are dumped bonds (" + new Date (DUMP_FILE.lastModified ()) + "). "
+                + "Do you want to restore them (`y` or any other value to deny)? "
+            );
+            
             final var decision = scanner.next ();
             if ("y".equals (decision)) {
                 restoreBonds ();

@@ -17,7 +17,7 @@ public class MOEXRequests {
         try {
             return new URL (String.format (
             "https://iss.moex.com/iss/statistics/engines/stock/markets/bonds/bondization/%s.xml"
-                + "?iss.meta=off&iss.only=coupons&coupons.columns=coupondate,value&limit=unlimited", 
+                + "?iss.meta=off&coupons.columns=coupondate,value&limit=unlimited", 
                 ticker
             ));
         } catch (MalformedURLException e) {
