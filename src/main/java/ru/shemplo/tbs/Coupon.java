@@ -29,7 +29,7 @@ public class Coupon implements Serializable {
     }
     
     public double getCredit (TBSProfile profile, LocalDate forDate, LocalDate end) {
-        if (date == null || forDate.isBefore (date)) {
+        if (date == null || !forDate.plusDays (profile.getSafeMaxDaysToCoupon ()).isBefore (date)) {
             return 0.0;
         }
         

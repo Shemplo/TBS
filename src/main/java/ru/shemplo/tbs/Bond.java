@@ -93,15 +93,15 @@ public class Bond implements Serializable {
              : CouponValueMode.NOT_FIXED;
     }
     
-    public long getYearsTillEnd () {
+    public long getYearsToEnd () {
         return end == null ? 0L : LocalDate.now ().until (end, ChronoUnit.YEARS);
     }
     
-    public long getMonthTillEnd () {
+    public long getMonthToEnd () {
         return end == null ? 0L : LocalDate.now ().until (end, ChronoUnit.MONTHS);
     }
     
-    public long getDaysTillNextCoupon () {
+    public long getDaysToCoupon () {
         return nextCoupon == null ? Long.MAX_VALUE : LocalDate.now ().until (nextCoupon, ChronoUnit.DAYS);
     }
     

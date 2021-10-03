@@ -111,10 +111,10 @@ public class TBSUIApplication extends Application {
         final var couponFixedColumn = makeTBSTableColumn ("C mode", Bond::getCouponValuesMode, false, false, 100.0);
         table.getColumns ().add (couponFixedColumn);
         
-        final var yearsColumn = makeTBSTableColumn ("Years", Bond::getYearsTillEnd, false, false, 50.0);
+        final var yearsColumn = makeTBSTableColumn ("Years", Bond::getYearsToEnd, false, false, 50.0);
         table.getColumns ().add (yearsColumn);
         
-        final var monthsColumn = makeTBSTableColumn ("Months", bnd -> bnd.getMonthTillEnd () % 12, false, false, 50.0);
+        final var monthsColumn = makeTBSTableColumn ("Months", bnd -> bnd.getMonthToEnd () % 12, false, false, 50.0);
         table.getColumns ().add (monthsColumn);
         
         final var percentageColumn = makeTBSTableColumn ("MOEX %", Bond::getPercentage, false, true, 50.0);

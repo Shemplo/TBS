@@ -31,7 +31,7 @@ public enum TBSProfile {
     private final long maxResults;
     private final double inflation;
     
-    private final Long monthsTillEnd, couponsPerYear, maxDaysForNextCoupon;
+    private final Long monthsTillEnd, couponsPerYear, maxDaysToCoupon;
     private final Double nominalValue, minPercentage, maxPrice;
     
     private final Set <Currency> currencies;
@@ -42,9 +42,9 @@ public enum TBSProfile {
         return bond != null && currencies.contains (bond.getCurrency ())
             && couponValuesModes.contains (bond.getCouponValuesMode ())
             && !bannedEmitters.contains (bond.getEmitterId ())
-            && (maxDaysForNextCoupon == null ? true : bond.getDaysTillNextCoupon () <= maxDaysForNextCoupon)
+            && (maxDaysToCoupon == null ? true : bond.getDaysToCoupon () <= maxDaysToCoupon)
             && (couponsPerYear == null ? true : bond.getCouponsPerYear () >= couponsPerYear)
-            && (monthsTillEnd == null ? true : bond.getMonthTillEnd () >= monthsTillEnd)
+            && (monthsTillEnd == null ? true : bond.getMonthToEnd () >= monthsTillEnd)
             && (minPercentage == null ? true : bond.getPercentage () >= minPercentage)
             && (maxPrice == null ? true : bond.getLastPrice () <= maxPrice)
             && (nominalValue == null ? true : bond.getNominalValue () >= nominalValue);
@@ -58,11 +58,15 @@ public enum TBSProfile {
         return maxPrice == null ? bondLastPrice * 1.1 : maxPrice;
     }
     
+    public long getSafeMaxDaysToCoupon () {
+        return maxDaysToCoupon == null ? 0 : maxDaysToCoupon;
+    }
+    
     public String getProfileDescription () {
         return String.format (
             "Name: %s,  Max results: %d,  Inflation: %.1f%%,  Months: %d [↥],  C / Y: %d [↥],  Days to C: %d [↧],"
             + "  Nominal: %.1f [↥],  MOEX %%: %.1f [↥],  Price: %.1f [↧],  Currencies: %s,  C modes: %s", 
-            name (), maxResults, inflation * 100, monthsTillEnd, couponsPerYear, maxDaysForNextCoupon, 
+            name (), maxResults, inflation * 100, monthsTillEnd, couponsPerYear, maxDaysToCoupon, 
             nominalValue, minPercentage, maxPrice, currencies, couponValuesModes
         );
     }
