@@ -82,7 +82,7 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
         
-        final var symbolColumn = makeTBSTableColumn ("", Coupon::getSymbol, false, false, Pos.BASELINE_CENTER, 30.0);
+        final var symbolColumn = makeTBSTableColumn ("", Coupon::getSymbol, false, false, Pos.BASELINE_CENTER, 40.0);
         table.getColumns ().add (symbolColumn);
         
         final var dateColumn = makeTBSTableColumn ("Date", Coupon::getDate, false, false, 100.0);

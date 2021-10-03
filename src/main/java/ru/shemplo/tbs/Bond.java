@@ -115,8 +115,6 @@ public class Bond implements Serializable {
         return nextCoupon == null ? Long.MAX_VALUE : LocalDate.now ().until (nextCoupon, ChronoUnit.DAYS);
     }
     
-    //private static final Predicate <Coupon> CONCIDER_COUPON = coupon -> LocalDate.now ().isBefore (coupon.getDate ());
-    
     private double couponsCredit, nominalValueWithInflation, pureCredit;
     private boolean reliableCoupons;
     private double score = 0.0;
@@ -130,11 +128,9 @@ public class Bond implements Serializable {
         reliableCoupons = coupons.stream ().map (Coupon::isReliable).reduce (Boolean::logicalAnd).orElse (true);
         couponsCredit = coupons.stream ().mapToDouble (c -> c.getCredit (profile, now, end)).sum ();
         
-        final var inflationFactor =  Math.pow (1 + profile.getInflation (), days / 365.0);
-        final var lastPriceWithInflation = lastPrice / inflationFactor;
+        final var inflationFactor =  Math.pow (1 + profile.getInflation (), days / 365.0);        
+        pureCredit = (nominalValue - lastPrice) / inflationFactor + couponsCredit;
         nominalValueWithInflation = nominalValue / inflationFactor;
-        
-        pureCredit = nominalValueWithInflation + couponsCredit - lastPriceWithInflation;
         
         final var priceBalance = profile.getSafeMaxPrice (lastPrice) - lastPrice;
         final var monthsBalance = months - profile.getSafeMinMonths ();
