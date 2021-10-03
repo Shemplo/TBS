@@ -12,11 +12,37 @@ _score value is not a ground truth but we try to make it more objective as possi
 1. Get token for Tinkoff investment API how it's described in official documentation
 2. Pull this repository
 3. Create file `{FILE}` and write in it generated token on step 1.
-4. Modify enumeration constant in `ru.shemplo.tbs.TBSProfile` for your needs 
-(token filename; responsibility that defines which environment in Tinkoff will be used 
-sandbox/production; commented parameters, some of them can have NULL value)
-5. Choose profile in main class `ru.shemplo.tbs.RunTinkoffBondsScanner`
-6. Run application and wait until JavaFX window is open (it can take some time)
+4. Run application and wait until JavaFX window is open (it can take some time)
+    * For packed version from [releases](https://github.com/Shemplo/TBS/releases) you can write and then run script from this template:
+    ```
+    java -jar tinkoff-bond-scanner-{version}.jar {profile name|path to custom profile}
+    
+    Examples: `java -jar tinkoff-bond-scanner-1.0.jar DEFAULT_RUB` or `java -jar tinkoff-bond-scanner-1.0.jar custom.xml`
+    ```
+    
+    * You can also manually package application to `JAR` file by calling
+    ```
+    mvn package
+    ```
+    
+    * Custom profiles can be defined with XML using following format:
+    ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    <profile>
+      <name>Custom profile name</name>
+      <token filename="token.txt" responsible="1" />
+      <general mr="30" inflation="0.065" />
+      <params mte="24" cpy="4" mdtc="30" nv="1000.0" minp="6.0" maxpr="1000" />
+      <currencies>RUB</currencies>
+      <cmodes>FIXED, NOT_FIXED</cmodes>
+      <bannede>-1L</bannede>
+    </profile>
+    ```
+    Tag `params` is required but each attribute of it can absent. In such case corresponding parameter will not be used in bonds filter.
+    All other tags and attributes are required and can't be missed. **Path to token** file should be absolute or relative to the location 
+    when application is started. Element `bannede` defines list of identifies of emitter that definetely should be filtered out 
+    
+    To apply custom profile pass path to this file as the first argument for application
 
 ### How to use
 * Link `🌐` allows to open bonds page in Tinkoff investment (T) and MOEX (M)
