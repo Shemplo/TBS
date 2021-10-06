@@ -39,10 +39,12 @@ public class TBSTableCell <F, S> extends TableCell <F, F> {
             if (colorizeNumbers) {
                 setFont (COLOR_FONT);
                 
-                if (n.doubleValue () > 1e-8) {                    
+                if (n.doubleValue () > 1e-6) {                    
                     setTextFill (Color.GREEN);
-                } else if (n.doubleValue () < -1e-8) {
+                } else if (n.doubleValue () < -1e-6) {
                     setTextFill (Color.RED);
+                } else {                    
+                    setTextFill (Color.BLACK);
                 }
             }
             
