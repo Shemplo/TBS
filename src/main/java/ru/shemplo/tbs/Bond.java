@@ -27,6 +27,7 @@ public class Bond implements Serializable {
     
     private String name, code;
     private Currency currency;
+    private int lots;
     
     private LocalDate start, end, nextCoupon;
     private long couponsPerYear;
@@ -40,8 +41,9 @@ public class Bond implements Serializable {
     
     private String primaryBoard;
     
-    public Bond (MarketInstrument instrument) {
+    public Bond (MarketInstrument instrument, int lots) {
         currency = instrument.getCurrency ();
+        this.lots = lots;
         
         final var MOEX_DESCRIPION_URL = MOEXRequests.makeBondDescriptionURLForMOEX (instrument.getTicker ());
         final var MOEX_COUPONS_URL = MOEXRequests.makeBondCouponsURLForMOEX (instrument.getTicker ());
@@ -54,7 +56,7 @@ public class Bond implements Serializable {
                 
                 couponsPerYear = description.getBondCouponsPerYear ().orElse (1);
                 nextCoupon = description.getBondNextCouponDate ().orElse (null);
-                nominalValue = description.getBondNominalValue ().orElse (0.0);
+                nominalValue = description.getBondNominalValue ().orElse (1.0);
                 percentage = description.getBondPercentage ().orElse (0.0);
                 emitterId = description.getBondEmitterID ().orElse (-1L);
                 start = description.getBondStartDate ().orElse (null);
@@ -134,7 +136,8 @@ public class Bond implements Serializable {
         
         final var priceBalance = profile.getSafeMaxPrice (lastPrice) - lastPrice;
         final var monthsBalance = months - profile.getSafeMinMonths ();
-        score = pureCredit + monthsBalance * 1.13 + priceBalance * 1.35;
+        score = pureCredit + monthsBalance * 1.13 + priceBalance * 1.35 - lots * 0.25 + couponsPerYear * 0.25 + percentage * 1.4 - 100.0;
+        score *= nominalValue != 0.0 ? 1000.0 / nominalValue : 1.0; // align to 1k nominal
     }
     
 }

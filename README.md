@@ -51,6 +51,7 @@ _score value is not a ground truth but we try to make it as more objective as po
 ### How to use
 * Link `🌐` allows to open bonds page in Tinkoff investment (T) and MOEX (M)
 * Link `🔍` allows to inspect known coupons of corresponding bond
+* Column `👝` shows number of lots in your portfolio (sum by all your accounts)
 * Symbol `➥` marks next coupon, symbol `⭿` mark coupon after offer is committed
 * Credit values are calculated with consideration to the inflation with the equation: 
 let `S` some sum, let `D` number of a days and `I` is inflation in percents then

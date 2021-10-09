@@ -23,13 +23,14 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import ru.shemplo.tbs.Bond;
 import ru.shemplo.tbs.ITBSProfile;
+import ru.shemplo.tbs.TBSUtils;
 
 public class TBSUIApplication extends Application {
 
     @Getter
     private static volatile TBSUIApplication instance;
     
-    private TableView <Bond> table;
+    private TableView <TBSMetaWrapper <Bond>> table;
     private Text profileDetails;
     
     @Getter
@@ -59,32 +60,32 @@ public class TBSUIApplication extends Application {
         instance = this;
     }
     
-    private TableView <Bond> initializeTable () {
-        final var table = new TableView <Bond> ();
+    private TableView <TBSMetaWrapper <Bond>> initializeTable () {
+        final var table = new TableView <TBSMetaWrapper <Bond>> ();
         table.setBackground (new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         VBox.setVgrow (table, Priority.ALWAYS);
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
         
-        final var exploreTinkoffColumn = new TableColumn <Bond, Bond> ("T");
+        final var exploreTinkoffColumn = new TableColumn <TBSMetaWrapper <Bond>, TBSMetaWrapper <Bond>> ("T");
         exploreTinkoffColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
         exploreTinkoffColumn.setCellFactory (__ -> new TBSExploreTableCell (true));
         exploreTinkoffColumn.setMinWidth (30);
         table.getColumns ().add (exploreTinkoffColumn);
         
-        final var exploreMOEXColumn = new TableColumn <Bond, Bond> ("M");
+        final var exploreMOEXColumn = new TableColumn <TBSMetaWrapper <Bond>, TBSMetaWrapper <Bond>> ("M");
         exploreMOEXColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
         exploreMOEXColumn.setCellFactory (__ -> new TBSExploreTableCell (false));
         exploreMOEXColumn.setMinWidth (30);
         table.getColumns ().add (exploreMOEXColumn);
         
-        final var ispectButtonColumn = new TableColumn <Bond, Bond> ("C");
+        final var ispectButtonColumn = new TableColumn <TBSMetaWrapper <Bond>, TBSMetaWrapper <Bond>> ("C");
         ispectButtonColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
         ispectButtonColumn.setCellFactory (__ -> new TBSInspectTableCell ());
         ispectButtonColumn.setMinWidth (30);
         table.getColumns ().add (ispectButtonColumn);
         
-        final var shortNameColumn = makeTBSTableColumn ("Bond name", Bond::getName, false, false, 300.0);
+        final var shortNameColumn = makeTBSTableColumn ("Bond name", Bond::getName, false, false, 250.0);
         table.getColumns ().add (shortNameColumn);
         
         final var codeColumn = makeTBSTableColumn ("Code", Bond::getCode, false, false, 125.0);
@@ -92,6 +93,9 @@ public class TBSUIApplication extends Application {
         
         final var currencyColumn = makeTBSTableColumn ("Currency", Bond::getCurrency, false, false, 90.0);
         table.getColumns ().add (currencyColumn);
+        
+        final var lotsColumn = makeTBSTableColumn ("👝", Bond::getLots, false, true, 30.0);
+        table.getColumns ().add (lotsColumn);
         
         final var scoreColumn = makeTBSTableColumn ("Score", Bond::getScore, false, true, 90.0);
         table.getColumns ().add (scoreColumn);
@@ -129,10 +133,10 @@ public class TBSUIApplication extends Application {
         return table;
     }
     
-    public static <T> TableColumn <Bond, Bond> makeTBSTableColumn (
+    public static <T> TableColumn <TBSMetaWrapper <Bond>, TBSMetaWrapper <Bond>> makeTBSTableColumn (
         String name, Function <Bond, T> converter, boolean sortable, boolean colorized, double minWidth
     ) {
-        final var column = new TableColumn <Bond, Bond> (name);
+        final var column = new TableColumn <TBSMetaWrapper <Bond>, TBSMetaWrapper <Bond>> (name);
         column.setCellFactory (__ -> new TBSTableCell <> (converter, colorized));
         column.setCellValueFactory (cell -> {
             return new SimpleObjectProperty <> (cell.getValue ());
@@ -145,7 +149,9 @@ public class TBSUIApplication extends Application {
     
     public void applyData (ITBSProfile profile, List <Bond> bonds) {
         profileDetails.setText (profile.getProfileDescription ());
-        table.setItems (FXCollections.observableArrayList (bonds));
+        table.setItems (FXCollections.observableArrayList (
+            TBSUtils.mapToList (bonds, TBSMetaWrapper::new)
+        ));
         this.profile = profile;
     }
     

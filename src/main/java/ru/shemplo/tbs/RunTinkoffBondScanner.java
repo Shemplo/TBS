@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,8 @@ import javafx.application.Application;
 import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.gfx.TBSUIApplication;
 import ru.tinkoff.invest.openapi.OpenApi;
+import ru.tinkoff.invest.openapi.model.rest.InstrumentType;
+import ru.tinkoff.invest.openapi.model.rest.PortfolioPosition;
 import ru.tinkoff.invest.openapi.model.rest.SandboxRegisterRequest;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApi;
 
@@ -82,13 +85,32 @@ public class RunTinkoffBondScanner {
     }
     
     private static void searchForBonds (ITBSProfile profile, OpenApi client) {
+        final var ticker2lots = searchForPortfolio (profile, client);
+        //searchForFavorites (profile, client);
+        
         log.info ("Loading data abount bonds from Tinkoff and MOEX...");
         final var bonds = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
-            . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ()))
-            . parallel ()
-            . map (Bond::new).filter (profile::testBond).limit (profile.getMaxResults ())
+            . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ())).parallel ()
+            . map (ins -> {
+                final var lots = ticker2lots.getOrDefault (ins.getTicker (), 0);
+                return new Bond (ins, lots);
+            })
+            . filter (profile::testBond).limit (profile.getMaxResults ())
             . collect (Collectors.toList ());
         analizeBonds (profile, bonds);
+    }
+    
+    private static Map <String, Integer> searchForPortfolio (ITBSProfile profile, OpenApi client) {
+        return client.getUserContext ().getAccounts ().join ().getAccounts ().parallelStream ().flatMap (acc -> {
+            return client.getPortfolioContext ().getPortfolio (acc.getBrokerAccountId ()).join ().getPositions ().stream ();
+        }).filter (pos -> pos.getInstrumentType () == InstrumentType.BOND).collect (Collectors.toMap (
+            PortfolioPosition::getTicker, PortfolioPosition::getLots, Integer::sum
+        ));
+    }
+    
+    @SuppressWarnings ("unused") // Not supported by Tinkoff Open API yet
+    private static void searchForFavorites (ITBSProfile profile, OpenApi client) {
+        
     }
     
     private static void analizeBonds (ITBSProfile profile, List <Bond> bonds) {
