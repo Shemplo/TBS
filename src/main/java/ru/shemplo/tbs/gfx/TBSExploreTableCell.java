@@ -7,7 +7,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import ru.shemplo.tbs.Bond;
 
-public class TBSExploreTableCell extends TBSTableCell <Bond, Bond> {
+public class TBSExploreTableCell extends TBSTableCell <Bond, Void> {
 
     private boolean openInTinkoff;
     
@@ -19,7 +19,7 @@ public class TBSExploreTableCell extends TBSTableCell <Bond, Bond> {
     }
     
     @Override
-    protected void updateItem (TBSMetaWrapper <Bond> item, boolean empty) {
+    protected void updateItem (Bond item, boolean empty) {
         super.updateItem (item, empty);
         setText (null);
         
@@ -27,7 +27,7 @@ public class TBSExploreTableCell extends TBSTableCell <Bond, Bond> {
             final var link = new Text ("🌐");
             link.setOnMouseClicked (me -> {
                 if (me.getButton () == MouseButton.PRIMARY) {
-                    final var code  = item.getObject ().getCode ();
+                    final var code  = item.getCode ();
                     if (openInTinkoff) {                        
                         TBSUIApplication.getInstance ().openLinkInBrowser (String.format (
                             "https://www.tinkoff.ru/invest/bonds/%s/", code

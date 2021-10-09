@@ -9,9 +9,8 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import ru.shemplo.tbs.TBSUtils;
 
-public class TBSTableCell <F, S> extends TableCell <TBSMetaWrapper <F>, TBSMetaWrapper <F>> {
+public class TBSTableCell <F, S> extends TableCell <F, F> {
     
     private final Function <F, S> converter;
     private final boolean colorizeNumbers;
@@ -42,11 +41,7 @@ public class TBSTableCell <F, S> extends TableCell <TBSMetaWrapper <F>, TBSMetaW
     }
     
     @Override
-    protected void updateItem (TBSMetaWrapper <F> item, boolean empty) {
-        if (TBSUtils.mapIfNN (item, TBSMetaWrapper::isHovered, false)) {
-            setBackground (new Background (new BackgroundFill (Color.YELLOW, null, null)));
-        }
-        
+    protected void updateItem (F item, boolean empty) {
         if (item == getItem ()) { return; }
         super.updateItem (item, empty);
         
@@ -57,7 +52,7 @@ public class TBSTableCell <F, S> extends TableCell <TBSMetaWrapper <F>, TBSMetaW
             return;
         }
         
-        final var value = converter.apply (item.getObject ());
+        final var value = converter.apply (item);
         if (value instanceof Number n) {
             if (colorizeNumbers) {
                 setFont (COLOR_FONT);

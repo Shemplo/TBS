@@ -27,7 +27,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import ru.shemplo.tbs.Bond;
 import ru.shemplo.tbs.Coupon;
-import ru.shemplo.tbs.TBSUtils;
 
 public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
 
@@ -39,7 +38,7 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
     }
     
     @Override
-    protected void updateItem (TBSMetaWrapper <Bond> item, boolean empty) {
+    protected void updateItem (Bond item, boolean empty) {
         super.updateItem (item, empty);
         setText (null);
         
@@ -48,7 +47,7 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
             link.setOnMouseClicked (me -> {
                 if (me.getButton () == MouseButton.PRIMARY) {
                     final var scene = ((Node) me.getSource ()).getScene ();
-                    showCouponsWindow (scene.getWindow (), item.getObject ());
+                    showCouponsWindow (scene.getWindow (), item);
                 }
             });
             link.setCursor (Cursor.HAND);
@@ -73,13 +72,11 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
         final var table = initializeTable (bond);
         root.getChildren ().add (table);
         
-        table.setItems (FXCollections.observableArrayList (TBSUtils.mapToList (
-            bond.getCoupons (), TBSMetaWrapper::new
-        )));
+        table.setItems (FXCollections.observableArrayList (bond.getCoupons ()));
     }
     
-    private TableView <TBSMetaWrapper <Coupon>> initializeTable (Bond bond) {
-        final var table = new TableView <TBSMetaWrapper <Coupon>> ();
+    private TableView <Coupon> initializeTable (Bond bond) {
+        final var table = new TableView <Coupon> ();
         table.setBackground (new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         VBox.setVgrow (table, Priority.ALWAYS);
         table.setSelectionModel (null);
@@ -106,17 +103,17 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
         return table;
     }
     
-    public static <T> TableColumn <TBSMetaWrapper <Coupon>, TBSMetaWrapper <Coupon>> makeTBSTableColumn (
+    public static <T> TableColumn <Coupon, Coupon> makeTBSTableColumn (
         String name, Function <Coupon, T> converter, boolean sortable, boolean colorized, double minWidth
     ) {
         return makeTBSTableColumn (name, converter, sortable, colorized, Pos.BASELINE_LEFT, minWidth);
     }
     
-    public static <T> TableColumn <TBSMetaWrapper <Coupon>, TBSMetaWrapper <Coupon>> makeTBSTableColumn (
+    public static <T> TableColumn <Coupon, Coupon> makeTBSTableColumn (
         String name, Function <Coupon, T> converter, boolean sortable, boolean colorized, 
         Pos textAlignment, double minWidth
     ) {
-        final var column = new TableColumn <TBSMetaWrapper <Coupon>, TBSMetaWrapper <Coupon>> (name);
+        final var column = new TableColumn <Coupon, Coupon> (name);
         column.setCellFactory (__ -> new TBSTableCell <> (converter, colorized, textAlignment));
         column.setCellValueFactory (cell -> {
             return new SimpleObjectProperty <> (cell.getValue ());
