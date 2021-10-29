@@ -1,6 +1,10 @@
 package ru.shemplo.tbs.gfx;
 
+import static ru.shemplo.tbs.gfx.TBSStyles.*;
+
+import java.time.LocalDate;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import javafx.application.Application;
@@ -62,6 +66,7 @@ public class TBSUIApplication extends Application {
     private TableView <Bond> initializeTable () {
         final var table = new TableView <Bond> ();
         table.setBackground (new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        table.getStylesheets ().setAll (STYLE_TABLES);
         VBox.setVgrow (table, Priority.ALWAYS);
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
@@ -84,59 +89,64 @@ public class TBSUIApplication extends Application {
         ispectButtonColumn.setMinWidth (30);
         table.getColumns ().add (ispectButtonColumn);
         
-        final var shortNameColumn = makeTBSTableColumn ("Bond name", Bond::getName, false, false, 250.0);
+        final var grThreshold = TBSStyles.<Bond, Double> threshold (0.0, 1e-6);
+        final var sameMonth = TBSStyles.<Bond> sameMonth (LocalDate.now ());
+        final var fixedCoupons = TBSStyles.<Bond> fixedCoupons ();
+        
+        final var shortNameColumn = makeTBSTableColumn ("Bond name", Bond::getName, false, 250.0, null);
         table.getColumns ().add (shortNameColumn);
         
-        final var codeColumn = makeTBSTableColumn ("Code", Bond::getCode, false, false, 125.0);
+        final var codeColumn = makeTBSTableColumn ("Code", Bond::getCode, false, 125.0, null);
         table.getColumns ().add (codeColumn);
         
-        final var currencyColumn = makeTBSTableColumn ("Currency", Bond::getCurrency, false, false, 90.0);
+        final var currencyColumn = makeTBSTableColumn ("Currency", Bond::getCurrency, false, 90.0, null);
         table.getColumns ().add (currencyColumn);
         
-        final var lotsColumn = makeTBSTableColumn ("👝", Bond::getLots, false, true, 30.0);
+        final var lotsColumn = makeTBSTableColumn ("👝", Bond::getLots, false, 30.0, null);
         table.getColumns ().add (lotsColumn);
         
-        final var scoreColumn = makeTBSTableColumn ("Score", Bond::getScore, false, true, 90.0);
+        final var scoreColumn = makeTBSTableColumn ("Score", Bond::getScore, false, 90.0, grThreshold);
         table.getColumns ().add (scoreColumn);
         
-        final var pureCreditColumn = makeTBSTableColumn ("Pure credit", Bond::getPureCredit, false, true, 90.0);
+        final var pureCreditColumn = makeTBSTableColumn ("Pure credit", Bond::getPureCredit, false, 90.0, grThreshold);
         table.getColumns ().add (pureCreditColumn);
         
-        final var couponsCreditColumn = makeTBSTableColumn ("Coupons", Bond::getCouponsCredit, false, true, 90.0);
+        final var couponsCreditColumn = makeTBSTableColumn ("Coupons", Bond::getCouponsCredit, false, 90.0, grThreshold);
         table.getColumns ().add (couponsCreditColumn);
         
-        final var priceColumn = makeTBSTableColumn ("Price", Bond::getLastPrice, false, true, 90.0);
+        final var priceColumn = makeTBSTableColumn ("Price", Bond::getLastPrice, false, 90.0, grThreshold);
         table.getColumns ().add (priceColumn);
         
-        final var nominalColumn = makeTBSTableColumn ("Nominal", Bond::getNominalValue, false, false, 90.0);
+        final var nominalColumn = makeTBSTableColumn ("Nominal", Bond::getNominalValue, false, 90.0, null);
         table.getColumns ().add (nominalColumn);
         
-        final var couponsPerYearColumn = makeTBSTableColumn ("C / Y", Bond::getCouponsPerYear, false, false, 50.0);
+        final var couponsPerYearColumn = makeTBSTableColumn ("C / Y", Bond::getCouponsPerYear, false, 50.0, null);
         table.getColumns ().add (couponsPerYearColumn);
         
-        final var nextCouponColumn = makeTBSTableColumn ("Next coupon", Bond::getNextCoupon, false, false, 100.0);
+        final var nextCouponColumn = makeTBSTableColumn ("Next coupon", Bond::getNextCoupon, false, 100.0, sameMonth);
         table.getColumns ().add (nextCouponColumn);
         
-        final var couponFixedColumn = makeTBSTableColumn ("C mode", Bond::getCouponValuesMode, false, false, 100.0);
+        final var couponFixedColumn = makeTBSTableColumn ("C mode", Bond::getCouponValuesMode, false, 100.0, fixedCoupons);
         table.getColumns ().add (couponFixedColumn);
         
-        final var yearsColumn = makeTBSTableColumn ("Years", Bond::getYearsToEnd, false, false, 50.0);
+        final var yearsColumn = makeTBSTableColumn ("Years", Bond::getYearsToEnd, false, 50.0, null);
         table.getColumns ().add (yearsColumn);
         
-        final var monthsColumn = makeTBSTableColumn ("Months", bnd -> bnd.getMonthToEnd () % 12, false, false, 50.0);
+        final var monthsColumn = makeTBSTableColumn ("Months", bnd -> bnd.getMonthToEnd () % 12, false, 50.0, null);
         table.getColumns ().add (monthsColumn);
         
-        final var percentageColumn = makeTBSTableColumn ("MOEX %", Bond::getPercentage, false, true, 50.0);
+        final var percentageColumn = makeTBSTableColumn ("MOEX %", Bond::getPercentage, false, 50.0, grThreshold);
         table.getColumns ().add (percentageColumn);
         
         return table;
     }
     
     public static <T> TableColumn <Bond, Bond> makeTBSTableColumn (
-        String name, Function <Bond, T> converter, boolean sortable, boolean colorized, double minWidth
+        String name, Function <Bond, T> converter, boolean sortable, double minWidth,
+        BiConsumer <TBSTableCell <Bond, T>, T> highlighter
     ) {
         final var column = new TableColumn <Bond, Bond> (name);
-        column.setCellFactory (__ -> new TBSTableCell <> (converter, colorized));
+        column.setCellFactory (__ -> new TBSTableCell <> (converter, highlighter));
         column.setCellValueFactory (cell -> {
             return new SimpleObjectProperty <> (cell.getValue ());
         });

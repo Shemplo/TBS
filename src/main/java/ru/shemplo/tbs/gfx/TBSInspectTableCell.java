@@ -1,6 +1,9 @@
 package ru.shemplo.tbs.gfx;
 
+import static ru.shemplo.tbs.gfx.TBSStyles.*;
+
 import java.time.LocalDate;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import javafx.beans.property.SimpleObjectProperty;
@@ -31,7 +34,7 @@ import ru.shemplo.tbs.Coupon;
 public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
 
     public TBSInspectTableCell () {
-        super (__ -> null, false);
+        super (__ -> null, null);
         
         setTextAlignment (TextAlignment.CENTER);
         setAlignment (Pos.CENTER);
@@ -58,7 +61,7 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
     
     private void showCouponsWindow (Window window, Bond bond) {
         final var stage = new Stage ();
-        stage.setTitle ("Tinkoff Bonds Scanner | Coupons inspection");
+        stage.setTitle (String.format ("Tinkoff Bonds Scanner | Coupons inspection | %s (%s)", bond.getName (), bond.getCode ()));
         stage.initModality (Modality.WINDOW_MODAL);
         stage.initOwner (window);
         
@@ -78,43 +81,48 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
     private TableView <Coupon> initializeTable (Bond bond) {
         final var table = new TableView <Coupon> ();
         table.setBackground (new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        table.getStylesheets ().setAll (STYLE_TABLES);
         VBox.setVgrow (table, Priority.ALWAYS);
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
         
-        final var symbolColumn = makeTBSTableColumn ("", Coupon::getSymbol, false, false, Pos.BASELINE_CENTER, 50.0);
+        final var grThreshold = TBSStyles.<Coupon, Double> threshold (0.0, 1e-6);
+        
+        final var symbolColumn = makeTBSTableColumn ("", Coupon::getSymbol, false, Pos.BASELINE_CENTER, 50.0, null);
         table.getColumns ().add (symbolColumn);
         
-        final var dateColumn = makeTBSTableColumn ("Date", Coupon::getDate, false, false, 100.0);
+        final var dateColumn = makeTBSTableColumn ("Date", Coupon::getDate, false, 100.0, null);
         table.getColumns ().add (dateColumn);
         
-        final var amountColumn = makeTBSTableColumn ("Amount", Coupon::getAmount, false, true, 90.0);
+        final var amountColumn = makeTBSTableColumn ("Amount", Coupon::getAmount, false, 90.0, grThreshold);
         table.getColumns ().add (amountColumn);
         
-        final var reliableColumn = makeTBSTableColumn ("Reliable?", Coupon::isReliable, false, true, 90.0);
+        final var reliableColumn = makeTBSTableColumn ("Reliable?", Coupon::isReliable, false, 90.0, null);
         table.getColumns ().add (reliableColumn);
         
         final var profile = TBSUIApplication.getInstance ().getProfile ();
         final LocalDate now = LocalDate.now (), end = bond.getEnd ();
         
-        final var creditColumn = makeTBSTableColumn ("Credit", c -> c.getCredit (profile, now, end), true, true, 90.0);
+        final var creditColumn = makeTBSTableColumn ("Credit", c -> c.getCredit (profile, now, end), false, 90.0, grThreshold);
         table.getColumns ().add (creditColumn);
         
         return table;
     }
     
     public static <T> TableColumn <Coupon, Coupon> makeTBSTableColumn (
-        String name, Function <Coupon, T> converter, boolean sortable, boolean colorized, double minWidth
+        String name, Function <Coupon, T> converter, boolean sortable, double minWidth,
+        BiConsumer <TBSTableCell <Coupon, T>, T> highlighter
     ) {
-        return makeTBSTableColumn (name, converter, sortable, colorized, Pos.BASELINE_LEFT, minWidth);
+        return makeTBSTableColumn (name, converter, sortable, Pos.BASELINE_LEFT, minWidth, highlighter);
     }
     
     public static <T> TableColumn <Coupon, Coupon> makeTBSTableColumn (
-        String name, Function <Coupon, T> converter, boolean sortable, boolean colorized, 
-        Pos textAlignment, double minWidth
+        String name, Function <Coupon, T> converter, boolean sortable, 
+        Pos textAlignment, double minWidth,
+        BiConsumer <TBSTableCell <Coupon, T>, T> highlighter
     ) {
         final var column = new TableColumn <Coupon, Coupon> (name);
-        column.setCellFactory (__ -> new TBSTableCell <> (converter, colorized, textAlignment));
+        column.setCellFactory (__ -> new TBSTableCell <> (converter, highlighter, textAlignment));
         column.setCellValueFactory (cell -> {
             return new SimpleObjectProperty <> (cell.getValue ());
         });

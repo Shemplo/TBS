@@ -1,42 +1,39 @@
 package ru.shemplo.tbs.gfx;
 
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
+import lombok.Getter;
+import ru.shemplo.tbs.TBSUtils;
 
 public class TBSTableCell <F, S> extends TableCell <F, F> {
     
+    private final BiConsumer <TBSTableCell <F, S>, S> highlighter;
     private final Function <F, S> converter;
-    private final boolean colorizeNumbers;
     
-    private static final Background HOVER_BG = new Background (new BackgroundFill (Color.rgb (220, 240, 245, 1.0), null, null));
-    private static final Font COLOR_FONT = Font.font ("Consolas", FontWeight.NORMAL, 12.0);
-    
+    @Getter
     private Background defaultBackground;
     
-    public TBSTableCell (Function <F, S> converter, boolean colorizeNumbers) {
-        this.converter = converter; this.colorizeNumbers = colorizeNumbers;
+    private static final PseudoClass HOVER_PSEUDO_CLASS = PseudoClass.getPseudoClass ("hover");
+    
+    public TBSTableCell (Function <F, S> converter, BiConsumer <TBSTableCell <F, S>, S> highlighter) {
+        this.converter = converter; this.highlighter = highlighter;
         
         hoverProperty ().addListener ((__, ___, hovered) -> {
             if (getItem () == null) { return; }
             
-            if (hovered) {
-                defaultBackground = getTableRow ().getBackground ();
-                getTableRow ().setBackground (HOVER_BG);
-            } else {
-                getTableRow ().setBackground (defaultBackground);
-            }
+            getTableRow ().getChildrenUnmodifiable ().forEach (cell -> {
+                cell.pseudoClassStateChanged (HOVER_PSEUDO_CLASS, hovered);
+            });
         });
     }
     
-    public TBSTableCell (Function <F, S> converter, boolean colorizeNumbers, Pos textAlignment) {
-        this (converter, colorizeNumbers);
+    public TBSTableCell (Function <F, S> converter, BiConsumer <TBSTableCell <F, S>, S> highlighter, Pos textAlignment) {
+        this (converter, highlighter);
         setAlignment (textAlignment);
     }
     
@@ -53,19 +50,8 @@ public class TBSTableCell <F, S> extends TableCell <F, F> {
         }
         
         final var value = converter.apply (item);
+        TBSUtils.doIfNN (highlighter, h -> h.accept (this, value));
         if (value instanceof Number n) {
-            if (colorizeNumbers) {
-                setFont (COLOR_FONT);
-                
-                if (n.doubleValue () > 1e-6) {
-                    setTextFill (Color.GREEN);
-                } else if (n.doubleValue () < -1e-6) {
-                    setTextFill (Color.RED);
-                } else {                    
-                    setTextFill (Color.BLACK);
-                }
-            }
-            
             if (value instanceof Double || value instanceof Float) {                
                 setText (String.format ("%.2f", n));
             } else {

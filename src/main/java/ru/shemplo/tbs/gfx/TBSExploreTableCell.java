@@ -12,7 +12,7 @@ public class TBSExploreTableCell extends TBSTableCell <Bond, Void> {
     private boolean openInTinkoff;
     
     public TBSExploreTableCell (boolean openInTinkoff) {
-        super (__ -> null, false);
+        super (__ -> null, null);
         this.openInTinkoff = openInTinkoff;
         
         setAlignment (Pos.CENTER);
