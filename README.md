@@ -11,6 +11,7 @@ _score value is not a ground truth but we try to make it as more objective as po
 ### Requirements
 
 * Installed JRE 16+
+* Stable Internet connection
 
 ### How to run
 1. Get token for Tinkoff investment API how it's described in official documentation
@@ -53,6 +54,7 @@ _score value is not a ground truth but we try to make it as more objective as po
 * Link `🔍` allows to inspect known coupons of corresponding bond
 * Column `👝` shows number of lots in your portfolio (sum by all your accounts)
 * Symbol `➥` marks next coupon, symbol `⭿` mark coupon after offer is committed
+* You can use double click to copy cell content to clipboard
 * Credit values are calculated with consideration to the inflation with the equation: 
 let `S` some sum, let `D` number of a days and `I` is inflation in percents then
 `s` value equals to `S / (1 + I)^(D / 365)` is sum that corresponding to `S` in `D` days
