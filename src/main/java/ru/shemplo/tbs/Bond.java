@@ -1,5 +1,7 @@
 package ru.shemplo.tbs;
 
+import static ru.shemplo.tbs.TBSConstants.*;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -11,6 +13,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import ru.shemplo.tbs.moex.MOEXRequests;
 import ru.shemplo.tbs.moex.MOEXResposeReader;
@@ -18,6 +21,7 @@ import ru.shemplo.tbs.moex.xml.Data;
 import ru.shemplo.tbs.moex.xml.Row;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 import ru.tinkoff.invest.openapi.model.rest.MarketInstrument;
+import ru.tinkoff.invest.openapi.model.rest.PortfolioPosition;
 
 @Getter
 @ToString
@@ -27,10 +31,13 @@ public class Bond implements Serializable {
     
     private String name, code;
     private Currency currency;
+    
+    @Setter
     private int lots;
     
     private LocalDate start, end, nextCoupon;
     private long couponsPerYear;
+    private LocalDate now;
     
     private long emitterId;
     
@@ -41,12 +48,24 @@ public class Bond implements Serializable {
     
     private String primaryBoard;
     
-    public Bond (MarketInstrument instrument, int lots) {
-        currency = instrument.getCurrency ();
+    public Bond (MarketInstrument instrument) {
+        this (instrument.getTicker (), instrument.getCurrency (), NOW, 0);
+    }
+    
+    public Bond (PortfolioPosition portfolio) {
+        this (
+            portfolio.getTicker (), portfolio.getAveragePositionPrice ().getCurrency (), 
+            FAR_PAST, portfolio.getLots ()
+        );
+    }
+    
+    private Bond (String ticker, Currency currency, LocalDate scoreNow, int lots) {
+        this.currency = currency;
+        this.now = scoreNow;
         this.lots = lots;
         
-        final var MOEX_DESCRIPION_URL = MOEXRequests.makeBondDescriptionURLForMOEX (instrument.getTicker ());
-        final var MOEX_COUPONS_URL = MOEXRequests.makeBondCouponsURLForMOEX (instrument.getTicker ());
+        final var MOEX_DESCRIPION_URL = MOEXRequests.makeBondDescriptionURLForMOEX (ticker);
+        final var MOEX_COUPONS_URL = MOEXRequests.makeBondCouponsURLForMOEX (ticker);
         
         if (MOEX_DESCRIPION_URL != null) {
             final var MOEXData = MOEXResposeReader.read (MOEX_DESCRIPION_URL);
@@ -77,8 +96,7 @@ public class Bond implements Serializable {
             });
             
             MOEXCoupons.getCoupons ().map (Data::getRows).ifPresent (cops -> {
-                Coupon previous = new Coupon (LocalDate.of (1970, 1, 1), 0.0, true, "");
-                final var now = LocalDate.now ();
+                Coupon previous = new Coupon (FAR_PAST, 0.0, true, "");
                 
                 for (final var coupon : Optional.ofNullable (cops.getRows ()).orElse (List.of ())) {
                     coupons.add (previous = new Coupon (coupon, previous, offers, now));
@@ -86,7 +104,7 @@ public class Bond implements Serializable {
             });
         }
         
-        final var MOEX_PRICE_URL = MOEXRequests.makeBondLastPriceURLForMOEX (primaryBoard, instrument.getTicker ());
+        final var MOEX_PRICE_URL = MOEXRequests.makeBondLastPriceURLForMOEX (primaryBoard, ticker);
         
         if (MOEX_PRICE_URL != null) {
             final var MOEXPrice = MOEXResposeReader.read (MOEX_PRICE_URL);
@@ -106,15 +124,15 @@ public class Bond implements Serializable {
     }
     
     public long getYearsToEnd () {
-        return end == null ? 0L : LocalDate.now ().until (end, ChronoUnit.YEARS);
+        return end == null ? 0L : now.until (end, ChronoUnit.YEARS);
     }
     
     public long getMonthToEnd () {
-        return end == null ? 0L : LocalDate.now ().until (end, ChronoUnit.MONTHS);
+        return end == null ? 0L : now.until (end, ChronoUnit.MONTHS);
     }
     
     public long getDaysToCoupon () {
-        return nextCoupon == null ? Long.MAX_VALUE : LocalDate.now ().until (nextCoupon, ChronoUnit.DAYS);
+        return nextCoupon == null ? Long.MAX_VALUE : now.until (nextCoupon, ChronoUnit.DAYS);
     }
     
     private double couponsCredit, nominalValueWithInflation, pureCredit;
@@ -122,8 +140,6 @@ public class Bond implements Serializable {
     private double score = 0.0;
     
     public void updateScore (ITBSProfile profile) {
-        final var now = LocalDate.now ();
-        
         final var months = now.until (end, ChronoUnit.MONTHS);
         final var days = now.until (end, ChronoUnit.DAYS);
         

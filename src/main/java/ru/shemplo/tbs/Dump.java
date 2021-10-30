@@ -14,5 +14,6 @@ public class Dump implements Serializable {
     
     private final ITBSProfile profile;
     private final List <Bond> bonds;
+    private final List <Bond> portfolio;
     
 }

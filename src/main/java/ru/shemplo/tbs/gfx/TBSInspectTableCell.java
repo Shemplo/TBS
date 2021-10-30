@@ -101,7 +101,7 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
         table.getColumns ().add (reliableColumn);
         
         final var profile = TBSUIApplication.getInstance ().getProfile ();
-        final LocalDate now = LocalDate.now (), end = bond.getEnd ();
+        final LocalDate now = bond.getNow (), end = bond.getEnd ();
         
         final var creditColumn = makeTBSTableColumn ("Credit", c -> c.getCredit (profile, now, end), false, 90.0, grThreshold);
         table.getColumns ().add (creditColumn);

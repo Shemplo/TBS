@@ -1,8 +1,8 @@
 package ru.shemplo.tbs.gfx;
 
+import static ru.shemplo.tbs.TBSConstants.*;
 import static ru.shemplo.tbs.gfx.TBSStyles.*;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -12,6 +12,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Background;
@@ -33,7 +35,7 @@ public class TBSUIApplication extends Application {
     @Getter
     private static volatile TBSUIApplication instance;
     
-    private TableView <Bond> table;
+    private TableView <Bond> tableScanned, tablePortfolio;
     private Text profileDetails;
     
     @Getter
@@ -59,11 +61,26 @@ public class TBSUIApplication extends Application {
         profileDetails.setFont (Font.font ("Consolas", 10.0));
         VBox.setMargin (profileDetails, new Insets (12.0));
         
-        root.getChildren ().add (table = initializeTable ());
+        final var tabs = new TabPane ();
+        tabs.getStylesheets ().add (STYLE_TABS);
+        VBox.setVgrow (tabs, Priority.ALWAYS);
+        root.getChildren ().add (tabs);
+        
+        final var tabScanned = new Tab ("Scanned bonds");
+        tabScanned.setContent (tableScanned = initializeTable (TBSTableType.SCANNED));
+        tabScanned.setClosable (false);
+        tabs.getTabs ().add (tabScanned);
+        
+        final var tabPortfolio = new Tab ("Portfolio");
+        tabPortfolio.setContent (tablePortfolio = initializeTable (TBSTableType.PORTFOLIO));
+        tabPortfolio.setClosable (false);
+        tabs.getTabs ().add (tabPortfolio);
+        
+        //root.getChildren ().add (table = initializeTable ());
         instance = this;
     }
     
-    private TableView <Bond> initializeTable () {
+    private TableView <Bond> initializeTable (TBSTableType type) {
         final var table = new TableView <Bond> ();
         table.setBackground (new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         table.getStylesheets ().setAll (STYLE_TABLES);
@@ -89,9 +106,9 @@ public class TBSUIApplication extends Application {
         ispectButtonColumn.setMinWidth (30);
         table.getColumns ().add (ispectButtonColumn);
         
-        final var grThreshold = TBSStyles.<Bond, Double> threshold (0.0, 1e-6);
-        final var sameMonth = TBSStyles.<Bond> sameMonth (LocalDate.now ());
+        final var grThreshold = TBSStyles.<Bond, Number> threshold (0.0, 1e-6);
         final var fixedCoupons = TBSStyles.<Bond> fixedCoupons ();
+        final var sameMonth = TBSStyles.<Bond> sameMonth (NOW);
         
         final var shortNameColumn = makeTBSTableColumn ("Bond name", Bond::getName, false, 250.0, null);
         table.getColumns ().add (shortNameColumn);
@@ -102,20 +119,26 @@ public class TBSUIApplication extends Application {
         final var currencyColumn = makeTBSTableColumn ("Currency", Bond::getCurrency, false, 90.0, null);
         table.getColumns ().add (currencyColumn);
         
-        final var lotsColumn = makeTBSTableColumn ("👝", Bond::getLots, false, 30.0, null);
+        final var lotsColumn = makeTBSTableColumn ("👝", Bond::getLots, false, 50.0, grThreshold);
         table.getColumns ().add (lotsColumn);
         
-        final var scoreColumn = makeTBSTableColumn ("Score", Bond::getScore, false, 90.0, grThreshold);
-        table.getColumns ().add (scoreColumn);
+        if (type == TBSTableType.SCANNED) {
+            final var scoreColumn = makeTBSTableColumn ("Score", Bond::getScore, false, 90.0, grThreshold);
+            table.getColumns ().add (scoreColumn);
+        }
         
-        final var pureCreditColumn = makeTBSTableColumn ("Pure credit", Bond::getPureCredit, false, 90.0, grThreshold);
-        table.getColumns ().add (pureCreditColumn);
+        if (type == TBSTableType.SCANNED) {
+            final var pureCreditColumn = makeTBSTableColumn ("Pure credit", Bond::getPureCredit, false, 90.0, grThreshold);
+            table.getColumns ().add (pureCreditColumn);
+        }
         
         final var couponsCreditColumn = makeTBSTableColumn ("Coupons", Bond::getCouponsCredit, false, 90.0, grThreshold);
         table.getColumns ().add (couponsCreditColumn);
         
-        final var priceColumn = makeTBSTableColumn ("Price", Bond::getLastPrice, false, 90.0, grThreshold);
-        table.getColumns ().add (priceColumn);
+        if (type == TBSTableType.SCANNED) {       
+            final var priceColumn = makeTBSTableColumn ("Price", Bond::getLastPrice, false, 90.0, grThreshold);
+            table.getColumns ().add (priceColumn);
+        }
         
         final var nominalColumn = makeTBSTableColumn ("Nominal", Bond::getNominalValue, false, 90.0, null);
         table.getColumns ().add (nominalColumn);
@@ -156,9 +179,10 @@ public class TBSUIApplication extends Application {
         return column;
     }
     
-    public void applyData (ITBSProfile profile, List <Bond> bonds) {
+    public void applyData (ITBSProfile profile, List <Bond> bonds, List <Bond> portfolio) {
         profileDetails.setText (profile.getProfileDescription ());
-        table.setItems (FXCollections.observableArrayList (bonds));
+        tablePortfolio.setItems (FXCollections.observableArrayList (portfolio));
+        tableScanned.setItems (FXCollections.observableArrayList (bonds));
         this.profile = profile;
     }
     
