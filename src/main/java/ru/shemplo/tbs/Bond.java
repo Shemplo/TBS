@@ -119,7 +119,7 @@ public class Bond implements Serializable {
     public CouponValueMode getCouponValuesMode () {
         final var amounts = coupons.stream ().map (Coupon::getAmount).collect (Collectors.toSet ());
         return amounts.isEmpty () ? CouponValueMode.UNDEFINED 
-             : amounts.size () == 1 ? CouponValueMode.FIXED 
+             : amounts.size () == 1 && offers.isEmpty () ? CouponValueMode.FIXED 
              : CouponValueMode.NOT_FIXED;
     }
     

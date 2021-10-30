@@ -1,5 +1,7 @@
 package ru.shemplo.tbs;
 
+import static ru.shemplo.tbs.TBSConstants.*;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -31,7 +33,7 @@ public class Coupon implements Serializable {
         this.amount = Optional.ofNullable (amount).orElse (previous.getAmount ());
         date = row.getCouponLocalDate ();
         
-        if (!now.isAfter (date) && now.isAfter (previous.getDate ())) {
+        if (!NOW.isAfter (date) && NOW.isAfter (previous.getDate ())) {
             symbol = "➥";
         }
         
