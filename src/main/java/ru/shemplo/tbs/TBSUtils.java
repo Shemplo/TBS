@@ -2,9 +2,12 @@ package ru.shemplo.tbs;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 public class TBSUtils {
     
@@ -22,6 +25,16 @@ public class TBSUtils {
     
     public static <F> void doIfNN (F value, Consumer <F> action) {
         if (value != null) { action.accept (value); }
+    }
+    
+    public static Optional <Currency> getCurrencyByTicker (String ticker) {
+        final var currency = switch (ticker) {
+            case "USD000UTSTOM" -> Currency.USD;
+            case "EUR_RUB__TOM" -> Currency.EUR;
+            default -> null;
+        };
+        
+        return Optional.ofNullable (currency);
     }
     
 }

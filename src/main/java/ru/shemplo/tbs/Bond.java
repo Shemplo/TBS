@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.TreeSet;
@@ -139,7 +140,8 @@ public class Bond implements Serializable {
     private boolean reliableCoupons;
     private double score = 0.0;
     
-    public void updateScore (ITBSProfile profile) {
+    public void updateScore (ITBSProfile profile, Map <Currency, Double> rub2cur2coef) {
+        final var currencyCoeff = rub2cur2coef.getOrDefault (currency, 1.0);
         final var months = now.until (end, ChronoUnit.MONTHS);
         final var days = now.until (end, ChronoUnit.DAYS);
         
@@ -152,7 +154,8 @@ public class Bond implements Serializable {
         
         final var priceBalance = profile.getSafeMaxPrice (lastPrice) - lastPrice;
         final var monthsBalance = months - profile.getSafeMinMonths ();
-        score = pureCredit + monthsBalance * 1.13 + priceBalance * 1.35 - lots * 0.25 + couponsPerYear * 0.25 + percentage * 1.4 - 200.0;
+        score = pureCredit * currencyCoeff + monthsBalance * 1.13 + priceBalance * currencyCoeff * 1.35 
+              - lots * 0.25 + couponsPerYear * 0.25 + percentage * 1.4 - 200.0;
         score *= nominalValue != 0.0 ? 1000.0 / nominalValue : 1.0; // align to 1k nominal
     }
     

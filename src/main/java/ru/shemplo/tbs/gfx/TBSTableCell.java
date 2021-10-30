@@ -6,6 +6,8 @@ import java.util.function.Function;
 import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.Background;
 import lombok.Getter;
 import ru.shemplo.tbs.TBSUtils;
@@ -30,6 +32,14 @@ public class TBSTableCell <F, S> extends TableCell <F, F> {
                 cell.pseudoClassStateChanged (HOVER_PSEUDO_CLASS, hovered);
             });
         });
+        
+        setOnMouseClicked (me -> {
+            if (getItem () != null && me.getClickCount () == 2) {
+                final var content = new ClipboardContent ();
+                content.putString (getStringValue (getItem (), false));
+                Clipboard.getSystemClipboard ().setContent (content);
+            }
+        });
     }
     
     public TBSTableCell (Function <F, S> converter, BiConsumer <TBSTableCell <F, S>, S> highlighter, Pos textAlignment) {
@@ -49,19 +59,24 @@ public class TBSTableCell <F, S> extends TableCell <F, F> {
             return;
         }
         
+        setText (getStringValue (item, true));
+        setGraphic (null);
+    }
+    
+    private String getStringValue (F item, boolean updateHighlights) {
         final var value = converter.apply (item);
-        TBSUtils.doIfNN (highlighter, h -> h.accept (this, value));
+        if (updateHighlights) {
+            TBSUtils.doIfNN (highlighter, h -> h.accept (this, value));
+        }
         if (value instanceof Number n) {
             if (value instanceof Double || value instanceof Float) {                
-                setText (String.format ("%.2f", n));
+                return String.format ("%.2f", n);
             } else {
-                setText (String.format ("%d", n));                
+                return String.format ("%d", n);                
             }
         } else {            
-            setText (String.valueOf (value));
+            return String.valueOf (value);
         }
-        
-        setGraphic (null);
     }
     
 }
