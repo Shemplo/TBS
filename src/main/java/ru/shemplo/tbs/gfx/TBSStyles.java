@@ -19,6 +19,7 @@ public class TBSStyles {
     public static final Background BG_APPROPRIATE = new Background (new BackgroundFill (Color.HONEYDEW, null, null));
     public static final Background BG_SO_CLOSE = new Background (new BackgroundFill (Color.BEIGE, null, null));
     
+    public static final Font FONT_DEFAULT = Font.font (null, FontWeight.NORMAL, 12.0);
     public static final Font FONT_BOLD = Font.font (null, FontWeight.BOLD, 12.0);
     
     public static final Color COLOR_POSITIVE = Color.GREEN;
@@ -48,10 +49,13 @@ public class TBSStyles {
                 cell.setFont (FONT_BOLD);
             } else if (now.until (value, ChronoUnit.DAYS) <= 14) {
                 cell.setTextFill (COLOR_POSITIVE);
+                cell.setFont (FONT_DEFAULT);
             } else if (!withinMonth) {
                 cell.setTextFill (COLOR_NEUTRAL);
+                cell.setFont (FONT_DEFAULT);
             } else {
-                cell.setTextFill (COLOR_DEFAULT);                
+                cell.setTextFill (COLOR_DEFAULT); 
+                cell.setFont (FONT_DEFAULT);
             }
         };
     }
