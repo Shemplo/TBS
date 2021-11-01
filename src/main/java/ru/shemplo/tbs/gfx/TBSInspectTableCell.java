@@ -28,8 +28,8 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import ru.shemplo.tbs.Bond;
-import ru.shemplo.tbs.Coupon;
+import ru.shemplo.tbs.entity.Bond;
+import ru.shemplo.tbs.entity.Coupon;
 
 public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
 

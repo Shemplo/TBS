@@ -1,4 +1,4 @@
-package ru.shemplo.tbs;
+package ru.shemplo.tbs.entity;
 
 import java.util.Set;
 
@@ -16,9 +16,9 @@ public enum TBSProfile implements ITBSProfile {
         /*min months till end  */ 24L, 
         /*min coupons per year */ null, 
         /*max days till coupon */ 30L, 
-        /*min nominal          */ 1000.0,
+        /*min nominal (in RUB) */ 1000.0,
         /*min percentage       */ 6.0,
-        /*max price            */ 1000.0,
+        /*max price (in RUB)   */ 1000.0,
         /*currencies           */ Set.of (Currency.RUB), 
         /*coupon values modes  */ Set.of (CouponValueMode.FIXED, CouponValueMode.NOT_FIXED),
         /*banned emitters      */ Set.of (-1L)
@@ -30,9 +30,9 @@ public enum TBSProfile implements ITBSProfile {
         /*min months till end  */ 16L, 
         /*min coupons per year */ null, 
         /*max days till coupon */ 60L, 
-        /*min nominal          */ 1000.0,
+        /*min nominal (in RUB) */ 1000.0,
         /*min percentage       */ 10.0,
-        /*max price            */ 1100.0,
+        /*max price (in RUB)   */ 1100.0,
         /*currencies           */ Set.of (Currency.RUB), 
         /*coupon values modes  */ Set.of (CouponValueMode.FIXED, CouponValueMode.NOT_FIXED),
         /*banned emitters      */ Set.of (-1L)

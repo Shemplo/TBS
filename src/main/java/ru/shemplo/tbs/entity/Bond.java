@@ -1,4 +1,4 @@
-package ru.shemplo.tbs;
+package ru.shemplo.tbs.entity;
 
 import static ru.shemplo.tbs.TBSConstants.*;
 
@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.TreeSet;
@@ -16,6 +15,7 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import ru.shemplo.tbs.TBSCurrencyManager;
 import ru.shemplo.tbs.moex.MOEXRequests;
 import ru.shemplo.tbs.moex.MOEXResposeReader;
 import ru.shemplo.tbs.moex.xml.Data;
@@ -34,7 +34,7 @@ public class Bond implements Serializable {
     private Currency currency;
     
     @Setter
-    private int lots;
+    private int lots = 0;
     
     private LocalDate start, end, nextCoupon;
     private long couponsPerYear;
@@ -140,8 +140,8 @@ public class Bond implements Serializable {
     private boolean reliableCoupons;
     private double score = 0.0;
     
-    public void updateScore (ITBSProfile profile, Map <Currency, Double> rub2cur2coef) {
-        final var currencyCoeff = rub2cur2coef.getOrDefault (currency, 1.0);
+    public void updateScore (ITBSProfile profile) {
+        final var currencyCoeff = TBSCurrencyManager.getInstance ().getToRubCoefficient (currency);
         final var months = now.until (end, ChronoUnit.MONTHS);
         final var days = now.until (end, ChronoUnit.DAYS);
         

@@ -3,7 +3,6 @@ package ru.shemplo.tbs.gfx;
 import static ru.shemplo.tbs.TBSConstants.*;
 import static ru.shemplo.tbs.gfx.TBSStyles.*;
 
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -11,6 +10,8 @@ import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -27,8 +28,9 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import lombok.Getter;
-import ru.shemplo.tbs.Bond;
-import ru.shemplo.tbs.ITBSProfile;
+import ru.shemplo.tbs.TBSBondManager;
+import ru.shemplo.tbs.entity.Bond;
+import ru.shemplo.tbs.entity.ITBSProfile;
 
 public class TBSUIApplication extends Application {
 
@@ -36,6 +38,7 @@ public class TBSUIApplication extends Application {
     private static volatile TBSUIApplication instance;
     
     private TableView <Bond> tableScanned, tablePortfolio;
+    private TBBSPlannerTool plannerTool;
     private Text profileDetails;
     
     @Getter
@@ -67,17 +70,29 @@ public class TBSUIApplication extends Application {
         root.getChildren ().add (tabs);
         
         final var tabScanned = new Tab ("Scanned bonds");
-        tabScanned.setContent (tableScanned = initializeTable (TBSTableType.SCANNED));
+        tabScanned.setContent (makeTabContent (tableScanned = initializeTable (TBSTableType.SCANNED)));
         tabScanned.setClosable (false);
         tabs.getTabs ().add (tabScanned);
         
-        final var tabPortfolio = new Tab ("Portfolio");
-        tabPortfolio.setContent (tablePortfolio = initializeTable (TBSTableType.PORTFOLIO));
+        final var tabPortfolio = new Tab ("Portfolio bonds");
+        tabPortfolio.setContent (makeTabContent (tablePortfolio = initializeTable (TBSTableType.PORTFOLIO)));
         tabPortfolio.setClosable (false);
         tabs.getTabs ().add (tabPortfolio);
         
-        //root.getChildren ().add (table = initializeTable ());
+        final var tabPlanner = new Tab ("Planning tool");
+        tabPlanner.setContent (plannerTool = new TBBSPlannerTool ());
+        tabPlanner.setClosable (false);
+        tabs.getTabs ().add (tabPlanner);
+        
         instance = this;
+    }
+    
+    private Parent makeTabContent (Node content) {
+        final var wrapper = new VBox ();
+        wrapper.setPadding (new Insets (2, 0, 0, 0));
+        wrapper.getChildren ().add (content);
+        wrapper.setFillWidth (true);
+        return wrapper;
     }
     
     private TableView <Bond> initializeTable (TBSTableType type) {
@@ -181,11 +196,16 @@ public class TBSUIApplication extends Application {
         return column;
     }
     
-    public void applyData (ITBSProfile profile, List <Bond> bonds, List <Bond> portfolio) {
-        profileDetails.setText (profile.getProfileDescription ());
-        tablePortfolio.setItems (FXCollections.observableArrayList (portfolio));
-        tableScanned.setItems (FXCollections.observableArrayList (bonds));
+    public void applyData (ITBSProfile profile) {
         this.profile = profile;
+        
+        profileDetails.setText (profile.getProfileDescription ());
+        
+        final var bondManager = TBSBondManager.getInstance ();
+        tablePortfolio.setItems (FXCollections.observableArrayList (bondManager.getPortfolio ()));
+        tableScanned.setItems (FXCollections.observableArrayList (bondManager.getScanned ()));
+        
+        plannerTool.refreshData (profile);
     }
     
     public void openLinkInBrowser (String url) {

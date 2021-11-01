@@ -11,6 +11,9 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
 import lombok.extern.slf4j.Slf4j;
+import ru.shemplo.tbs.entity.CouponValueMode;
+import ru.shemplo.tbs.entity.ITBSProfile;
+import ru.shemplo.tbs.entity.TBSProfile;
 import ru.shemplo.tbs.xml.Profile;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 

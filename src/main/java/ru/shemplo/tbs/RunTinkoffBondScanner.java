@@ -6,29 +6,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.OffsetDateTime;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Scanner;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javafx.application.Application;
 import lombok.extern.slf4j.Slf4j;
+import ru.shemplo.tbs.entity.Dump;
+import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.shemplo.tbs.gfx.TBSUIApplication;
 import ru.tinkoff.invest.openapi.OpenApi;
-import ru.tinkoff.invest.openapi.model.rest.Candle;
-import ru.tinkoff.invest.openapi.model.rest.CandleResolution;
-import ru.tinkoff.invest.openapi.model.rest.Currency;
-import ru.tinkoff.invest.openapi.model.rest.InstrumentType;
 import ru.tinkoff.invest.openapi.model.rest.SandboxRegisterRequest;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApi;
 
@@ -85,92 +74,54 @@ public class RunTinkoffBondScanner {
                 client.getSandboxContext ().performRegistration (new SandboxRegisterRequest ()).join ();
             }
             
-            searchForBonds (profile, client);
+            loadCurrencyQuotes (profile, client);
         } catch (Exception e) {
             log.error ("Unexpected exception in client: " + e, e);
         }
     }
     
+    private static void loadCurrencyQuotes (ITBSProfile profile, OpenApi client) {
+        final var currencyManager = TBSCurrencyManager.getInstance ();
+        currencyManager.initialize (profile, client, log);
+        
+        log.info ("Quotes: {}", currencyManager.getStringQuotes ());
+        
+        searchForBonds (profile, client);
+    }
+    
     private static void searchForBonds (ITBSProfile profile, OpenApi client) {
-        log.info ("Loading bonds from portfolio (with data from Tinkoff and MOEX)...");
-        final var portfolio = searchForPortfolio (profile, client);
-        //searchForFavorites (profile, client);
+        final var bondManager = TBSBondManager.getInstance ();
+        bondManager.initialize (profile, client, log);
         
-        log.info ("Loading data abount bonds from Tinkoff and MOEX...");
-        final var bonds = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
-            . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ())).parallel ()
-            . map (Bond::new).filter (profile::testBond).limit (profile.getMaxResults ())
-            . collect (Collectors.toList ());
-        
-        log.info ("Loating current currencies quotes from Tinkoff...");
-        final var cur2coef = client.getMarketContext ().getMarketCurrencies ().join ().getInstruments ().stream ()
-            . map (cur -> {
-                final var currency = TBSUtils.getCurrencyByTicker (cur.getTicker ());
-                if (currency.isEmpty ()) { return null; }
-                
-                final var now = OffsetDateTime.now ();
-                final var coeff = client.getMarketContext ().getMarketCandles (
-                    cur.getFigi (), now.minusDays (3), now, CandleResolution.DAY
-                ).join ().flatMap (res -> res.getCandles ().stream ().reduce ((acc, candle) -> {
-                    return candle.getTime ().isAfter (acc.getTime ()) ? candle : acc;
-                })).map (Candle::getC).orElse (BigDecimal.ONE).doubleValue ();
-                
-                return Map.entry (currency.get (), coeff);
-            })
-            . filter (Objects::nonNull)
-            . collect (Collectors.toMap (Entry::getKey, Entry::getValue));
-        log.info ("Quotes: {}", cur2coef);
-        
-        analizeBonds (profile, cur2coef, bonds, portfolio);
+        analizeBonds (profile);
     }
     
-    private static List <Bond> searchForPortfolio (ITBSProfile profile, OpenApi client) {
-        return client.getUserContext ().getAccounts ().join ().getAccounts ().parallelStream ().flatMap (acc -> {
-            return client.getPortfolioContext ().getPortfolio (acc.getBrokerAccountId ()).join ().getPositions ().stream ();
-        }).filter (pos -> pos.getInstrumentType () == InstrumentType.BOND).map (Bond::new).collect (Collectors.toList ());
+    private static void analizeBonds (ITBSProfile profile) {
+        final var bondManager = TBSBondManager.getInstance ();
+        log.info ("Analizing loaded bonds (total: {} + {})...", 
+            bondManager.getScanned ().size (), 
+            bondManager.getPortfolio ().size ()
+        );
+        
+        bondManager.analize (profile);
+        dumpBonds (profile);
     }
     
-    @SuppressWarnings ("unused") // Not supported by Tinkoff Open API yet
-    private static void searchForFavorites (ITBSProfile profile, OpenApi client) {
-        
-    }
-    
-    private static void analizeBonds (
-        ITBSProfile profile, Map <Currency, Double> cur2coef, 
-        List <Bond> bonds, List <Bond> portfolio
-    ) {
-        
-        log.info ("Analizing loaded bonds (total: {} + {})...", bonds.size (), portfolio.size ());
-        final var ticker2bonds = portfolio.stream ().collect (Collectors.toMap (
-            Bond::getCode, Function.identity (), TBSUtils::aOrB
-        ));
-        
-        portfolio.forEach (bond -> {
-            bond.updateScore (profile, cur2coef);
-        });
-        
-        bonds.forEach (bond -> {
-            bond.setLots (TBSUtils.mapIfNN (ticker2bonds.get (bond.getCode ()), Bond::getLots, 0));
-            bond.updateScore (profile, cur2coef);
-        });
-        
-        portfolio.sort (Comparator.comparing (Bond::getLots).reversed ());
-        bonds.sort (Comparator.comparing (Bond::getScore).reversed ());
-        dumpBonds (profile, bonds, portfolio);
-    }
-    
-    private static void dumpBonds (ITBSProfile profile, List <Bond> bonds, List <Bond> portfolio) {
+    private static void dumpBonds (ITBSProfile profile) {
         log.info ("Dumping bonds to a binary file...");
+        final var currencyManager = TBSCurrencyManager.getInstance ();
+        final var bondManager = TBSBondManager.getInstance ();
+        
         try (
             final var fos = new FileOutputStream (DUMP_FILE);
             final var oos = new ObjectOutputStream (fos);
-        ) {
-            oos.writeObject (new Dump (profile, bonds, portfolio));
+        ) { 
+            oos.writeObject (new Dump (profile, currencyManager, bondManager));
         } catch (IOException ioe) {
             log.error ("Failed to dump bonds (" + ioe + ")", ioe);
         }
         
-        showResults (profile, bonds, portfolio);
+        showResults (profile);
     }
     
     private static void restoreBonds () {
@@ -180,13 +131,15 @@ public class RunTinkoffBondScanner {
             final var ois = new ObjectInputStream (fis);
         ) {
             final var dump = (Dump) ois.readObject ();
-            showResults (dump.getProfile (), dump.getBonds (), dump.getPortfolio ());
+            dump.getBondManager ().updateMapping ();
+            
+            showResults (dump.getProfile ());
         } catch (IOException | ClassNotFoundException ioe) {
             log.error ("Failed to dump bonds (" + ioe + ")", ioe);
         }
     }
     
-    private static void showResults (ITBSProfile profile, List <Bond> bonds, List <Bond> portfolio) {
+    private static void showResults (ITBSProfile profile) {
         log.info ("Starting UI...");
         new Thread (() -> {
             Application.launch (TBSUIApplication.class);
@@ -195,7 +148,7 @@ public class RunTinkoffBondScanner {
         while (TBSUIApplication.getInstance () == null) {}
         
         log.info ("Show results in UI...");
-        TBSUIApplication.getInstance ().applyData (profile, bonds, portfolio);
+        TBSUIApplication.getInstance ().applyData (profile);
     }
     
 }

@@ -5,7 +5,7 @@ import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import ru.shemplo.tbs.Bond;
+import ru.shemplo.tbs.entity.Bond;
 
 public class TBSExploreTableCell extends TBSTableCell <Bond, Void> {
 

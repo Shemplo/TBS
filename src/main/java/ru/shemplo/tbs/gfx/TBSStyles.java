@@ -9,7 +9,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import ru.shemplo.tbs.CouponValueMode;
+import ru.shemplo.tbs.entity.CouponValueMode;
 
 public class TBSStyles {
     

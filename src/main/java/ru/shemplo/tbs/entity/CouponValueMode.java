@@ -1,4 +1,4 @@
-package ru.shemplo.tbs;
+package ru.shemplo.tbs.entity;
 
 public enum CouponValueMode {
     

@@ -1,8 +1,9 @@
-package ru.shemplo.tbs;
+package ru.shemplo.tbs.entity;
 
 import java.io.Serializable;
 import java.util.Set;
 
+import ru.shemplo.tbs.TBSCurrencyManager;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 public interface ITBSProfile extends Serializable {
@@ -48,6 +49,7 @@ public interface ITBSProfile extends Serializable {
     }
     
     default boolean testBond (Bond bond) {
+        final var currencyCoeff = TBSCurrencyManager.getInstance ().getToRubCoefficient (bond.getCurrency ());
         return bond != null && getCurrencies ().contains (bond.getCurrency ())
             && getCouponValuesModes ().contains (bond.getCouponValuesMode ())
             && !getBannedEmitters ().contains (bond.getEmitterId ())
@@ -55,14 +57,14 @@ public interface ITBSProfile extends Serializable {
             && (getCouponsPerYear () == null ? true : bond.getCouponsPerYear () >= getCouponsPerYear ())
             && (getMonthsTillEnd () == null ? true : bond.getMonthToEnd () >= getMonthsTillEnd ())
             && (getMinPercentage () == null ? true : bond.getPercentage () >= getMinPercentage ())
-            && (getMaxPrice () == null ? true : bond.getLastPrice () <= getMaxPrice ())
-            && (getNominalValue () == null ? true : bond.getNominalValue () >= getNominalValue ());
+            && (getMaxPrice () == null ? true : bond.getLastPrice () * currencyCoeff <= getMaxPrice ())
+            && (getNominalValue () == null ? true : bond.getNominalValue () * currencyCoeff >= getNominalValue ());
     }
     
     default String getProfileDescription () {
         return String.format (
             "Name: %s,  Max results: %d,  Inflation: %.1f%%,  Months: %d [↥],  C / Y: %d [↥],  Days to C: %d [↧],"
-            + "  Nominal: %.1f [↥],  MOEX %%: %.1f [↥],  Price: %.1f [↧],  Currencies: %s,  C modes: %s", 
+            + "  Nominal: %.1f (RUB) [↥],  MOEX %%: %.1f [↥],  Price: %.1f (RUB) [↧],  Currencies: %s,  C modes: %s", 
             name (), getMaxResults (), getInflation () * 100, getMonthsTillEnd (), getCouponsPerYear (), 
             getMaxDaysToCoupon (), getNominalValue (), getMinPercentage (), getMaxPrice (), getCurrencies (), 
             getCouponValuesModes ()

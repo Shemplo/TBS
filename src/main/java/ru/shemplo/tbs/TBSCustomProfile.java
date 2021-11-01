@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import ru.shemplo.tbs.entity.CouponValueMode;
+import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 @Getter
