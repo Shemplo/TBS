@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
+import lombok.Setter;
 import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.model.rest.Candle;
@@ -20,6 +21,7 @@ public class TBSCurrencyManager implements Serializable {
     
     private static final long serialVersionUID = 1L;
     
+    @Setter
     private static volatile TBSCurrencyManager instance;
     
     public static TBSCurrencyManager getInstance () {

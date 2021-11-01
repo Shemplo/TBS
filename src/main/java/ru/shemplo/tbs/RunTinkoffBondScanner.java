@@ -133,6 +133,9 @@ public class RunTinkoffBondScanner {
             final var dump = (Dump) ois.readObject ();
             dump.getBondManager ().updateMapping ();
             
+            TBSCurrencyManager.setInstance (dump.getCurrencyManager ());
+            TBSBondManager.setInstance (dump.getBondManager ());
+            
             showResults (dump.getProfile ());
         } catch (IOException | ClassNotFoundException ioe) {
             log.error ("Failed to dump bonds (" + ioe + ")", ioe);

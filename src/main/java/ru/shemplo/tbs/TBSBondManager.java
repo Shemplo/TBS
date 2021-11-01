@@ -1,6 +1,7 @@
 package ru.shemplo.tbs;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
-import lombok.Getter;
+import lombok.Setter;
 import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.tinkoff.invest.openapi.OpenApi;
@@ -19,6 +20,7 @@ public class TBSBondManager implements Serializable {
     
     private static final long serialVersionUID = 1L;
     
+    @Setter
     private static volatile TBSBondManager instance;
     
     public static TBSBondManager getInstance () {
@@ -33,10 +35,7 @@ public class TBSBondManager implements Serializable {
         return instance;
     }
     
-    @Getter
     private List <Bond> scanned;
-    
-    @Getter
     private List <Bond> portfolio;
     
     private transient Map <String, Bond> ticker2bond = new HashMap <> ();
@@ -64,6 +63,10 @@ public class TBSBondManager implements Serializable {
      * Call this method only after deserialization of this object
      */
     public void updateMapping () {
+        if (ticker2bond == null) {
+            ticker2bond = new HashMap <> ();
+        }
+        
         for (final var bond : scanned) {
             ticker2bond.put (bond.getCode (), bond);
         }
@@ -92,6 +95,14 @@ public class TBSBondManager implements Serializable {
     
     public Bond getBondByTicker (String ticker) {
         return ticker2bond.get (ticker);
+    }
+    
+    public List <Bond> getScanned () {
+        return Collections.unmodifiableList (scanned);
+    }
+    
+    public List <Bond> getPortfolio () {
+        return Collections.unmodifiableList (portfolio);
     }
     
 }
