@@ -43,18 +43,20 @@ public class TBSStyles {
     
     public static <O> BiConsumer <TBSTableCell <O, LocalDate>, LocalDate> sameMonth (LocalDate now) {
         return (cell, value) -> {
-            final var withinMonth = now.until (value, ChronoUnit.DAYS) <= 28;
-            if (withinMonth && value.getMonthValue () == now.getMonthValue ()) {
+            final var withinMonth = value.getMonthValue () == now.getMonthValue ();
+            final var days = now.until (value, ChronoUnit.DAYS);
+            
+            if (withinMonth && days <= 14) {
                 cell.setTextFill (COLOR_POSITIVE);
                 cell.setFont (FONT_BOLD);
-            } else if (now.until (value, ChronoUnit.DAYS) <= 14) {
+            } else if (days <= 28) {
                 cell.setTextFill (COLOR_POSITIVE);
                 cell.setFont (FONT_DEFAULT);
-            } else if (!withinMonth) {
-                cell.setTextFill (COLOR_NEUTRAL);
+            } else if (days <= 42) {
+                cell.setTextFill (COLOR_DEFAULT); 
                 cell.setFont (FONT_DEFAULT);
             } else {
-                cell.setTextFill (COLOR_DEFAULT); 
+                cell.setTextFill (COLOR_NEUTRAL);
                 cell.setFont (FONT_DEFAULT);
             }
         };
@@ -64,6 +66,8 @@ public class TBSStyles {
         return (cell, value) -> {
             if (value == CouponValueMode.FIXED) {
                 cell.setTextFill (COLOR_POSITIVE);
+            } else if (value == CouponValueMode.NOT_FIXED) {
+                cell.setTextFill (COLOR_DEFAULT);
             } else if (value == CouponValueMode.UNDEFINED) {
                 cell.setTextFill (COLOR_NEUTRAL);
             }
