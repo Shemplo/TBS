@@ -28,13 +28,14 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.Coupon;
 
 public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
 
     public TBSInspectTableCell () {
-        super (__ -> null, null);
+        super ((__, ___) -> null, null);
         
         setTextAlignment (TextAlignment.CENTER);
         setAlignment (Pos.CENTER);
@@ -122,7 +123,10 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
         BiConsumer <TBSTableCell <Coupon, T>, T> highlighter
     ) {
         final var column = new TableColumn <Coupon, Coupon> (name);
-        column.setCellFactory (__ -> new TBSTableCell <> (converter, highlighter, textAlignment));
+        column.setCellFactory (__ -> new TBSTableCell <> (
+            (r, coupon) -> TBSUtils.mapIfNN (converter, c -> c.apply (coupon), null), 
+            highlighter, textAlignment)
+        );
         column.setCellValueFactory (cell -> {
             return new SimpleObjectProperty <> (cell.getValue ());
         });

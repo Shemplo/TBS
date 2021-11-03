@@ -3,6 +3,7 @@ package ru.shemplo.tbs;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -35,6 +36,12 @@ public class TBSUtils {
     
     public static <F> void doIfNN (F value, Consumer <F> action) {
         if (value != null) { action.accept (value); }
+    }
+    
+    public static <F, S> void doIf2NN (F value, S value2, BiConsumer <F, S> action) {
+        if (value != null && value2 != null) { 
+            action.accept (value, value2); 
+        }
     }
     
     public static Optional <Currency> getCurrencyByTicker (String ticker) {

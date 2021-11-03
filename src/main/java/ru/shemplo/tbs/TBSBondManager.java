@@ -35,6 +35,10 @@ public class TBSBondManager implements Serializable {
         return instance;
     }
     
+    public static String getBondName (String ticker) {
+        return TBSUtils.map2IfNN (ticker, getInstance ()::getBondByTicker, Bond::getName, "");
+    }
+    
     private List <Bond> scanned;
     private List <Bond> portfolio;
     

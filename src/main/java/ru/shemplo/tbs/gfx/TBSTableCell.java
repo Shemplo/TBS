@@ -1,11 +1,12 @@
 package ru.shemplo.tbs.gfx;
 
 import java.util.function.BiConsumer;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
+import javafx.scene.control.TableRow;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.Background;
@@ -14,15 +15,15 @@ import ru.shemplo.tbs.TBSUtils;
 
 public class TBSTableCell <F, S> extends TableCell <F, F> {
     
-    private final BiConsumer <TBSTableCell <F, S>, S> highlighter;
-    private final Function <F, S> converter;
+    protected final BiConsumer <TBSTableCell <F, S>, S> highlighter;
+    protected final BiFunction <TableRow <F>, F, S> converter;
     
     @Getter
     private Background defaultBackground;
     
     private static final PseudoClass HOVER_PSEUDO_CLASS = PseudoClass.getPseudoClass ("hover");
     
-    public TBSTableCell (Function <F, S> converter, BiConsumer <TBSTableCell <F, S>, S> highlighter) {
+    public TBSTableCell (BiFunction <TableRow <F>, F, S> converter, BiConsumer <TBSTableCell <F, S>, S> highlighter) {
         this.converter = converter; this.highlighter = highlighter;
         
         hoverProperty ().addListener ((__, ___, hovered) -> {
@@ -42,7 +43,7 @@ public class TBSTableCell <F, S> extends TableCell <F, F> {
         });
     }
     
-    public TBSTableCell (Function <F, S> converter, BiConsumer <TBSTableCell <F, S>, S> highlighter, Pos textAlignment) {
+    public TBSTableCell (BiFunction <TableRow <F>, F, S> converter, BiConsumer <TBSTableCell <F, S>, S> highlighter, Pos textAlignment) {
         this (converter, highlighter);
         setAlignment (textAlignment);
     }
@@ -63,8 +64,8 @@ public class TBSTableCell <F, S> extends TableCell <F, F> {
         setGraphic (null);
     }
     
-    private String getStringValue (F item, boolean updateHighlights) {
-        final var value = converter.apply (item);
+    protected String getStringValue (F item, boolean updateHighlights) {
+        final var value = converter.apply (getTableRow (), item);
         if (updateHighlights) {
             TBSUtils.doIfNN (highlighter, h -> h.accept (this, value));
         }
