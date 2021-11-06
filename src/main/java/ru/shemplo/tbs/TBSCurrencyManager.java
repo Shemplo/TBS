@@ -1,5 +1,7 @@
 package ru.shemplo.tbs;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -10,7 +12,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
-import lombok.Setter;
 import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.model.rest.Candle;
@@ -21,7 +22,6 @@ public class TBSCurrencyManager implements Serializable {
     
     private static final long serialVersionUID = 1L;
     
-    @Setter
     private static volatile TBSCurrencyManager instance;
     
     public static TBSCurrencyManager getInstance () {
@@ -64,6 +64,11 @@ public class TBSCurrencyManager implements Serializable {
     
     public double getToRubCoefficient (Currency currency) {
         return TBSUtils.mapIf2NN (currency2coefficient, currency, (m, c) -> m.get (c), 1.0);
+    }
+    
+    private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject ();
+        instance = this;
     }
     
 }

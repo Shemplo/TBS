@@ -55,7 +55,7 @@ public interface ITBSProfile extends Serializable {
             && !getBannedEmitters ().contains (bond.getEmitterId ())
             && (getMaxDaysToCoupon () == null ? true : bond.getDaysToCoupon () <= getMaxDaysToCoupon ())
             && (getCouponsPerYear () == null ? true : bond.getCouponsPerYear () >= getCouponsPerYear ())
-            && (getMonthsTillEnd () == null ? true : bond.getMonthToEnd () >= getMonthsTillEnd ())
+            && (getMonthsTillEnd () == null ? true : bond.getMonthsToEnd () >= getMonthsTillEnd ())
             && (getMinPercentage () == null ? true : bond.getPercentage () >= getMinPercentage ())
             && (getMaxPrice () == null ? true : bond.getLastPrice () * currencyCoeff <= getMaxPrice ())
             && (getNominalValue () == null ? true : bond.getNominalValue () * currencyCoeff >= getNominalValue ());

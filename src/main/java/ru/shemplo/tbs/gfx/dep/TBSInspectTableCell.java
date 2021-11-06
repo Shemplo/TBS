@@ -1,4 +1,4 @@
-package ru.shemplo.tbs.gfx;
+package ru.shemplo.tbs.gfx.dep;
 
 import static ru.shemplo.tbs.gfx.TBSStyles.*;
 
@@ -28,11 +28,14 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.Coupon;
+import ru.shemplo.tbs.gfx.TBSApplicationIcons;
+import ru.shemplo.tbs.gfx.TBSStyles;
+import ru.shemplo.tbs.gfx.TBSUIApplication;
+import ru.shemplo.tbs.gfx.table.TBSTableCell;
 
-public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
+public class TBSInspectTableCell extends TBSTableCell <Bond, Bond> {
 
     public TBSInspectTableCell () {
         super ((__, ___) -> null, null);
@@ -95,6 +98,7 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
         final var dateColumn = makeTBSTableColumn ("Date", Coupon::getDate, false, 100.0, null);
         table.getColumns ().add (dateColumn);
         
+        /*
         final var amountColumn = makeTBSTableColumn ("Amount", Coupon::getAmount, false, 90.0, grThreshold);
         table.getColumns ().add (amountColumn);
         
@@ -106,6 +110,7 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
         
         final var creditColumn = makeTBSTableColumn ("Credit", c -> c.getCredit (profile, now, end), false, 90.0, grThreshold);
         table.getColumns ().add (creditColumn);
+        */
         
         return table;
     }
@@ -123,10 +128,12 @@ public class TBSInspectTableCell extends TBSTableCell <Bond, Void> {
         BiConsumer <TBSTableCell <Coupon, T>, T> highlighter
     ) {
         final var column = new TableColumn <Coupon, Coupon> (name);
+        /*
         column.setCellFactory (__ -> new TBSTableCell <> (
             (r, coupon) -> TBSUtils.mapIfNN (converter, c -> c.apply (coupon), null), 
             highlighter, textAlignment)
         );
+        */
         column.setCellValueFactory (cell -> {
             return new SimpleObjectProperty <> (cell.getValue ());
         });

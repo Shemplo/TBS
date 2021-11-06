@@ -2,13 +2,17 @@ package ru.shemplo.tbs;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javafx.beans.property.Property;
+import javafx.beans.value.ChangeListener;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 public class TBSUtils {
@@ -52,6 +56,39 @@ public class TBSUtils {
         };
         
         return Optional.ofNullable (currency);
+    }
+    
+    public static <F, S> void bindBidirectionalMapping (
+        Property <F> f, Property <S> s, 
+        Throwing3Function <F, S, Boolean, S, RuntimeException> f2s, 
+        Throwing3Function <S, F, Boolean, F, RuntimeException> s2f
+    ) {
+        final var lockF = new AtomicReference <> (f.getValue ());
+        final var lockS = new AtomicReference <> (s.getValue ());
+        
+        final var listenerF = (ChangeListener <F>) (__, ___, fv) -> {
+            System.out.println (String.format (
+                "New F: %s, S: %s, lock F: %s, lock S: %s", 
+                fv, s.getValue (), lockF.get (), lockS.get ()
+            )); // SYSOUT
+            if (!Objects.equals (lockS.get (), f2s.apply (fv, s.getValue (), false))) {                
+                lockS.set (f2s.apply (fv, s.getValue (), true));
+                s.setValue (lockS.get ());
+            }
+        };
+        final var listenerS = (ChangeListener <S>) (__, ___, sv) -> {
+            System.out.println (String.format (
+                "F: %s, New S: %s, lock F: %s, lock S: %s", 
+                f.getValue (), sv, lockF.get (), lockS.get ()
+            )); // SYSOUT
+            if (!Objects.equals (lockF.get (), s2f.apply (sv, f.getValue (), false))) {                
+                lockF.set (s2f.apply (sv, f.getValue (), true));
+                f.setValue (lockF.get ());
+            }
+        };
+        
+        f.addListener (listenerF);
+        s.addListener (listenerS);
     }
     
 }

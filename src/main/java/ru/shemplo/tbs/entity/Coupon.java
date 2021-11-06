@@ -2,7 +2,6 @@ package ru.shemplo.tbs.entity;
 
 import static ru.shemplo.tbs.TBSConstants.*;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.NavigableSet;
@@ -16,7 +15,7 @@ import ru.shemplo.tbs.moex.xml.Row;
 @Getter
 @ToString
 @AllArgsConstructor
-public class Coupon implements Serializable {
+public class Coupon extends AbstractObservableEntity <ICoupon> implements ICoupon {
     
     private static final long serialVersionUID = 1L;
 

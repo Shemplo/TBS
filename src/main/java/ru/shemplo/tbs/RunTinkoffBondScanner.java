@@ -10,9 +10,10 @@ import java.util.Scanner;
 
 import javafx.application.Application;
 import lombok.extern.slf4j.Slf4j;
+import ru.shemplo.tbs.TBSPlanner.DistributionCategory;
 import ru.shemplo.tbs.entity.Dump;
 import ru.shemplo.tbs.entity.ITBSProfile;
-import ru.shemplo.tbs.entity.PlanDump;
+import ru.shemplo.tbs.entity.PlanningDump;
 import ru.shemplo.tbs.gfx.TBSUIApplication;
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.model.rest.SandboxRegisterRequest;
@@ -38,12 +39,14 @@ public class RunTinkoffBondScanner {
         if (DUMP_FILE.exists () && DUMP_FILE.canRead ()) {
             System.out.print (
                 "There are dumped bonds (" + new Date (DUMP_FILE.lastModified ()) + "). "
-                + "Do you want to restore them (`y` or any other value to deny)? "
+                + "Do you want to restore them (`y`, `q` to exit or any other value to deny)? "
             );
             
             final var decision = scanner.next ();
             if ("y".equals (decision)) {
                 restoreBonds ();
+            } else if ("q".equals (decision)) {
+                return;
             } else {
                 initializeProfile (profile);
             }
@@ -123,19 +126,15 @@ public class RunTinkoffBondScanner {
         );
         
         if (dump != null) {
-            dump.getBondManager ().updateMapping ();
-            
-            TBSCurrencyManager.setInstance (dump.getCurrencyManager ());
-            TBSBondManager.setInstance (dump.getBondManager ());
-            
-            if (TBSPlanner.DUMP_FILE.exists ()) {                
-                final var planDump = TBSDumpService.getInstance ().restore (
-                    TBSPlanner.DUMP_FILE.getName (), PlanDump.class
+            if (TBSPlanner.DUMP_FILE.exists ()) {
+                TBSDumpService.getInstance ().restore (
+                    TBSPlanner.DUMP_FILE.getName (), 
+                    PlanningDump.class
                 );
-                
-                if (planDump != null) {
-                    TBSPlanner.getInstance ().updatePool (planDump);
-                }
+            } else {
+                TBSPlanner.getInstance ().updateParameters (
+                    DistributionCategory.SUM, 0.0, 0.0
+                );
             }
             
             showResults (dump.getProfile ());

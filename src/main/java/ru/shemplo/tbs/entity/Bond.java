@@ -2,7 +2,6 @@ package ru.shemplo.tbs.entity;
 
 import static ru.shemplo.tbs.TBSConstants.*;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ import ru.tinkoff.invest.openapi.model.rest.PortfolioPosition;
 
 @Getter
 @ToString
-public class Bond implements Serializable {
+public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     
     private static final long serialVersionUID = 1L;
     
@@ -128,7 +127,7 @@ public class Bond implements Serializable {
         return end == null ? 0L : now.until (end, ChronoUnit.YEARS);
     }
     
-    public long getMonthToEnd () {
+    public long getMonthsToEnd () {
         return end == null ? 0L : now.until (end, ChronoUnit.MONTHS);
     }
     

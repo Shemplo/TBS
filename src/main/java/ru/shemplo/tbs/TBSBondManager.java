@@ -1,5 +1,7 @@
 package ru.shemplo.tbs;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
@@ -10,7 +12,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
-import lombok.Setter;
 import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.tinkoff.invest.openapi.OpenApi;
@@ -20,7 +21,6 @@ public class TBSBondManager implements Serializable {
     
     private static final long serialVersionUID = 1L;
     
-    @Setter
     private static volatile TBSBondManager instance;
     
     public static TBSBondManager getInstance () {
@@ -36,13 +36,29 @@ public class TBSBondManager implements Serializable {
     }
     
     public static String getBondName (String ticker) {
-        return TBSUtils.map2IfNN (ticker, getInstance ()::getBondByTicker, Bond::getName, "");
+        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getName, "");
+    }
+    
+    public static Double getBondScore (String ticker) {
+        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, true), Bond::getScore, 0.0);
+    }
+    
+    public static Double getBondPrice (String ticker) {
+        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getLastPrice, null);
+    }
+    
+    public static Bond getBondByTicker (String ticker, boolean scannedPreferred) {
+        final var portfolio = getInstance ().ticker2portfolio.get (ticker);
+        final var scanned = getInstance ().ticker2scanned.get (ticker);
+        
+        return scannedPreferred ? TBSUtils.aOrB (scanned, portfolio) : TBSUtils.aOrB (portfolio, scanned);
     }
     
     private List <Bond> scanned;
     private List <Bond> portfolio;
     
-    private transient Map <String, Bond> ticker2bond = new HashMap <> ();
+    private transient Map <String, Bond> ticker2portfolio = new HashMap <> ();
+    private transient Map <String, Bond> ticker2scanned = new HashMap <> ();
     
     public void initialize (ITBSProfile profile, OpenApi client, Logger log) {
         log.info ("Loading bonds from portfolio (with data from Tinkoff and MOEX)...");
@@ -63,32 +79,13 @@ public class TBSBondManager implements Serializable {
         updateMapping ();
     }
     
-    /**
-     * Call this method only after deserialization of this object
-     */
-    public void updateMapping () {
-        if (ticker2bond == null) {
-            ticker2bond = new HashMap <> ();
-        }
-        
-        for (final var bond : scanned) {
-            ticker2bond.put (bond.getCode (), bond);
-        }
-        
-        // Portfolio goes after scanned to override scanned if it exists 
-        // (Because portfolio instance has information about lots)
-        for (final var bond : portfolio) { 
-            ticker2bond.put (bond.getCode (), bond);
-        }
-    }
-    
     public void analize (ITBSProfile profile) {
         portfolio.forEach (bond -> {
             bond.updateScore (profile);
         });
         
         scanned.forEach (bond -> {
-            final var sameBond = getBondByTicker (bond.getCode ());
+            final var sameBond = getBondByTicker (bond.getCode (), false);
             bond.setLots (TBSUtils.mapIfNN (sameBond, Bond::getLots, 0));
             bond.updateScore (profile);
         });
@@ -97,16 +94,37 @@ public class TBSBondManager implements Serializable {
         scanned.sort (Comparator.comparing (Bond::getScore).reversed ());
     }
     
-    public Bond getBondByTicker (String ticker) {
-        return ticker2bond.get (ticker);
-    }
-    
     public List <Bond> getScanned () {
         return Collections.unmodifiableList (scanned);
     }
     
     public List <Bond> getPortfolio () {
         return Collections.unmodifiableList (portfolio);
+    }
+    
+    private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject ();
+        instance = this;
+        
+        updateMapping ();
+    }
+    
+    private void updateMapping () {
+        if (ticker2portfolio == null) {
+            ticker2portfolio = new HashMap <> ();
+        }
+        
+        for (final var bond : portfolio) { 
+            ticker2portfolio.put (bond.getCode (), bond);
+        }
+        
+        if (ticker2scanned == null) {
+            ticker2scanned = new HashMap <> ();
+        }
+        
+        for (final var bond : scanned) {
+            ticker2scanned.put (bond.getCode (), bond);
+        }
     }
     
 }

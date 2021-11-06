@@ -5,7 +5,6 @@ import static ru.shemplo.tbs.gfx.TBSStyles.*;
 import com.panemu.tiwulfx.control.NumberField;
 
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,7 +15,6 @@ import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Slider;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
@@ -28,12 +26,13 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import ru.shemplo.tbs.MappingROProperty;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.TBSPlanner.DistributionCategory;
 import ru.shemplo.tbs.TBSUtils;
+import ru.shemplo.tbs.entity.IPlanningBond;
 import ru.shemplo.tbs.entity.ITBSProfile;
-import ru.shemplo.tbs.entity.PlanningBond;
 
 public class TBBSPlannerTool extends HBox {
     
@@ -41,7 +40,7 @@ public class TBBSPlannerTool extends HBox {
     private ChoiceBox <DistributionCategory> typeSelect;
     private DoubleProperty diversificationProperty;
     private NumberField <Double> amountField;
-    private TableView <PlanningBond> table;
+    private TableView <IPlanningBond> table;
     
     public TBBSPlannerTool () {
         setPadding (new Insets (2, 0, 0, 0));
@@ -52,7 +51,7 @@ public class TBBSPlannerTool extends HBox {
         getChildren ().add (table = makeTable ());
         HBox.setHgrow (table, Priority.ALWAYS);
         
-        TBSPlanner.getInstance ().getBonds ().addListener ((ListChangeListener <PlanningBond>) (change -> {
+        TBSPlanner.getInstance ().getBonds ().addListener ((ListChangeListener <IPlanningBond>) (change -> {
             TBSPlanner.getInstance ().updateDistribution ();
             updateChart ();
         }));
@@ -68,13 +67,13 @@ public class TBBSPlannerTool extends HBox {
         final var line1 = new HBox (4);
         column.getChildren ().add (line1);
         
-        final var sumHeader = new Text ("To distribute");
-        sumHeader.setWrappingWidth (100.0);
-        line1.getChildren ().add (sumHeader);
+        final var typeHeader = new Text ("To distribute");
+        typeHeader.setWrappingWidth (100.0);
+        line1.getChildren ().add (typeHeader);
         
-        final var lotsHeader = new Text ("Amount");
-        lotsHeader.setWrappingWidth (200.0);
-        line1.getChildren ().add (lotsHeader);
+        final var amounHeader = new Text ("Amount");
+        amounHeader.setWrappingWidth (200.0);
+        line1.getChildren ().add (amounHeader);
         
         final var line2 = new HBox (4);
         VBox.setMargin (line2, new Insets (0, 0, 12, 0));
@@ -82,13 +81,13 @@ public class TBBSPlannerTool extends HBox {
         
         typeSelect = new ChoiceBox <DistributionCategory> ();
         typeSelect.getItems ().setAll (DistributionCategory.values ());
-        typeSelect.setMinWidth (sumHeader.getWrappingWidth ());  
+        typeSelect.setMinWidth (typeHeader.getWrappingWidth ());  
         typeSelect.setValue (DistributionCategory.SUM);
         typeSelect.setValue (TBSPlanner.getInstance ().getCategory ());
         line2.getChildren ().add (typeSelect);
         
         amountField = new NumberField <> (Double.class);
-        amountField.setMinWidth (lotsHeader.getWrappingWidth ());
+        amountField.setMinWidth (amounHeader.getWrappingWidth ());
         amountField.setValue (TBSPlanner.getInstance ().getAmount ());
         line2.getChildren ().add (amountField);
         
@@ -123,18 +122,47 @@ public class TBBSPlannerTool extends HBox {
         
         distributionChart = new LineChart <> (new NumberAxis (), new NumberAxis ());
         distributionChart.setMinWidth (typeSelect.getMinWidth () + amountField.getMinWidth () + line2.getSpacing ());
-        distributionChart.setMaxWidth (distributionChart.getMinWidth ());
-        distributionChart.setMaxHeight (distributionChart.getMaxWidth ());
+        distributionChart.setMaxWidth  (distributionChart.getMinWidth ());
+        distributionChart.setMaxHeight (distributionChart.getMaxWidth () * 1.5);
+        VBox.setMargin (distributionChart, new Insets (0, 0, 24, 0));
         distributionChart.setAnimated (false);
         column.getChildren ().add (distributionChart);
+        
+        final var line5 = new HBox (4);
+        column.getChildren ().add (line5);
+        
+        final var priceHeader = new Text ("Total price");
+        priceHeader.setWrappingWidth (200.0);
+        line5.getChildren ().add (priceHeader);
+        
+        final var lotsHeader = new Text ("Total lots");
+        amounHeader.setWrappingWidth (100.0);
+        line5.getChildren ().add (lotsHeader);
+        
+        final var line6 = new HBox (4);
+        column.getChildren ().add (line6);
+        
+        final var priceField = new NumberField <> ();
+        priceField.valueProperty ().bindBidirectional (TBSPlanner.getInstance ().getSummaryPrice ());
+        priceField.setMinWidth (200.0); priceField.setMaxWidth (priceField.getMinWidth ());
+        priceField.setEditable (false);
+        //priceField.setDisable (true);
+        line6.getChildren ().add (priceField);
+        
+        final var lotsField = new NumberField <> ();
+        lotsField.valueProperty ().bindBidirectional (TBSPlanner.getInstance ().getSummaryLots ());
+        lotsField.setMinWidth (100.0); lotsField.setMaxWidth (lotsField.getMinWidth ());
+        lotsField.setEditable (false);
+        //priceField.setDisable (true);
+        line6.getChildren ().add (lotsField);
         
         final var realSeries = new Series <Number, Number> ();
         realSeries.setName ("Real distrubution");
         distributionChart.getData ().add (realSeries);
         
-        final var idealSeries = new Series <Number, Number> ();
-        idealSeries.setName ("Ideal distrubution");
-        distributionChart.getData ().add (idealSeries);
+        final var calculatedSeries = new Series <Number, Number> ();
+        calculatedSeries.setName ("Calculated distrubution");
+        distributionChart.getData ().add (calculatedSeries);
         
         typeSelect.valueProperty ().addListener ((__, ___, value) -> {
             TBSPlanner.getInstance ().updateParameters (
@@ -166,48 +194,66 @@ public class TBBSPlannerTool extends HBox {
         return column;
     }
     
-    private TableView <PlanningBond> makeTable () {
-        final var table = new TableView <PlanningBond> ();
+    private TableView <IPlanningBond> makeTable () {
+        final var table = new TableView <IPlanningBond> ();
         table.setBackground (new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         //HBox.setMargin (table, new Insets (0, 2, 2, 0));
         table.getStylesheets ().setAll (STYLE_TABLES);
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
         
-        final var grThreshold = TBSStyles.<PlanningBond, Number> threshold (0.0, 1e-6);
+        final var grThreshold = TBSStyles.<IPlanningBond, Number> threshold (0.0, 1e-6);
         
-        table.getColumns ().add (TBSUIUtils.makeTBSTableColumn (
-            "#", null, (r, __) -> r.getIndex (), false, 30, Pos.BASELINE_CENTER, null
-        ));
-        table.getColumns ().add (TBSUIUtils.makeTBSTableColumn (
-            "Bond name", null, pb -> TBSBondManager.getBondName (pb.getCode ()), false, 250.0, Pos.BASELINE_LEFT, null
-        ));
-        table.getColumns ().add (TBSUIUtils.makeTBSTableColumn (
-            "Code", "Bond ticker", PlanningBond::getCode, false, 125, Pos.BASELINE_LEFT, null
-        ));
-        table.getColumns ().add (TBSUIUtils.makeTBSTableColumn (
-            "Score", null, PlanningBond::getScore, false, 80, Pos.BASELINE_LEFT, grThreshold
-        ));
-        table.getColumns ().add (TBSUIUtils.makeTBSTableColumn (
-            "Price", null, PlanningBond::getPrice, false, 80, Pos.BASELINE_LEFT, grThreshold
-        ));
-        table.getColumns ().add (TBSUIUtils.makeTBSTableColumn (
-            "📊", null, PlanningBond::getAmount, false, 50, Pos.BASELINE_LEFT, null
-        ));
-        
-        final var customSuggectionColumn = new TableColumn <PlanningBond, PlanningBond> ("");
-        customSuggectionColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
-        customSuggectionColumn.setCellFactory (__ -> new TBSEditableCell <> ((value, bond) -> {
-            updateChart (); TBSPlanner.getInstance ().dump ();
-        }, 1.0));
-        customSuggectionColumn.setSortable (false);
-        customSuggectionColumn.setMinWidth (100);
-        table.getColumns ().add (customSuggectionColumn);
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, Integer> buildTBSTableColumn ()
+            .name ("#").tooltip (null)
+            .alignment (Pos.BASELINE_CENTER).minWidth (30.0).sortable (false)
+            .propertyFetcher (bond -> bond.getProperty (IPlanningBond.INDEX_PROPERTY, () -> 0, false))
+            .converter (null).highlighter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, String> buildTBSTableColumn ()
+            .name ("Name").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (250.0).sortable (false)
+            .propertyFetcher (bond -> new MappingROProperty <> (
+                bond.getRWProperty ("code", () -> ""), 
+                TBSBondManager::getBondName
+            )).converter ((r, v) -> v)
+            .highlighter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, String> buildTBSTableColumn ()
+            .name ("Ticker").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (125.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("code", () -> "")).converter ((r, v) -> v)
+            .highlighter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, Number> buildTBSTableColumn ()
+            .name ("Score").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
+            .propertyFetcher (bond -> new MappingROProperty <> (
+                bond.getRWProperty ("code", () -> ""), 
+                TBSBondManager::getBondScore
+            ))
+            .highlighter (grThreshold).converter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, Number> buildTBSTableColumn ()
+            .name ("Price").tooltip ("Last committed price in MOEX")
+            .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
+            .propertyFetcher (bond -> new MappingROProperty <> (
+                bond.getRWProperty ("code", () -> ""), 
+                TBSBondManager::getBondPrice
+            ))
+            .highlighter (grThreshold).converter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, Integer> buildTBSTableColumn ()
+            .name ("📊").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (50.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("amount", () -> 0))
+            .converter (null).highlighter (null)
+            .build ());
         
         return table;
     }
     
-    public void refreshData (ITBSProfile profile) {
+    public void applyData (ITBSProfile profile) {
         final var bonds = TBSPlanner.getInstance ().getBonds ();
         if (table.getItems () != bonds) {            
             table.setItems (bonds);
@@ -218,20 +264,21 @@ public class TBBSPlannerTool extends HBox {
         final var bonds = TBSPlanner.getInstance ().getBonds ();
         if (bonds.isEmpty ()) { return; }
         
-        final var idealSeries = distributionChart.getData ().get (1);
-        idealSeries.getData ().clear ();
+        final var calculatedSeries = distributionChart.getData ().get (1);
+        calculatedSeries.getData ().clear ();
         
         final var realSeries = distributionChart.getData ().get (0);
         realSeries.getData ().clear ();
         
         for (int i = 0; i < bonds.size (); i++) {
             final var bond = bonds.get (i);
-            idealSeries.getData ().add (new Data <> (i, bond.getIdealAmount ()));
-            idealSeries.getData ().add (new Data <> (i + 1, bond.getIdealAmount ()));
+            final var calculated = bond.getCalculatedAmount ();
+            calculatedSeries.getData ().add (new Data <> (i, calculated));
+            calculatedSeries.getData ().add (new Data <> (i + 1, calculated));
             realSeries.getData ().add (new Data <> (i, bond.getCurrentValue ()));
             realSeries.getData ().add (new Data <> (i + 1, bond.getCurrentValue ()));
         }
-        idealSeries.getData ().add (new Data <> (bonds.size (), 0.0));
+        calculatedSeries.getData ().add (new Data <> (bonds.size (), 0.0));
         realSeries.getData ().add (new Data <> (bonds.size (), 0.0));
     }
     

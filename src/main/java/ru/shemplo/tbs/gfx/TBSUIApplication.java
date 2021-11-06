@@ -2,9 +2,12 @@ package ru.shemplo.tbs.gfx;
 
 import static ru.shemplo.tbs.TBSConstants.*;
 import static ru.shemplo.tbs.gfx.TBSStyles.*;
-import static ru.shemplo.tbs.gfx.TBSUIUtils.*;
+
+import java.time.LocalDate;
 
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -14,8 +17,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -29,15 +33,20 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSPlanner;
+import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.Bond;
+import ru.shemplo.tbs.entity.CouponValueMode;
+import ru.shemplo.tbs.entity.IBond;
 import ru.shemplo.tbs.entity.ITBSProfile;
+import ru.shemplo.tbs.gfx.table.TBSTableCell;
+import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 public class TBSUIApplication extends Application {
 
     @Getter
     private static volatile TBSUIApplication instance;
     
-    private TableView <Bond> tableScanned, tablePortfolio;
+    private TableView <IBond> tableScanned, tablePortfolio;
     private TBBSPlannerTool plannerTool;
     private Text profileDetails;
     
@@ -101,155 +110,199 @@ public class TBSUIApplication extends Application {
         return wrapper;
     }
     
-    private TableView <Bond> initializeTable (TBSTableType type) {
-        final var table = new TableView <Bond> ();
+    private TableView <IBond> initializeTable (TBSTableType type) {
+        final var table = new TableView <IBond> ();
         table.setBackground (new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         table.getStylesheets ().setAll (STYLE_TABLES);
         VBox.setVgrow (table, Priority.ALWAYS);
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
         
-        final var exploreTinkoffColumn = new TableColumn <Bond, Bond> ("T");
-        exploreTinkoffColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
-        exploreTinkoffColumn.setCellFactory (__ -> new TBSExploreTableCell (true));
-        exploreTinkoffColumn.setSortable (false);
-        exploreTinkoffColumn.setMinWidth (30);
-        table.getColumns ().add (exploreTinkoffColumn);
+        final var grThreshold = TBSStyles.<IBond, Number> threshold (0.0, 1e-6);
+        final var fixedCoupons = TBSStyles.<IBond> fixedCoupons ();
+        final var sameMonth = TBSStyles.<IBond> sameMonth (NOW);
+        final var linkIcon = TBSStyles.<IBond> linkIcon ();
         
-        final var exploreMOEXColumn = new TableColumn <Bond, Bond> ("M");
-        exploreMOEXColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
-        exploreMOEXColumn.setCellFactory (__ -> new TBSExploreTableCell (false));
-        exploreMOEXColumn.setSortable (false);
-        exploreMOEXColumn.setMinWidth (30);
-        table.getColumns ().add (exploreMOEXColumn);
-        
-        final var inspectButtonColumn = new TableColumn <Bond, Bond> ("C");
-        inspectButtonColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
-        inspectButtonColumn.setCellFactory (__ -> new TBSInspectTableCell ());
-        inspectButtonColumn.setSortable (false);
-        inspectButtonColumn.setMinWidth (30);
-        table.getColumns ().add (inspectButtonColumn);
-        
-        final var plannerPinColumn = new TableColumn <Bond, Bond> ("📎");
-        plannerPinColumn.setCellValueFactory (cell -> new SimpleObjectProperty <> (cell.getValue ()));
-        plannerPinColumn.setCellFactory (__ -> new TBSToggleTableCell <> (
-            TBSPlanner.getInstance ().getBonds (),
-            bond -> {
-                final var planner = TBSPlanner.getInstance ();
-                return planner.hasBond (bond.getCode ());
-            }, (bond, selected) -> {
-                final var planner = TBSPlanner.getInstance ();
-                if (selected) {
-                    planner.addBond (bond.getCode (), bond.getScore (), bond.getLastPrice ());
-                } else {
-                    planner.removeBond (bond.getCode ());
-                }
-            }
-        ));
-        plannerPinColumn.setSortable (false);
-        plannerPinColumn.setMinWidth (30);
-        table.getColumns ().add (plannerPinColumn);
-        
-        final var grThreshold = TBSStyles.<Bond, Number> threshold (0.0, 1e-6);
-        final var fixedCoupons = TBSStyles.<Bond> fixedCoupons ();
-        final var sameMonth = TBSStyles.<Bond> sameMonth (NOW);
-        
-        final var shortNameColumn = makeTBSTableColumn (
-            "Bond name", null, Bond::getName, false, 
-            250.0, Pos.BASELINE_LEFT, null
-        );
-        table.getColumns ().add (shortNameColumn);
-        
-        final var codeColumn = makeTBSTableColumn (
-            "Code", "Bond ticker", Bond::getCode, false, 
-            125.0, Pos.BASELINE_LEFT, null
-        );
-        table.getColumns ().add (codeColumn);
-        
-        final var currencyColumn = makeTBSTableColumn (
-            "Currency", null, Bond::getCurrency, false, 
-            80.0, Pos.BASELINE_LEFT, null
-        );
-        table.getColumns ().add (currencyColumn);
-        
-        final var lotsColumn = makeTBSTableColumn (
-            "👝", "Number of lots in your portfolio (sum by all your accounts)", 
-            Bond::getLots, false, 50.0, Pos.BASELINE_LEFT, grThreshold
-        );
-        table.getColumns ().add (lotsColumn);
-        
+        table.getColumns ().add (TBSUIUtils.<IBond, SymbolOrImage> buildTBSIconTableColumn ()
+            .name ("T").tooltip (null).minWidth (30.0).sortable (false)
+            .propertyFetcher (b -> makeExloreProperty (b, "🌐")).highlighter (linkIcon)
+            .onClick ((me, cell) -> handleExploreBrowserColumnClick (me, cell, true))
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, SymbolOrImage> buildTBSIconTableColumn ()
+            .name ("M").tooltip (null).minWidth (30.0).sortable (false)
+            .propertyFetcher (b -> makeExloreProperty (b, "🌐")).highlighter (linkIcon)
+            .onClick ((me, cell) -> handleExploreBrowserColumnClick (me, cell, true))
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, SymbolOrImage> buildTBSIconTableColumn ()
+            .name ("C").tooltip (null).minWidth (30.0).sortable (false)
+            .propertyFetcher (b -> makeExloreProperty (b, "🔍")).highlighter (linkIcon)
+            .onClick ((me, cell) -> handleExploreCouponsColumnClick (me, cell))
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, LinkFlag> buildTBSToggleTableColumn ()
+            .name ("📎").tooltip (null).minWidth (30.0).sortable (false)
+            .propertyFetcher (this::makePinProperty).highlighter (null)
+            .onToggle (this::handlePlannerPinToggle)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, String> buildTBSTableColumn ()
+            .name ("Name").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (250.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("name", () -> "")).converter ((r, v) -> v)
+            .highlighter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, String> buildTBSTableColumn ()
+            .name ("Ticker").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (125.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("code", () -> "")).converter ((r, v) -> v)
+            .highlighter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, Currency> buildTBSTableColumn ()
+            .name ("Currency").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("currency", null))
+            .converter ((r, v) -> String.valueOf (v)).highlighter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
+            .name ("👝").tooltip ("Number of lots in your portfolio (sum by all your accounts)")
+            .alignment (Pos.BASELINE_LEFT).minWidth (50.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("lots", null))
+            .highlighter (grThreshold).converter (null)
+            .build ());
         if (type == TBSTableType.SCANNED) {
-            final var scoreColumn = makeTBSTableColumn (
-                "Score", null, Bond::getScore, false, 80.0, 
-                Pos.BASELINE_LEFT, grThreshold
-            );
-            table.getColumns ().add (scoreColumn);
-        }
-        
+            table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
+                .name ("Score").tooltip (null)
+                .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
+                .propertyFetcher (bond -> bond.getRWProperty ("score", null))
+                .highlighter (grThreshold).converter (null)
+                .build ());
+            table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
+                .name ("Credit").tooltip ("Coupons credit plus difference between price and inflated price")
+                .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
+                .propertyFetcher (bond -> bond.getRWProperty ("pureCredit", null))
+                .highlighter (grThreshold).converter (null)
+                .build ());
+        }   
+        table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
+            .name ("Coupons").tooltip ("Sum of coupons since the next coupon date with inflation")
+            .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("couponsCredit", null))
+            .highlighter (grThreshold).converter (null)
+            .build ());
         if (type == TBSTableType.SCANNED) {
-            final var pureCreditColumn = makeTBSTableColumn (
-                "Credit", "Coupons credit plus difference between price and inflated price", 
-                Bond::getPureCredit, false, 80.0, Pos.BASELINE_LEFT, grThreshold
-            );
-            table.getColumns ().add (pureCreditColumn);
+            table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
+                .name ("Price").tooltip ("Last committed price in MOEX")
+                .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
+                .propertyFetcher (bond -> bond.getRWProperty ("lastPrice", null))
+                .highlighter (grThreshold).converter (null)
+                .build ());
         }
-        
-        final var couponsCreditColumn = makeTBSTableColumn (
-            "Coupons", "Sum of coupons since the next coupon date with inflation", 
-            Bond::getCouponsCredit, false, 80.0, Pos.BASELINE_LEFT, grThreshold
-        );
-        table.getColumns ().add (couponsCreditColumn);
-        
-        if (type == TBSTableType.SCANNED) {       
-            final var priceColumn = makeTBSTableColumn (
-                "Price", "Last commited price in MOEX",
-                Bond::getLastPrice, false, 80.0, Pos.BASELINE_LEFT, grThreshold
-            );
-            table.getColumns ().add (priceColumn);
+        table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
+            .name ("Nominal").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("nominalValue", null))
+            .highlighter (null).converter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
+            .name ("C / Y").tooltip ("Coupons per year")
+            .alignment (Pos.BASELINE_LEFT).minWidth (50.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("couponsPerYear", null))
+            .highlighter (null).converter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, LocalDate> buildTBSTableColumn ()
+            .name ("C / Y").tooltip ("Coupons per year")
+            .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("nextCoupon", null))
+            .highlighter (sameMonth).converter ((c, v) -> String.valueOf (v))
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, CouponValueMode> buildTBSTableColumn ()
+            .name ("C mode").tooltip ("Coupon mode")
+            .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
+            .propertyFetcher (bond -> new SimpleObjectProperty <> (bond.getCouponValuesMode ()))
+            .converter ((c, v) -> TBSUtils.mapIfNN (v, CouponValueMode::name, ""))
+            .highlighter (fixedCoupons)
+            .build ());
+        if (type == TBSTableType.SCANNED) {
+            table.getColumns ().add (TBSUIUtils.<IBond, Long> buildTBSTableColumn ()
+                .name ("Ys").tooltip ("Years till end")
+                .alignment (Pos.BASELINE_LEFT).minWidth (50.0).sortable (false)
+                .propertyFetcher (bond -> new SimpleObjectProperty <> (bond.getYearsToEnd ()))
+                .highlighter (null).converter (null)
+                .build ());
+            table.getColumns ().add (TBSUIUtils.<IBond, Long> buildTBSTableColumn ()
+                .name ("Ys").tooltip ("Months till end (value from range 0 to 12)")
+                .alignment (Pos.BASELINE_LEFT).minWidth (50.0).sortable (false)
+                .propertyFetcher (bond -> new SimpleObjectProperty <> (bond.getMonthsToEnd () % 12))
+                .highlighter (null).converter (null)
+                .build ());
         }
-        
-        final var nominalColumn = makeTBSTableColumn (
-            "Nominal", null, Bond::getNominalValue, false, 
-            80.0, Pos.BASELINE_LEFT, null
-        );
-        table.getColumns ().add (nominalColumn);
-        
-        final var couponsPerYearColumn = makeTBSTableColumn (
-            "C / Y", "Coupons per year", 
-            Bond::getCouponsPerYear, false, 50.0, Pos.BASELINE_LEFT, null
-        );
-        table.getColumns ().add (couponsPerYearColumn);
-        
-        final var nextCouponColumn = makeTBSTableColumn (
-            "Next C", "Closest date of the next coupon", 
-            Bond::getNextCoupon, false, 90.0, Pos.BASELINE_LEFT, sameMonth
-        );
-        table.getColumns ().add (nextCouponColumn);
-        
-        final var couponFixedColumn = makeTBSTableColumn (
-            "C mode", "Coupon mode",
-            Bond::getCouponValuesMode, false, 90.0, Pos.BASELINE_LEFT, fixedCoupons
-        );
-        table.getColumns ().add (couponFixedColumn);
-        
-        if (type == TBSTableType.SCANNED) {            
-            final var yearsColumn = makeTBSTableColumn (
-                "Ys", "Years till end", 
-                Bond::getYearsToEnd, false, 50.0, Pos.BASELINE_LEFT, null
-            );
-            table.getColumns ().add (yearsColumn);
-            
-            final var monthsColumn = TBSUIUtils.<Bond, Long> makeTBSTableColumn (
-                "Ms", "Months till end (value from range 0 to 12)", 
-                bnd -> bnd.getMonthToEnd () % 12, false, 50.0, Pos.BASELINE_LEFT, null
-            );
-            table.getColumns ().add (monthsColumn);
-        }
-        
-        final var percentageColumn = makeTBSTableColumn ("MOEX %", null, Bond::getPercentage, false, 60.0, Pos.BASELINE_LEFT, grThreshold);
-        table.getColumns ().add (percentageColumn);
+        table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
+            .name ("MOEX %").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (60.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("percentage", null))
+            .highlighter (grThreshold).converter (null)
+            .build ());
         
         return table;
+    }
+    
+    private ObjectProperty <LinkFlag> makePinProperty (IBond bond) {
+        final var planner = TBSPlanner.getInstance ();
+        
+        final var codePropery = bond.getRWProperty ("code", () -> "");
+        final var plannerBondsProperty = planner.getBonds ();
+        final var codeValue = codePropery.get ();
+        
+        final var UIProperty = bond.getProperty (IBond.UI_SELECTED_PROPERTY, 
+            () -> new LinkFlag (planner.hasBond (codeValue), codeValue), false
+        );
+        UIProperty.bind (Bindings.createObjectBinding (
+            () -> new LinkFlag (planner.hasBond (codePropery.get ()), codePropery.get ()), 
+            codePropery, plannerBondsProperty
+        ));
+        
+        return UIProperty;
+    }
+    
+    private void handlePlannerPinToggle (LinkFlag item, Boolean selected) {
+        TBSUtils.doIfNN (item, i -> {
+            if (TBSUtils.aOrB (selected, false)) {
+                TBSPlanner.getInstance ().addBond (i.getLink ());
+            } else {
+                TBSPlanner.getInstance ().removeBond (i.getLink ());
+            }
+        });
+    }
+    
+    private ObjectProperty <SymbolOrImage> makeExloreProperty (IBond bond, String symbol) {
+        final var codePropery = bond.getRWProperty ("code", () -> "");
+        final var property = new SimpleObjectProperty <SymbolOrImage> ();
+        property.bind (Bindings.createObjectBinding (
+            () -> LinkSymbolOrImage.symbol (symbol, codePropery.get ()), 
+            codePropery
+        ));
+        return property;
+    }
+    
+    private void handleExploreBrowserColumnClick (MouseEvent me, TBSTableCell <IBond, SymbolOrImage> cell, boolean openInTinkoff) {
+        if (me.getButton () == MouseButton.PRIMARY && cell.getItem () instanceof LinkSymbolOrImage item) {
+            if (openInTinkoff) {                        
+                TBSUIApplication.getInstance ().openLinkInBrowser (String.format (
+                    "https://www.tinkoff.ru/invest/bonds/%s/", item.getLink ()
+                ));
+            } else {
+                TBSUIApplication.getInstance ().openLinkInBrowser (String.format (
+                    "https://www.moex.com/ru/issue.aspx?code=%s&utm_source=www.moex.com", 
+                    item.getLink ()
+                ));
+            }
+        }
+    }
+    
+    private void handleExploreCouponsColumnClick (MouseEvent me, TBSTableCell <IBond, SymbolOrImage> cell) {
+        if (me.getButton () == MouseButton.PRIMARY) {
+            @SuppressWarnings ("unused")
+            final var scene = ((Node) me.getSource ()).getScene ();
+            //showCouponsWindow (scene.getWindow (), item);
+        }
     }
     
     public void applyData (ITBSProfile profile) {
@@ -258,10 +311,34 @@ public class TBSUIApplication extends Application {
         profileDetails.setText (profile.getProfileDescription ());
         
         final var bondManager = TBSBondManager.getInstance ();
-        tablePortfolio.setItems (FXCollections.observableArrayList (bondManager.getPortfolio ()));
-        tableScanned.setItems (FXCollections.observableArrayList (bondManager.getScanned ()));
+        tablePortfolio.setItems (FXCollections.observableArrayList (
+            bondManager.getPortfolio ().stream ().map (Bond::getProxy).toList ()
+        ));
+        tableScanned.setItems (FXCollections.observableArrayList (
+            bondManager.getScanned ().stream ().map (Bond::getProxy).toList ()
+        ));
         
-        plannerTool.refreshData (profile);
+        plannerTool.applyData (profile);
+        /*
+        tablePortfolio.setItems (FXCollections.observableArrayList (bondManager.getPortfolio ()));
+        
+         */
+        
+        /*
+        final var bond = TBSBondManager.getInstance ().getScanned ().get (0);
+        final var property = bond.getProperty ("name", "");
+        System.out.println (property); // SYSOUT
+        property.addListener ((__, ___, value) -> {
+            System.out.println (property.getName () + " is changed to `" + value + "`"); // SYSOUT
+        });
+        property.setValue ("A");
+        property.setValue ("B");
+        property.setValue ("C");
+        property.setValue ("B");
+        property.setValue ("B");
+        System.out.println (property); // SYSOUT
+        System.out.println (bond.getName ()); // SYSOUT
+        */
     }
     
     public void openLinkInBrowser (String url) {

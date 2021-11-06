@@ -1,17 +1,25 @@
 package ru.shemplo.tbs;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.Getter;
-import ru.shemplo.tbs.entity.PlanDump;
+import ru.shemplo.tbs.entity.IPlanningBond;
 import ru.shemplo.tbs.entity.PlanningBond;
+import ru.shemplo.tbs.entity.PlanningDump;
 
 public class TBSPlanner implements Serializable {
     
@@ -25,6 +33,7 @@ public class TBSPlanner implements Serializable {
         if (instance == null) {
             synchronized (TBSPlanner.class) {
                 if (instance == null) {
+                    System.out.println ("TBSPlanner.getInstance()");
                     instance = new TBSPlanner ();
                 }
             }
@@ -34,8 +43,14 @@ public class TBSPlanner implements Serializable {
     }
     
     @Getter
-    private ObservableList <PlanningBond> bonds = FXCollections.observableArrayList ();
+    private transient ObservableList <IPlanningBond> bonds = FXCollections.observableArrayList ();
     private transient Set <String> tickers = new HashSet <> ();
+    
+    @Getter
+    private transient SimpleDoubleProperty summaryPrice = new SimpleDoubleProperty (0.0);
+    
+    @Getter
+    private transient Property <Number> summaryLots = new SimpleIntegerProperty (0);
     
     @Getter
     private DistributionCategory category;
@@ -43,30 +58,13 @@ public class TBSPlanner implements Serializable {
     @Getter
     private double amount, diversification;
     
-    /**
-     * Call this method only after deserialization of this object
-     */
-    public void updatePool (PlanDump dump) {
-        if (tickers == null) {
-            tickers = new HashSet <> ();
-        }
-        
-        bonds.addAll (dump.getBonds ());
-        sortThis ();
-        
-        for (final var bond : bonds) {
-            tickers.add (bond.getCode ());
-        }
-        
-        updateParameters (dump.getCategory (), dump.getAmount (), dump.getDiversification ());
-    }
-    
-    public void addBond (String ticker, double score, double price) {
+    public void addBond (String ticker) {
         if (ticker != null && tickers.add (ticker)) {
-            bonds.add (new PlanningBond (ticker, score, price));
+            bonds.add (new PlanningBond (ticker).getProxy ());
             sortThis (); 
             
             updateDistribution ();
+            dump ();
         }
     }
     
@@ -75,14 +73,31 @@ public class TBSPlanner implements Serializable {
             synchronized (tickers) {
                 if (tickers.remove (ticker)) {
                     bonds.removeIf (b -> ticker.equals (b.getCode ()));
+                    updateIndices ();
+                    
                     updateDistribution ();
+                    dump ();
                 }
             }
         }
     }
     
     private void sortThis () {
-        bonds.sort (Comparator.comparing (PlanningBond::getScore).reversed ());
+        bonds.sort (Comparator.<IPlanningBond, Double> comparing (
+            bond -> TBSBondManager.getBondScore (bond.getCode ()
+        )).reversed ());
+        
+        updateIndices ();
+    }
+    
+    private void updateIndices () {
+        for (int i = 0; i < bonds.size (); i++) {
+            final var prop = bonds.get (i).getProperty (
+                IPlanningBond.INDEX_PROPERTY, () -> 0, false
+            );
+            
+            prop.set (i + 1);
+        }
     }
     
     public void updateParameters (DistributionCategory category, double amount, double diversification) {
@@ -101,25 +116,32 @@ public class TBSPlanner implements Serializable {
             sum += Math.max (0.0, linearValue (i, k, b));
         }
         
-        //System.out.println (String.format ("y = %.4f * x + %d", k, b)); // SYSOUT
-        //System.out.println (String.format ("Sum: %.4f, min: %.4f, max: %.4f", sum, min, max)); // SYSOUT
         if (sum != 0.0) {
+            double totalPrice = 0.0;
+            int totalLots = 0;
+            
             for (int i = 0; i < b; i++) {
                 final var bond = bonds.get (i);
                 
                 final var factor = Math.max (0.0, linearValue (i, k, b)) / sum;
-                //System.out.println (String.format ("%.4f => %.4f | %.4f", factor, factor / sum, factor / max)); // SYSOUT
                 if (category == DistributionCategory.LOTS) {
                     bond.setAmount ((int) (factor * amount));
-                    bond.setIdealAmount (factor * amount);
+                    bond.updateCalculatedAmount (factor * amount);
                 } else if (category == DistributionCategory.SUM) {
-                    bond.setAmount ((int) (factor * amount / bond.getPrice ()));
-                    bond.setIdealAmount (factor * amount / bond.getPrice ());
+                    final var price = bond.getPrice ();
+                    bond.setAmount ((int) (factor * amount / price));
+                    bond.updateCalculatedAmount (factor * amount / price);
                 } else {
-                    bond.setIdealAmount (0.0);
+                    bond.updateCalculatedAmount (0.0);
                     bond.setAmount (0);
                 }
+                
+                totalPrice += bond.getPrice () * bond.getAmount ();
+                totalLots += bond.getAmount ();
             }
+            
+            summaryPrice.setValue (totalPrice);
+            summaryLots.setValue (totalLots);
         }
     }
     
@@ -128,14 +150,44 @@ public class TBSPlanner implements Serializable {
     }
     
     public void dump () {
-        TBSDumpService.getInstance ().dump (
-            new PlanDump (List.copyOf (bonds), category, amount, diversification), 
-            DUMP_FILE.getName ()
-        );
+        TBSDumpService.getInstance ().dump (new PlanningDump (this), DUMP_FILE.getName ());
     }
     
     public boolean hasBond (String ticker) {
         return tickers.contains (ticker);
+    }
+    
+    private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject ();
+        instance = this;
+        
+        summaryPrice = new SimpleDoubleProperty (0.0);
+        summaryLots = new SimpleIntegerProperty (0);
+        
+        bonds = FXCollections.observableArrayList ();
+        TBSUtils.doIfNN (_serializeBonds, bonds -> {
+            bonds.forEach (bond -> {
+                this.bonds.add (bond.getProxy ());
+            });
+            
+            _serializeBonds.clear ();
+        });
+        
+        tickers = new HashSet <> ();
+        for (final var bond : bonds) {
+            tickers.add (bond.getCode ());
+        }
+        
+        sortThis ();
+        updateDistribution ();
+    }
+    
+    private List <IPlanningBond> _serializeBonds;
+    
+    private void writeObject (ObjectOutputStream out) throws IOException, ClassNotFoundException {
+        _serializeBonds = bonds.stream ().map (IPlanningBond::getRealObject)
+                        . collect (Collectors.toList ());
+        out.defaultWriteObject ();
     }
     
     public static enum DistributionCategory {

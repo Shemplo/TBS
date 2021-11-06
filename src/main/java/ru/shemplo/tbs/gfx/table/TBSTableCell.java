@@ -1,7 +1,7 @@
-package ru.shemplo.tbs.gfx;
+package ru.shemplo.tbs.gfx.table;
 
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
@@ -13,17 +13,17 @@ import javafx.scene.layout.Background;
 import lombok.Getter;
 import ru.shemplo.tbs.TBSUtils;
 
-public class TBSTableCell <F, S> extends TableCell <F, F> {
+public class TBSTableCell <F, S> extends TableCell <F, S> {
     
-    protected final BiConsumer <TBSTableCell <F, S>, S> highlighter;
-    protected final BiFunction <TableRow <F>, F, S> converter;
+    protected final BiFunction <TableRow <F>, S, String> converter;
+    protected final Consumer <TBSTableCell <F, S>> highlighter;
     
     @Getter
     private Background defaultBackground;
     
     private static final PseudoClass HOVER_PSEUDO_CLASS = PseudoClass.getPseudoClass ("hover");
     
-    public TBSTableCell (BiFunction <TableRow <F>, F, S> converter, BiConsumer <TBSTableCell <F, S>, S> highlighter) {
+    protected TBSTableCell (BiFunction <TableRow <F>, S, String> converter, Consumer <TBSTableCell <F, S>> highlighter) {
         this.converter = converter; this.highlighter = highlighter;
         
         hoverProperty ().addListener ((__, ___, hovered) -> {
@@ -43,18 +43,21 @@ public class TBSTableCell <F, S> extends TableCell <F, F> {
         });
     }
     
-    public TBSTableCell (BiFunction <TableRow <F>, F, S> converter, BiConsumer <TBSTableCell <F, S>, S> highlighter, Pos textAlignment) {
+    public TBSTableCell (
+        BiFunction <TableRow <F>, S, String> converter, 
+        Consumer <TBSTableCell <F, S>> highlighter, 
+        Pos textAlignment
+    ) {
         this (converter, highlighter);
         setAlignment (textAlignment);
     }
     
     @Override
-    protected void updateItem (F item, boolean empty) {
+    protected void updateItem (S item, boolean empty) {
         if (item == getItem ()) { return; }
         super.updateItem (item, empty);
         
         if (item == null) {
-            setTooltip (null);
             setGraphic (null);
             setText (null);
             return;
@@ -64,19 +67,21 @@ public class TBSTableCell <F, S> extends TableCell <F, F> {
         setGraphic (null);
     }
     
-    protected String getStringValue (F item, boolean updateHighlights) {
-        final var value = converter.apply (getTableRow (), item);
+    protected String getStringValue (S item, boolean updateHighlights) {
         if (updateHighlights) {
-            TBSUtils.doIfNN (highlighter, h -> h.accept (this, value));
+            TBSUtils.doIfNN (highlighter, h -> h.accept (this));
         }
-        if (value instanceof Number n) {
-            if (value instanceof Double || value instanceof Float) {                
+        
+        if (item instanceof Number n) {
+            if (item instanceof Double || item instanceof Float) {                
                 return String.format ("%.2f", n);
             } else {
-                return String.format ("%d", n);                
+                return String.format ("%d", n);
             }
-        } else {            
-            return String.valueOf (value);
+        } else if (converter != null) {            
+            return converter.apply (getTableRow (), item);
+        } else {
+            return null;
         }
     }
     

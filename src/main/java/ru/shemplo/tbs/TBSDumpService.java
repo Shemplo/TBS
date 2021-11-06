@@ -7,13 +7,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TBSDumpService {
     
-    @Setter
     private static volatile TBSDumpService instance;
     
     public static TBSDumpService getInstance () {
