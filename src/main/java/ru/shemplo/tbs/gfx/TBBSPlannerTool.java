@@ -169,11 +169,11 @@ public class TBBSPlannerTool extends HBox {
         line6.getChildren ().add (lotsField);
         
         final var realSeries = new Series <Number, Number> ();
-        realSeries.setName ("Real distrubution");
+        realSeries.setName ("Real distr.");
         distributionChart.getData ().add (realSeries);
         
         final var calculatedSeries = new Series <Number, Number> ();
-        calculatedSeries.setName ("Calculated distrubution");
+        calculatedSeries.setName ("Calculated distr.");
         distributionChart.getData ().add (calculatedSeries);
         
         typeSelect.valueProperty ().addListener ((__, ___, value) -> {

@@ -123,17 +123,17 @@ public class TBSUIApplication extends Application {
         final var sameMonth = TBSStyles.<IBond> sameMonth (NOW);
         final var linkIcon = TBSStyles.<IBond> linkIcon ();
         
-        table.getColumns ().add (TBSUIUtils.<IBond, SymbolOrImage> buildTBSIconTableColumn ()
+        table.getColumns ().add (TBSUIUtils.<IBond, LinkedSymbolOrImage> buildTBSIconTableColumn ()
             .name ("T").tooltip (null).minWidth (30.0).sortable (false)
             .propertyFetcher (b -> makeExloreProperty (b, "🌐")).highlighter (linkIcon)
             .onClick ((me, cell) -> handleExploreBrowserColumnClick (me, cell, true))
             .build ());
-        table.getColumns ().add (TBSUIUtils.<IBond, SymbolOrImage> buildTBSIconTableColumn ()
+        table.getColumns ().add (TBSUIUtils.<IBond, LinkedSymbolOrImage> buildTBSIconTableColumn ()
             .name ("M").tooltip (null).minWidth (30.0).sortable (false)
             .propertyFetcher (b -> makeExloreProperty (b, "🌐")).highlighter (linkIcon)
             .onClick ((me, cell) -> handleExploreBrowserColumnClick (me, cell, true))
             .build ());
-        table.getColumns ().add (TBSUIUtils.<IBond, SymbolOrImage> buildTBSIconTableColumn ()
+        table.getColumns ().add (TBSUIUtils.<IBond, LinkedSymbolOrImage> buildTBSIconTableColumn ()
             .name ("C").tooltip (null).minWidth (30.0).sortable (false)
             .propertyFetcher (b -> makeExloreProperty (b, "🔍")).highlighter (linkIcon)
             .onClick ((me, cell) -> handleExploreCouponsColumnClick (me, cell))
@@ -298,10 +298,10 @@ public class TBSUIApplication extends Application {
     }
     
     private void handleExploreCouponsColumnClick (MouseEvent me, TBSTableCell <IBond, LinkedSymbolOrImage> cell) {
-        if (me.getButton () == MouseButton.PRIMARY) {
-            @SuppressWarnings ("unused")
+        if (me.getButton () == MouseButton.PRIMARY && cell.getItem () != null) {
+            final var bond = TBSBondManager.getBondByTicker (cell.getItem ().getLink (), true);
             final var scene = ((Node) me.getSource ()).getScene ();
-            //showCouponsWindow (scene.getWindow (), item);
+            new TBSCouponsInspection (scene.getWindow (), bond);
         }
     }
     
@@ -319,26 +319,6 @@ public class TBSUIApplication extends Application {
         ));
         
         plannerTool.applyData (profile);
-        /*
-        tablePortfolio.setItems (FXCollections.observableArrayList (bondManager.getPortfolio ()));
-        
-         */
-        
-        /*
-        final var bond = TBSBondManager.getInstance ().getScanned ().get (0);
-        final var property = bond.getProperty ("name", "");
-        System.out.println (property); // SYSOUT
-        property.addListener ((__, ___, value) -> {
-            System.out.println (property.getName () + " is changed to `" + value + "`"); // SYSOUT
-        });
-        property.setValue ("A");
-        property.setValue ("B");
-        property.setValue ("C");
-        property.setValue ("B");
-        property.setValue ("B");
-        System.out.println (property); // SYSOUT
-        System.out.println (bond.getName ()); // SYSOUT
-        */
     }
     
     public void openLinkInBrowser (String url) {
