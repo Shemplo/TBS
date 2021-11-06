@@ -12,6 +12,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.Background;
 import lombok.Getter;
 import ru.shemplo.tbs.TBSUtils;
+import ru.shemplo.tbs.gfx.LinkedObject;
 
 public class TBSTableCell <F, S> extends TableCell <F, S> {
     
@@ -73,15 +74,23 @@ public class TBSTableCell <F, S> extends TableCell <F, S> {
         }
         
         if (item instanceof Number n) {
-            if (item instanceof Double || item instanceof Float) {                
-                return String.format ("%.2f", n);
-            } else {
-                return String.format ("%d", n);
-            }
-        } else if (converter != null) {            
+            return getNumberStringValue (n);
+        } else if (item instanceof LinkedObject <?> lo && lo.getObject () instanceof Number n) {
+            return getNumberStringValue (n);
+        }
+            
+        if (converter != null) {            
             return converter.apply (getTableRow (), item);
         } else {
-            return null;
+            return "";
+        }
+    }
+    
+    protected String getNumberStringValue (Number number) {
+        if (number instanceof Double || number instanceof Float) {                
+            return String.format ("%.2f", number);
+        } else {
+            return String.format ("%d", number);
         }
     }
     

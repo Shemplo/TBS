@@ -5,13 +5,16 @@ import java.util.function.Consumer;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
-import ru.shemplo.tbs.gfx.LinkFlag;
+import ru.shemplo.tbs.gfx.LinkedObject;
 
-public class TBSToggleTableCell <F> extends TBSTableCell <F, LinkFlag> {
+public class TBSToggleTableCell <F> extends TBSTableCell <F, LinkedObject <Boolean>> {
     
     private final CheckBox checkBox;
     
-    public TBSToggleTableCell (BiConsumer <LinkFlag, Boolean> onToggle, Consumer <TBSTableCell <F, LinkFlag>> highlighter) {
+    public TBSToggleTableCell (
+        BiConsumer <LinkedObject <Boolean>, Boolean> onToggle, 
+        Consumer <TBSTableCell <F, LinkedObject <Boolean>>> highlighter
+    ) {
         super ((__, ___) -> "", highlighter, Pos.CENTER);
         
         checkBox = new CheckBox ();
@@ -21,12 +24,12 @@ public class TBSToggleTableCell <F> extends TBSTableCell <F, LinkFlag> {
     }
     
     @Override
-    protected void updateItem (LinkFlag item, boolean empty) {
+    protected void updateItem (LinkedObject <Boolean> item, boolean empty) {
         super.updateItem (item, empty);
         setText (null);
         
         if (item != null) {
-            checkBox.setSelected (item.isFlag ());
+            checkBox.setSelected (item.getObject ());
             setGraphic (checkBox);
             
             getStringValue (item, true);

@@ -138,7 +138,7 @@ public class TBSUIApplication extends Application {
             .propertyFetcher (b -> makeExloreProperty (b, "🔍")).highlighter (linkIcon)
             .onClick ((me, cell) -> handleExploreCouponsColumnClick (me, cell))
             .build ());
-        table.getColumns ().add (TBSUIUtils.<IBond, LinkFlag> buildTBSToggleTableColumn ()
+        table.getColumns ().add (TBSUIUtils.<IBond, LinkedObject <Boolean>> buildTBSToggleTableColumn ()
             .name ("📎").tooltip (null).minWidth (30.0).sortable (false)
             .propertyFetcher (this::makePinProperty).highlighter (null)
             .onToggle (this::handlePlannerPinToggle)
@@ -208,7 +208,7 @@ public class TBSUIApplication extends Application {
             .highlighter (null).converter (null)
             .build ());
         table.getColumns ().add (TBSUIUtils.<IBond, LocalDate> buildTBSTableColumn ()
-            .name ("C / Y").tooltip ("Coupons per year")
+            .name ("Next C").tooltip ("Closest date of the next coupon")
             .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
             .propertyFetcher (bond -> bond.getRWProperty ("nextCoupon", null))
             .highlighter (sameMonth).converter ((c, v) -> String.valueOf (v))
@@ -244,7 +244,7 @@ public class TBSUIApplication extends Application {
         return table;
     }
     
-    private ObjectProperty <LinkFlag> makePinProperty (IBond bond) {
+    private ObjectProperty <LinkedObject <Boolean>> makePinProperty (IBond bond) {
         final var planner = TBSPlanner.getInstance ();
         
         final var codePropery = bond.getRWProperty ("code", () -> "");
@@ -252,17 +252,17 @@ public class TBSUIApplication extends Application {
         final var codeValue = codePropery.get ();
         
         final var UIProperty = bond.getProperty (IBond.UI_SELECTED_PROPERTY, 
-            () -> new LinkFlag (planner.hasBond (codeValue), codeValue), false
+            () -> new LinkedObject <> (codeValue, planner.hasBond (codeValue)), false
         );
         UIProperty.bind (Bindings.createObjectBinding (
-            () -> new LinkFlag (planner.hasBond (codePropery.get ()), codePropery.get ()), 
+            () -> new LinkedObject <> (codePropery.get (), planner.hasBond (codePropery.get ())), 
             codePropery, plannerBondsProperty
         ));
         
         return UIProperty;
     }
     
-    private void handlePlannerPinToggle (LinkFlag item, Boolean selected) {
+    private void handlePlannerPinToggle (LinkedObject <Boolean> item, Boolean selected) {
         TBSUtils.doIfNN (item, i -> {
             if (TBSUtils.aOrB (selected, false)) {
                 TBSPlanner.getInstance ().addBond (i.getLink ());
@@ -272,32 +272,32 @@ public class TBSUIApplication extends Application {
         });
     }
     
-    private ObjectProperty <SymbolOrImage> makeExloreProperty (IBond bond, String symbol) {
+    private ObjectProperty <LinkedSymbolOrImage> makeExloreProperty (IBond bond, String symbol) {
         final var codePropery = bond.getRWProperty ("code", () -> "");
-        final var property = new SimpleObjectProperty <SymbolOrImage> ();
+        final var property = new SimpleObjectProperty <LinkedSymbolOrImage> ();
         property.bind (Bindings.createObjectBinding (
-            () -> LinkSymbolOrImage.symbol (symbol, codePropery.get ()), 
+            () -> LinkedSymbolOrImage.symbol (symbol, codePropery.get ()), 
             codePropery
         ));
         return property;
     }
     
-    private void handleExploreBrowserColumnClick (MouseEvent me, TBSTableCell <IBond, SymbolOrImage> cell, boolean openInTinkoff) {
-        if (me.getButton () == MouseButton.PRIMARY && cell.getItem () instanceof LinkSymbolOrImage item) {
+    private void handleExploreBrowserColumnClick (MouseEvent me, TBSTableCell <IBond, LinkedSymbolOrImage> cell, boolean openInTinkoff) {
+        if (me.getButton () == MouseButton.PRIMARY) {
             if (openInTinkoff) {                        
                 TBSUIApplication.getInstance ().openLinkInBrowser (String.format (
-                    "https://www.tinkoff.ru/invest/bonds/%s/", item.getLink ()
+                    "https://www.tinkoff.ru/invest/bonds/%s/", cell.getItem ().getLink ()
                 ));
             } else {
                 TBSUIApplication.getInstance ().openLinkInBrowser (String.format (
                     "https://www.moex.com/ru/issue.aspx?code=%s&utm_source=www.moex.com", 
-                    item.getLink ()
+                    cell.getItem ().getLink ()
                 ));
             }
         }
     }
     
-    private void handleExploreCouponsColumnClick (MouseEvent me, TBSTableCell <IBond, SymbolOrImage> cell) {
+    private void handleExploreCouponsColumnClick (MouseEvent me, TBSTableCell <IBond, LinkedSymbolOrImage> cell) {
         if (me.getButton () == MouseButton.PRIMARY) {
             @SuppressWarnings ("unused")
             final var scene = ((Node) me.getSource ()).getScene ();

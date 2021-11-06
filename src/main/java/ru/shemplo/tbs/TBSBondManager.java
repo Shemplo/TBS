@@ -3,6 +3,7 @@ package ru.shemplo.tbs;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -45,6 +46,10 @@ public class TBSBondManager implements Serializable {
     
     public static Double getBondPrice (String ticker) {
         return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getLastPrice, null);
+    }
+    
+    public static LocalDate getBondNextCoupon (String ticker) {
+        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getNextCoupon, null);
     }
     
     public static Bond getBondByTicker (String ticker, boolean scannedPreferred) {

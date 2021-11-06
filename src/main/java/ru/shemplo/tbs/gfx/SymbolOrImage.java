@@ -1,14 +1,13 @@
 package ru.shemplo.tbs.gfx;
 
 import javafx.scene.image.Image;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 @Getter
 @ToString
-@RequiredArgsConstructor (access = AccessLevel.PROTECTED)
+@RequiredArgsConstructor
 public class SymbolOrImage {
     
     private final String symbol;

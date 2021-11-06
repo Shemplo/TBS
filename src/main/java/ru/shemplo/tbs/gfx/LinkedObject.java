@@ -9,9 +9,9 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor
-public class LinkFlag {
+public class LinkedObject <T> {
     
-    private final boolean flag;
     private final String link;
+    private final T object;
     
 }

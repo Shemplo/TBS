@@ -21,6 +21,7 @@ public class TBSStyles {
     public static final String STYLE_TABLES = "/table.css";
     public static final String STYLE_TABS = "/tabs.css";
     
+    //public static final Background BG_NO_OUTLINES = new Background (new BackgroundFill (Color.HONEYDEW, null, null));
     public static final Background BG_APPROPRIATE = new Background (new BackgroundFill (Color.HONEYDEW, null, null));
     public static final Background BG_SO_CLOSE = new Background (new BackgroundFill (Color.BEIGE, null, null));
     
@@ -32,7 +33,7 @@ public class TBSStyles {
     public static final Color COLOR_NEGATIVE = Color.RED;
     public static final Color COLOR_NEUTRAL = Color.GRAY;
     
-    public static <O> Consumer <TBSTableCell <O, SymbolOrImage>> linkIcon () {
+    public static <O> Consumer <TBSTableCell <O, LinkedSymbolOrImage>> linkIcon () {
         return cell -> {
             final var view = cell.getGraphic ();
             if (view == null) { return; }

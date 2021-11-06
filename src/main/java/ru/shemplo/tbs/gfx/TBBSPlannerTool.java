@@ -1,6 +1,9 @@
 package ru.shemplo.tbs.gfx;
 
+import static ru.shemplo.tbs.TBSConstants.*;
 import static ru.shemplo.tbs.gfx.TBSStyles.*;
+
+import java.time.LocalDate;
 
 import com.panemu.tiwulfx.control.NumberField;
 
@@ -9,11 +12,12 @@ import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.chart.LineChart;
+import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TableView;
 import javafx.scene.image.ImageView;
@@ -33,10 +37,11 @@ import ru.shemplo.tbs.TBSPlanner.DistributionCategory;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.IPlanningBond;
 import ru.shemplo.tbs.entity.ITBSProfile;
+import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
 
 public class TBBSPlannerTool extends HBox {
     
-    private LineChart <Number, Number> distributionChart;
+    private AreaChart <Number, Number> distributionChart;
     private ChoiceBox <DistributionCategory> typeSelect;
     private DoubleProperty diversificationProperty;
     private NumberField <Double> amountField;
@@ -60,9 +65,15 @@ public class TBBSPlannerTool extends HBox {
     }
     
     private Parent makeLeftPannel () {
+        final var scroll = new ScrollPane ();
+        scroll.setPadding (new Insets (10, 16, 12, 16));
+        scroll.setBackground (null);
+        scroll.setMinWidth (352);
+        scroll.setBorder (null);
+        
         final var column = new VBox (4);
-        column.setPadding (new Insets (10, 16, 0, 16));
         column.setFillWidth (false);
+        scroll.setContent (column);
                 
         final var line1 = new HBox (4);
         column.getChildren ().add (line1);
@@ -120,11 +131,12 @@ public class TBBSPlannerTool extends HBox {
         );
         line4.getChildren ().add (diversificationField);
         
-        distributionChart = new LineChart <> (new NumberAxis (), new NumberAxis ());
+        distributionChart = new AreaChart <> (new NumberAxis (), new NumberAxis ());
         distributionChart.setMinWidth (typeSelect.getMinWidth () + amountField.getMinWidth () + line2.getSpacing ());
         distributionChart.setMaxWidth  (distributionChart.getMinWidth ());
         distributionChart.setMaxHeight (distributionChart.getMaxWidth () * 1.5);
         VBox.setMargin (distributionChart, new Insets (0, 0, 24, 0));
+        distributionChart.setCreateSymbols (false);
         distributionChart.setAnimated (false);
         column.getChildren ().add (distributionChart);
         
@@ -191,7 +203,7 @@ public class TBBSPlannerTool extends HBox {
             updateChart ();
         });
         
-        return column;
+        return scroll;
     }
     
     private TableView <IPlanningBond> makeTable () {
@@ -203,6 +215,7 @@ public class TBBSPlannerTool extends HBox {
         table.setBorder (Border.EMPTY);
         
         final var grThreshold = TBSStyles.<IPlanningBond, Number> threshold (0.0, 1e-6);
+        final var sameMonth = TBSStyles.<IPlanningBond> sameMonth (NOW);
         
         table.getColumns ().add (TBSUIUtils.<IPlanningBond, Integer> buildTBSTableColumn ()
             .name ("#").tooltip (null)
@@ -243,14 +256,53 @@ public class TBBSPlannerTool extends HBox {
             ))
             .highlighter (grThreshold).converter (null)
             .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, LocalDate> buildTBSTableColumn ()
+            .name ("Next C").tooltip ("Closest date of the next coupon")
+            .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
+            .propertyFetcher (bond -> new MappingROProperty <> (
+                bond.getRWProperty ("code", () -> ""), 
+                TBSBondManager::getBondNextCoupon
+            ))
+            .highlighter (sameMonth).converter ((c, v) -> String.valueOf (v))
+            .build ());
         table.getColumns ().add (TBSUIUtils.<IPlanningBond, Integer> buildTBSTableColumn ()
             .name ("📊").tooltip (null)
             .alignment (Pos.BASELINE_LEFT).minWidth (50.0).sortable (false)
             .propertyFetcher (bond -> bond.getRWProperty ("amount", () -> 0))
             .converter (null).highlighter (null)
             .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, Integer, NumberField <Integer>> buildTBSEditTableColumn ()
+            .name ("").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (100.0).sortable (false)
+            .propertyFetcher (bond -> new MappingROProperty <> (
+                bond.<Integer> getRWProperty ("customValue", () -> null), 
+                v -> new LinkedObject <Integer> (bond.getCode (), v)
+            ))
+            .fieldSupplier (this::makeCustomLotsValueField)
+            .converter (null).highlighter (null)
+            .build ());
         
         return table;
+    }
+    
+    private NumberField <Integer> makeCustomLotsValueField (TBSEditTableCell <IPlanningBond, Integer, NumberField <Integer>> cell) {
+        final var field = new NumberField <> (Integer.class);
+        field.setPadding (new Insets (1, 4, 1, 4));
+        field.valueProperty ().addListener ((__, ___, value) -> {
+            TBSUtils.doIfNN (cell.getItem (), item -> {
+                final var planner = TBSPlanner.getInstance ();
+                final var bond = planner.getBondByTicker (item.getLink ());
+                
+                TBSUtils.doIfNN (bond, b -> {
+                    b.getRWProperty ("customValue", () -> 0).set (value);
+                    planner.updateDistribution ();
+                    planner.dump ();
+                    updateChart ();
+                });
+            });
+        });
+        
+        return field;
     }
     
     public void applyData (ITBSProfile profile) {

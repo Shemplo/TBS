@@ -6,9 +6,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javafx.beans.property.Property;
@@ -44,7 +44,7 @@ public class TBSPlanner implements Serializable {
     
     @Getter
     private transient ObservableList <IPlanningBond> bonds = FXCollections.observableArrayList ();
-    private transient Set <String> tickers = new HashSet <> ();
+    private transient Map <String, IPlanningBond> ticker2bond = new HashMap <> ();
     
     @Getter
     private transient SimpleDoubleProperty summaryPrice = new SimpleDoubleProperty (0.0);
@@ -58,9 +58,12 @@ public class TBSPlanner implements Serializable {
     @Getter
     private double amount, diversification;
     
-    public void addBond (String ticker) {
-        if (ticker != null && tickers.add (ticker)) {
-            bonds.add (new PlanningBond (ticker).getProxy ());
+    public synchronized void addBond (String ticker) {
+        if (ticker != null && !ticker2bond.containsKey (ticker)) {
+            final var bond = new PlanningBond (ticker).getProxy ();
+            
+            ticker2bond.put (ticker, bond);
+            bonds.add (bond);
             sortThis (); 
             
             updateDistribution ();
@@ -70,9 +73,10 @@ public class TBSPlanner implements Serializable {
     
     public void removeBond (String ticker) {
         if (ticker != null && hasBond (ticker)) {            
-            synchronized (tickers) {
-                if (tickers.remove (ticker)) {
+            synchronized (ticker2bond) {
+                if (hasBond (ticker)) {
                     bonds.removeIf (b -> ticker.equals (b.getCode ()));
+                    ticker2bond.remove (ticker);
                     updateIndices ();
                     
                     updateDistribution ();
@@ -129,15 +133,15 @@ public class TBSPlanner implements Serializable {
                     bond.updateCalculatedAmount (factor * amount);
                 } else if (category == DistributionCategory.SUM) {
                     final var price = bond.getPrice ();
-                    bond.setAmount ((int) (factor * amount / price));
+                    bond.setAmount ((int) Math.round (factor * amount / price));
                     bond.updateCalculatedAmount (factor * amount / price);
                 } else {
                     bond.updateCalculatedAmount (0.0);
                     bond.setAmount (0);
                 }
                 
-                totalPrice += bond.getPrice () * bond.getAmount ();
-                totalLots += bond.getAmount ();
+                totalPrice += bond.getPrice () * bond.getCurrentValue ();
+                totalLots += bond.getCurrentValue ();
             }
             
             summaryPrice.setValue (totalPrice);
@@ -154,7 +158,11 @@ public class TBSPlanner implements Serializable {
     }
     
     public boolean hasBond (String ticker) {
-        return tickers.contains (ticker);
+        return ticker2bond.containsKey (ticker);
+    }
+    
+    public IPlanningBond getBondByTicker (String ticker) {
+        return ticker2bond.get (ticker);
     }
     
     private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -173,9 +181,9 @@ public class TBSPlanner implements Serializable {
             _serializeBonds.clear ();
         });
         
-        tickers = new HashSet <> ();
+        ticker2bond = new HashMap <> ();
         for (final var bond : bonds) {
-            tickers.add (bond.getCode ());
+            ticker2bond.put (bond.getCode (), bond);
         }
         
         sortThis ();
