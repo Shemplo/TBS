@@ -52,6 +52,12 @@ _score value is not a ground truth but we try to make it as more objective as po
 ### How to use
 * Link `🌐` allows to open bonds page in Tinkoff investment (T) and MOEX (M)
 * Link `🔍` allows to inspect known coupons of corresponding bond
+* In column `📎` you can select bond that should be used for planning.
+After that all selected bonds will be shown in `Planning tool` tab, where you
+can define category and amount of value to distribute. Also you can use slider
+to change diversification percentage (0% - distribute all to the first bond, 
+100% - try to distribute equally between all selected bonds). After parameters
+are set distribution will be calculated and shown in corresponding columns and chart.
 * Column `👝` shows number of lots in your portfolio (sum by all your accounts)
 * Symbol `➥` marks next coupon, symbol `⭿` mark coupon after offer is committed
 * You can use double click to copy cell content to clipboard
