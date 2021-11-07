@@ -131,7 +131,7 @@ public class TBSUIApplication extends Application {
         table.getColumns ().add (TBSUIUtils.<IBond, LinkedSymbolOrImage> buildTBSIconTableColumn ()
             .name ("M").tooltip (null).minWidth (30.0).sortable (false)
             .propertyFetcher (b -> makeExloreProperty (b, "🌐")).highlighter (linkIcon)
-            .onClick ((me, cell) -> handleExploreBrowserColumnClick (me, cell, true))
+            .onClick ((me, cell) -> handleExploreBrowserColumnClick (me, cell, false))
             .build ());
         table.getColumns ().add (TBSUIUtils.<IBond, LinkedSymbolOrImage> buildTBSIconTableColumn ()
             .name ("C").tooltip (null).minWidth (30.0).sortable (false)
