@@ -40,7 +40,7 @@ public class TBSBondManager implements Serializable {
         return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getName, "");
     }
     
-    public static Double getBondScore (String ticker) {
+    public static double getBondScore (String ticker) {
         return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, true), Bond::getScore, 0.0);
     }
     
@@ -50,6 +50,10 @@ public class TBSBondManager implements Serializable {
     
     public static LocalDate getBondNextCoupon (String ticker) {
         return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getNextCoupon, null);
+    }
+    
+    public static int getBondLots (String ticker) {
+        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getLots, 0);
     }
     
     public static Bond getBondByTicker (String ticker, boolean scannedPreferred) {
@@ -78,7 +82,7 @@ public class TBSBondManager implements Serializable {
         log.info ("Loading data abount bonds from Tinkoff and MOEX...");
         scanned = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
             . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ())).parallel ()
-            . map (Bond::new).filter (profile::testBond).limit (profile.getMaxResults ())
+            . map (Bond::new).filter (profile::testBond)//.limit (profile.getMaxResults ())
             . collect (Collectors.toList ());
         
         updateMapping ();

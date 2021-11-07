@@ -242,6 +242,15 @@ public class TBBSPlannerTool extends HBox {
             .highlighter (null)
             .build ());
         table.getColumns ().add (TBSUIUtils.<IPlanningBond, Number> buildTBSTableColumn ()
+            .name ("👝").tooltip ("Number of lots in your portfolio (sum by all your accounts)")
+            .alignment (Pos.BASELINE_LEFT).minWidth (50.0).sortable (false)
+            .propertyFetcher (bond -> new MappingROProperty <> (
+                bond.getRWProperty ("code", () -> ""), 
+                TBSBondManager::getBondLots
+            ))
+            .highlighter (grThreshold).converter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, Number> buildTBSTableColumn ()
             .name ("Score").tooltip (null)
             .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
             .propertyFetcher (bond -> new MappingROProperty <> (

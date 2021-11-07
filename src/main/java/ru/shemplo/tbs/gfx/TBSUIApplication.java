@@ -311,11 +311,11 @@ public class TBSUIApplication extends Application {
         profileDetails.setText (profile.getProfileDescription ());
         
         final var bondManager = TBSBondManager.getInstance ();
+        tableScanned.setItems (FXCollections.observableArrayList (
+            bondManager.getScanned ().stream ().limit (profile.getMaxResults ()).map (Bond::getProxy).toList ()
+        ));
         tablePortfolio.setItems (FXCollections.observableArrayList (
             bondManager.getPortfolio ().stream ().map (Bond::getProxy).toList ()
-        ));
-        tableScanned.setItems (FXCollections.observableArrayList (
-            bondManager.getScanned ().stream ().map (Bond::getProxy).toList ()
         ));
         
         plannerTool.applyData (profile);
