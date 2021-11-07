@@ -116,6 +116,8 @@ public class RunTinkoffBondScanner {
             new Dump (profile, currencyManager, bondManager), 
             DUMP_FILE.getName ()
         );
+        
+        restorePlanningBonds ();
         showResults (profile);
     }
     
@@ -126,20 +128,24 @@ public class RunTinkoffBondScanner {
         );
         
         if (dump != null) {
-            if (TBSPlanner.DUMP_FILE.exists ()) {
-                TBSDumpService.getInstance ().restore (
-                    TBSPlanner.DUMP_FILE.getName (), 
-                    PlanningDump.class
-                );
-            } else {
-                TBSPlanner.getInstance ().updateParameters (
-                    DistributionCategory.SUM, 0.0, 0.0
-                );
-            }
-            
+            restorePlanningBonds ();
             showResults (dump.getProfile ());
         } else {
             log.error ("Dump was not restored. Exit...");
+        }
+    }
+    
+    private static void restorePlanningBonds () {
+        log.info ("Restoring planning bonds from a binary file...");
+        if (TBSPlanner.DUMP_FILE.exists ()) {
+            TBSDumpService.getInstance ().restore (
+                TBSPlanner.DUMP_FILE.getName (), 
+                PlanningDump.class
+            );
+        } else {
+            TBSPlanner.getInstance ().updateParameters (
+                DistributionCategory.SUM, 0.0, 0.0
+            );
         }
     }
     

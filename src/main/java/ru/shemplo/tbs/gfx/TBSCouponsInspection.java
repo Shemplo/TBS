@@ -55,6 +55,9 @@ public class TBSCouponsInspection {
         final var grThreshold = TBSStyles.<ICoupon, Number> threshold (0.0, 1e-6);
         //final var sameMonth = TBSStyles.<ICoupon> sameMonth (NOW);
         
+        final var profile = TBSUIApplication.getInstance ().getProfile ();
+        final LocalDate now = bond.getNow (), end = bond.getEnd ();
+        
         table.getColumns ().add (TBSUIUtils.<ICoupon, LinkedSymbolOrImage> buildTBSIconTableColumn ()
             .name ("").tooltip (null).minWidth (50.0).sortable (false)
             .propertyFetcher (coup -> new MappingROProperty <> (
@@ -80,6 +83,15 @@ public class TBSCouponsInspection {
             .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
             .propertyFetcher (coup -> coup.getRWProperty ("reliable", null))
             .highlighter (null).converter ((__, v) -> String.valueOf (v))
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<ICoupon, Number> buildTBSTableColumn ()
+            .name ("Credit").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
+            .propertyFetcher (coup -> new MappingROProperty <> (
+                coup.getRWProperty ("amount", null), 
+                __ -> coup.getCredit (profile, now, end)
+            ))
+            .highlighter (grThreshold).converter (null)
             .build ());
         
         /*

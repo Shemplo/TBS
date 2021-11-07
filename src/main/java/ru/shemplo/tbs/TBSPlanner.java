@@ -33,7 +33,6 @@ public class TBSPlanner implements Serializable {
         if (instance == null) {
             synchronized (TBSPlanner.class) {
                 if (instance == null) {
-                    System.out.println ("TBSPlanner.getInstance()");
                     instance = new TBSPlanner ();
                 }
             }

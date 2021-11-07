@@ -131,7 +131,10 @@ public class TBBSPlannerTool extends HBox {
         );
         line4.getChildren ().add (diversificationField);
         
-        distributionChart = new AreaChart <> (new NumberAxis (), new NumberAxis ());
+        final var xAxis = new NumberAxis ();
+        //xAxis.setMinorTickVisible (true);
+        
+        distributionChart = new AreaChart <> (xAxis, new NumberAxis ());
         distributionChart.setMinWidth (typeSelect.getMinWidth () + amountField.getMinWidth () + line2.getSpacing ());
         distributionChart.setMaxWidth  (distributionChart.getMinWidth ());
         distributionChart.setMaxHeight (distributionChart.getMaxWidth () * 1.5);

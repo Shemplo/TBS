@@ -136,7 +136,7 @@ public class TBSUIApplication extends Application {
         table.getColumns ().add (TBSUIUtils.<IBond, LinkedSymbolOrImage> buildTBSIconTableColumn ()
             .name ("C").tooltip (null).minWidth (30.0).sortable (false)
             .propertyFetcher (b -> makeExloreProperty (b, "🔍")).highlighter (linkIcon)
-            .onClick ((me, cell) -> handleExploreCouponsColumnClick (me, cell))
+            .onClick ((me, cell) -> handleExploreCouponsColumnClick (me, cell, type == TBSTableType.SCANNED))
             .build ());
         table.getColumns ().add (TBSUIUtils.<IBond, LinkedObject <Boolean>> buildTBSToggleTableColumn ()
             .name ("📎").tooltip (null).minWidth (30.0).sortable (false)
@@ -236,7 +236,7 @@ public class TBSUIApplication extends Application {
         }
         table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
             .name ("MOEX %").tooltip (null)
-            .alignment (Pos.BASELINE_LEFT).minWidth (60.0).sortable (false)
+            .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
             .propertyFetcher (bond -> bond.getRWProperty ("percentage", null))
             .highlighter (grThreshold).converter (null)
             .build ());
@@ -297,9 +297,9 @@ public class TBSUIApplication extends Application {
         }
     }
     
-    private void handleExploreCouponsColumnClick (MouseEvent me, TBSTableCell <IBond, LinkedSymbolOrImage> cell) {
+    private void handleExploreCouponsColumnClick (MouseEvent me, TBSTableCell <IBond, LinkedSymbolOrImage> cell, boolean scanned) {
         if (me.getButton () == MouseButton.PRIMARY && cell.getItem () != null) {
-            final var bond = TBSBondManager.getBondByTicker (cell.getItem ().getLink (), true);
+            final var bond = TBSBondManager.getBondByTicker (cell.getItem ().getLink (), scanned);
             final var scene = ((Node) me.getSource ()).getScene ();
             new TBSCouponsInspection (scene.getWindow (), bond);
         }

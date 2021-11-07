@@ -39,7 +39,7 @@ public class TBSCurrencyManager implements Serializable {
     private Map <Currency, Double> currency2coefficient;
     
     public void initialize (ITBSProfile profile, OpenApi client, Logger log) {
-        log.info ("Loating current currency quotes from Tinkoff...");
+        log.info ("Loading current currency quotes from Tinkoff...");
         currency2coefficient = client.getMarketContext ().getMarketCurrencies ().join ().getInstruments ().stream ()
             . map (cur -> {
                 final var currency = TBSUtils.getCurrencyByTicker (cur.getTicker ());

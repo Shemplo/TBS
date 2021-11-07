@@ -1,6 +1,7 @@
 package ru.shemplo.tbs.entity;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface IBond extends Serializable, ObservableEntity <IBond> {
@@ -10,6 +11,10 @@ public interface IBond extends Serializable, ObservableEntity <IBond> {
     String getName ();
     
     String getCode ();
+    
+    LocalDate getNow ();
+    
+    LocalDate getEnd ();
     
     List <? extends ICoupon> getCoupons ();
     
