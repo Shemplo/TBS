@@ -3,7 +3,14 @@ package ru.shemplo.tbs.gfx;
 import static ru.shemplo.tbs.TBSConstants.*;
 import static ru.shemplo.tbs.gfx.TBSStyles.*;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
+
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbookType;
 
 import com.panemu.tiwulfx.control.NumberField;
 
@@ -16,11 +23,13 @@ import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TableView;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -30,14 +39,18 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import ru.shemplo.tbs.MappingROProperty;
 import ru.shemplo.tbs.TBSBondManager;
+import ru.shemplo.tbs.TBSExcelUtils;
 import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.TBSPlanner.DistributionCategory;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.IPlanningBond;
 import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
+
 
 public class TBBSPlannerTool extends HBox {
     
@@ -74,7 +87,9 @@ public class TBBSPlannerTool extends HBox {
         final var column = new VBox (4);
         column.setFillWidth (false);
         scroll.setContent (column);
-                
+        
+        // Input parameters
+        
         final var line1 = new HBox (4);
         column.getChildren ().add (line1);
         
@@ -114,6 +129,8 @@ public class TBBSPlannerTool extends HBox {
         customDiversificationIcon.setFitWidth (12);
         line3.getChildren ().add (customDiversificationIcon);
         
+        // Diversification parameter
+        
         final var line4 = new HBox (16);
         VBox.setMargin (line4, new Insets (0, 0, 12, 0));
         column.getChildren ().add (line4);
@@ -131,6 +148,8 @@ public class TBBSPlannerTool extends HBox {
         );
         line4.getChildren ().add (diversificationField);
         
+        // Chart
+        
         final var xAxis = new NumberAxis ();
         //xAxis.setMinorTickVisible (true);
         
@@ -142,6 +161,8 @@ public class TBBSPlannerTool extends HBox {
         distributionChart.setCreateSymbols (false);
         distributionChart.setAnimated (false);
         column.getChildren ().add (distributionChart);
+        
+        // Summary rows
         
         final var line5 = new HBox (4);
         column.getChildren ().add (line5);
@@ -155,6 +176,7 @@ public class TBBSPlannerTool extends HBox {
         line5.getChildren ().add (lotsHeader);
         
         final var line6 = new HBox (4);
+        VBox.setMargin (line6, new Insets (0, 0, 12, 0));
         column.getChildren ().add (line6);
         
         final var priceField = new NumberField <> ();
@@ -170,6 +192,26 @@ public class TBBSPlannerTool extends HBox {
         lotsField.setEditable (false);
         //priceField.setDisable (true);
         line6.getChildren ().add (lotsField);
+        
+        // Export button
+        
+        final var line7 = new HBox (4);
+        column.getChildren ().add (line7);
+        
+        final var excelExportIcon = new ImageView (TBSApplicationIcons.excel);
+        excelExportIcon.setFitHeight (16);
+        excelExportIcon.setFitWidth (16);
+        
+        final var excelExportButton = new Button ("Export", excelExportIcon);
+        excelExportButton.setGraphicTextGap (8);
+        excelExportButton.setOnMouseClicked (me -> {
+            if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
+                exportToExcel (TBSPlanner.getInstance ().getBonds ());
+            }
+        });
+        line7.getChildren ().add (excelExportButton);
+        
+        // Other initializations
         
         final var realSeries = new Series <Number, Number> ();
         realSeries.setName ("Real distr.");
@@ -344,6 +386,69 @@ public class TBBSPlannerTool extends HBox {
         }
         calculatedSeries.getData ().add (new Data <> (bonds.size (), 0.0));
         realSeries.getData ().add (new Data <> (bonds.size (), 0.0));
+    }
+    
+    private void exportToExcel (List <IPlanningBond> bonds) {
+        final var fileChooser = new FileChooser ();
+        fileChooser.getExtensionFilters ().add (new ExtensionFilter ("Excel file", List.of ("*.xlsx")));
+        fileChooser.setInitialDirectory (new File (System.getProperty ("user.home")));
+        fileChooser.setTitle ("Export plan to excel");
+        
+        final var file = fileChooser.showSaveDialog (TBSUIApplication.getInstance ().getStage ());
+        if (file == null) { return; }
+        
+        try (final var wb = new XSSFWorkbook (XSSFWorkbookType.XLSX)) {
+            final var sheet = wb.createSheet ("Bonds plan");
+            
+            int tc = 0;
+            sheet.setColumnWidth (tc++, 256 * 4);
+            sheet.setColumnWidth (tc++, 256 * 48);
+            sheet.setColumnWidth (tc++, 256 * 16);
+            sheet.setColumnWidth (tc++, 256 * 20);
+            sheet.setColumnWidth (tc++, 256 * 20);
+            sheet.setColumnWidth (tc++, 256 * 8);
+            sheet.setColumnWidth (tc++, 256 * 16);
+            sheet.setColumnWidth (tc++, 256 * 8);
+            
+            tc = 0;
+            TBSExcelUtils.setValue (sheet, 0, tc++, "#");
+            TBSExcelUtils.setValue (sheet, 0, tc++, "Bond");
+            TBSExcelUtils.setValue (sheet, 0, tc++, "Ticker");
+            TBSExcelUtils.setValue (sheet, 0, tc++, "Next coupon (buy date)");
+            TBSExcelUtils.setValue (sheet, 0, tc++, "Recommended price");
+            TBSExcelUtils.setValue (sheet, 0, tc++, "Amount");
+            TBSExcelUtils.setValue (sheet, 0, tc++, "Total price");
+            TBSExcelUtils.setValue (sheet, 0, tc++, "Bought?");
+            
+            tc = 0;
+            for (int i = 0; i < bonds.size (); i++, tc = 0) {
+                final var bond = bonds.get (i);
+                TBSExcelUtils.setValue (sheet, i + 1, tc++, i + 1);
+                TBSExcelUtils.setValue (sheet, i + 1, tc++, TBSBondManager.getBondName (bond.getCode ()));
+                TBSExcelUtils.setValue (sheet, i + 1, tc++, bond.getCode ());
+                TBSExcelUtils.setValue (sheet, i + 1, tc++, TBSBondManager.getBondNextCoupon (bond.getCode ()));
+                double price = TBSBondManager.getBondPrice (bond.getCode ()), amount = bond.getCurrentValue ();
+                TBSExcelUtils.setValue (sheet, i + 1, tc++, price);
+                TBSExcelUtils.setValue (sheet, i + 1, tc++, amount);
+                TBSExcelUtils.setValue (sheet, i + 1, tc++, amount * price);
+            }
+            
+            tc = 10;
+            sheet.setColumnWidth (tc++, 256 * 12);
+            sheet.setColumnWidth (tc++, 256 * 12);
+            
+            tc = 10;
+            TBSExcelUtils.setValue (sheet, 0, tc++, "Total price");
+            TBSExcelUtils.setValue (sheet, 0, tc++, "Total lots");
+            
+            tc = 10;
+            TBSExcelUtils.setValue (sheet, 1, tc++, TBSPlanner.getInstance ().getSummaryPrice ().get ());
+            TBSExcelUtils.setValue (sheet, 1, tc++, TBSPlanner.getInstance ().getSummaryLots ().getValue ());
+            
+            wb.write (new FileOutputStream (file));
+        } catch (IOException ioe) {
+            
+        }
     }
     
 }

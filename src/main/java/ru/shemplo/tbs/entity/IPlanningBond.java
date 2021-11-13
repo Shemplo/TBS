@@ -17,7 +17,7 @@ public interface IPlanningBond extends Serializable, CustomValueHolder <Integer>
     void setAmount (int amount);
     
     default double getPrice () {
-        return TBSUtils.aOrB (TBSBondManager.getBondPrice (getCode ()), Double.MAX_VALUE);
+        return TBSUtils.aOrB (TBSBondManager.getBondPrice (getCode ()), 0.0);
     }
     
     default double getCalculatedAmount () {

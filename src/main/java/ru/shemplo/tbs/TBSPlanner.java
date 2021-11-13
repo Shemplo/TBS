@@ -127,11 +127,12 @@ public class TBSPlanner implements Serializable {
                 final var bond = bonds.get (i);
                 
                 final var factor = Math.max (0.0, linearValue (i, k, b)) / sum;
+                final var price = bond.getPrice ();
+                
                 if (category == DistributionCategory.LOTS) {
                     bond.setAmount ((int) (factor * amount));
                     bond.updateCalculatedAmount (factor * amount);
-                } else if (category == DistributionCategory.SUM) {
-                    final var price = bond.getPrice ();
+                } else if (category == DistributionCategory.SUM && price != 0.0) {
                     bond.setAmount ((int) Math.round (factor * amount / price));
                     bond.updateCalculatedAmount (factor * amount / price);
                 } else {
@@ -139,7 +140,7 @@ public class TBSPlanner implements Serializable {
                     bond.setAmount (0);
                 }
                 
-                totalPrice += bond.getPrice () * bond.getCurrentValue ();
+                totalPrice += price * bond.getCurrentValue ();
                 totalLots += bond.getCurrentValue ();
             }
             

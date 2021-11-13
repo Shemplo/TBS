@@ -111,7 +111,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
             MOEXPrice.getMarketData ().map (Data::getRows).ifPresent (price -> {
                 final var lastValue = price.getRows () == null || price.getRows ().isEmpty () ? ""
                                     : price.getRows ().get (0).getLastPrice ();
-                lastPrice = lastValue.isBlank () ? Double.MAX_VALUE : (Double.parseDouble (lastValue) * 10.0);
+                lastPrice = lastValue.isBlank () ? 1e+9 : (Double.parseDouble (lastValue) * 10.0);
             });
         }
     }
