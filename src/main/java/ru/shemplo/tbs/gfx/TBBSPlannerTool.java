@@ -15,6 +15,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbookType;
 import com.panemu.tiwulfx.control.NumberField;
 
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -50,6 +51,7 @@ import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.IPlanningBond;
 import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
+import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 
 public class TBBSPlannerTool extends HBox {
@@ -261,6 +263,7 @@ public class TBBSPlannerTool extends HBox {
         
         final var grThreshold = TBSStyles.<IPlanningBond, Number> threshold (0.0, 1e-6);
         final var sameMonth = TBSStyles.<IPlanningBond> sameMonth (NOW);
+        final var linkIcon = TBSStyles.<IPlanningBond> linkIcon ();
         
         table.getColumns ().add (TBSUIUtils.<IPlanningBond, Integer> buildTBSTableColumn ()
             .name ("#").tooltip (null)
@@ -282,6 +285,15 @@ public class TBBSPlannerTool extends HBox {
             .alignment (Pos.BASELINE_LEFT).minWidth (125.0).sortable (false)
             .propertyFetcher (bond -> bond.getRWProperty ("code", () -> "")).converter ((r, v) -> v)
             .highlighter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, Currency> buildTBSTableColumn ()
+            .name ("Currency").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
+            .propertyFetcher (bond -> new MappingROProperty <> (
+                bond.getRWProperty ("code", () -> ""), 
+                TBSBondManager::getBondCurrency
+            ))
+            .highlighter (null).converter ((r, v) -> String.valueOf (v))
             .build ());
         table.getColumns ().add (TBSUIUtils.<IPlanningBond, Number> buildTBSTableColumn ()
             .name ("👝").tooltip ("Number of lots in your portfolio (sum by all your accounts)")
@@ -334,6 +346,12 @@ public class TBBSPlannerTool extends HBox {
             ))
             .fieldSupplier (this::makeCustomLotsValueField)
             .converter (null).highlighter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, LinkedSymbolOrImage> buildTBSIconTableColumn ()
+            .name ("🗑").tooltip (null).minWidth (30.0).sortable (false)
+            .propertyFetcher (b -> new SimpleObjectProperty <> (LinkedSymbolOrImage.symbol ("⌫", b.getCode ())))
+            .onClick ((me, cell) -> TBSPlanner.getInstance ().removeBond (cell.getItem ().getLink ()))
+            .highlighter (linkIcon)
             .build ());
         
         return table;

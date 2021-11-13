@@ -21,38 +21,6 @@ import ru.shemplo.tbs.gfx.table.TBSToggleTableCell;
 
 public class TBSUIUtils {
     
-    /*
-    public static <F, S> TableColumn <F, F> makeTBSTableColumn (
-        String name, String tooltip, BiFunction <TableRow <F>, F, S> converter, boolean sortable, 
-        double minWidth, Pos alignment, BiConsumer <TBSTableCell <F, S>, S> highlighter
-    ) {
-        final var column = new TableColumn <F, F> (name);
-        column.setCellFactory (__ -> {
-            final var cell = new TBSTableCell <> (converter, highlighter, alignment);
-            TBSUtils.doIfNN (tooltip, t -> cell.setTooltip (new Tooltip (t)));
-            return cell;
-        });
-        column.setCellValueFactory (cell -> {
-            return new SimpleObjectProperty <> (cell.getValue ());
-        });
-        column.setPrefWidth (minWidth);
-        column.setSortable (sortable);
-        column.setMinWidth (minWidth);
-        
-        return column;
-    }
-    
-    public static <F, S> TableColumn <F, F> makeTBSTableColumn (
-        String name, String tooltip, Function <F, S> converter, boolean sortable, 
-        double minWidth, Pos alignment, BiConsumer <TBSTableCell <F, S>, S> highlighter
-    ) {
-        return makeTBSTableColumn (name, tooltip, 
-            (r, f) -> TBSUtils.mapIfNN (converter, c -> c.apply (f), null), 
-            sortable, minWidth, alignment, highlighter
-        );
-    }
-    */
-    
     @Builder (builderMethodName = "buildTBSTableColumn")
     public static <F, S> TableColumn <F, S> makeTBSTableColumn (
         String name, String tooltip, boolean sortable, double minWidth, Pos alignment, 
