@@ -24,7 +24,7 @@ public interface IPlanningBond extends Serializable, CustomValueHolder <Integer>
     default double getRUBPrice () {
         final var currency = TBSBondManager.getBondCurrency (getCode ());
         final var cur2rub = TBSCurrencyManager.getInstance ().getToRubCoefficient (currency);
-        return TBSUtils.mapIfNN (getPrice (), p -> cur2rub, 0.0);
+        return TBSUtils.mapIfNN (getPrice (), p -> p * cur2rub, 0.0);
     }
     
     default double getCalculatedAmount () {
