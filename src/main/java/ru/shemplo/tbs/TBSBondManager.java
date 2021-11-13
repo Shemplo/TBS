@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.tinkoff.invest.openapi.OpenApi;
+import ru.tinkoff.invest.openapi.model.rest.Currency;
 import ru.tinkoff.invest.openapi.model.rest.InstrumentType;
 
 public class TBSBondManager implements Serializable {
@@ -46,6 +47,10 @@ public class TBSBondManager implements Serializable {
     
     public static Double getBondPrice (String ticker) {
         return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getLastPrice, null);
+    }
+    
+    public static Currency getBondCurrency (String ticker) {
+        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getCurrency, null);
     }
     
     public static LocalDate getBondNextCoupon (String ticker) {

@@ -3,6 +3,7 @@ package ru.shemplo.tbs.entity;
 import java.io.Serializable;
 
 import ru.shemplo.tbs.TBSBondManager;
+import ru.shemplo.tbs.TBSCurrencyManager;
 import ru.shemplo.tbs.TBSUtils;
 
 public interface IPlanningBond extends Serializable, CustomValueHolder <Integer>, ObservableEntity <IPlanningBond> {
@@ -18,6 +19,12 @@ public interface IPlanningBond extends Serializable, CustomValueHolder <Integer>
     
     default double getPrice () {
         return TBSUtils.aOrB (TBSBondManager.getBondPrice (getCode ()), 0.0);
+    }
+    
+    default double getRUBPrice () {
+        final var currency = TBSBondManager.getBondCurrency (getCode ());
+        final var cur2rub = TBSCurrencyManager.getInstance ().getToRubCoefficient (currency);
+        return TBSUtils.mapIfNN (getPrice (), p -> cur2rub, 0.0);
     }
     
     default double getCalculatedAmount () {
