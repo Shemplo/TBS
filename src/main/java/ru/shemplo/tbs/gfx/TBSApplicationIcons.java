@@ -10,6 +10,8 @@ public class TBSApplicationIcons {
     public static final Image customize = loadIcon ("customize.png");
     public static final Image warning = loadIcon ("warning.png");
     public static final Image excel = loadIcon ("excel.png");
+    public static final Image sync = loadIcon ("sync.png");
+    public static final Image sync24 = loadIcon ("sync24.png");
 
     private static Image loadIcon (String name) {
         final var path = String.format ("%s/%s", "", name);

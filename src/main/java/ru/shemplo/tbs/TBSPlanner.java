@@ -16,11 +16,14 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import ru.shemplo.tbs.entity.IPlanningBond;
 import ru.shemplo.tbs.entity.PlanningBond;
 import ru.shemplo.tbs.entity.PlanningDump;
 
+@NoArgsConstructor (access = AccessLevel.PRIVATE)
 public class TBSPlanner implements Serializable {
     
     private static final long serialVersionUID = 1L;

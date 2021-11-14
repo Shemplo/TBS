@@ -3,6 +3,7 @@ package ru.shemplo.tbs.gfx;
 import static ru.shemplo.tbs.TBSConstants.*;
 import static ru.shemplo.tbs.gfx.TBSStyles.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
 
 import javafx.application.Application;
@@ -31,7 +32,10 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSBondManager;
+import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.Bond;
@@ -41,6 +45,7 @@ import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.shemplo.tbs.gfx.table.TBSTableCell;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 
+@Slf4j
 public class TBSUIApplication extends Application {
 
     @Getter
@@ -58,10 +63,25 @@ public class TBSUIApplication extends Application {
     
     @Override
     public void start (Stage stage) throws Exception {
+        Thread.currentThread ().setName ("TBS-Window-Thread");
         this.stage = stage;
         
         final var root = new VBox ();
         final var scene = new Scene (root);
+        
+        stage.setOnCloseRequest (we -> {
+            try {
+                TBSClient.getInstance ().close ();
+            } catch (IOException ioe) {
+                log.error ("Failed to close connection to Tinkoff", ioe);
+            }
+            
+            try {
+                TBSBackgroundExecutor.getInstance ().close ();
+            } catch (Exception e) {
+                log.error ("Failed to stop background executors", e);
+            }
+        });
         
         stage.getIcons ().add (TBSApplicationIcons.window);
         stage.setTitle ("Tinkoff Bonds Scanner | v1.0");
@@ -80,17 +100,11 @@ public class TBSUIApplication extends Application {
         
         final var tabScanned = new Tab ("Scanned bonds");
         tabScanned.setContent (makeTabContent (tableScanned = initializeTable (TBSTableType.SCANNED)));
-        tabScanned.setOnSelectionChanged (e -> {
-            //tableScanned.refresh ();
-        });
         tabScanned.setClosable (false);
         tabs.getTabs ().add (tabScanned);
         
         final var tabPortfolio = new Tab ("Portfolio bonds");
         tabPortfolio.setContent (makeTabContent (tablePortfolio = initializeTable (TBSTableType.PORTFOLIO)));
-        tabPortfolio.setOnSelectionChanged (e -> {
-            //tablePortfolio.refresh ();
-        });
         tabPortfolio.setClosable (false);
         tabs.getTabs ().add (tabPortfolio);
         

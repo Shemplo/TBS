@@ -1,9 +1,6 @@
 package ru.shemplo.tbs;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Scanner;
@@ -15,9 +12,6 @@ import ru.shemplo.tbs.entity.Dump;
 import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.shemplo.tbs.entity.PlanningDump;
 import ru.shemplo.tbs.gfx.TBSUIApplication;
-import ru.tinkoff.invest.openapi.OpenApi;
-import ru.tinkoff.invest.openapi.model.rest.SandboxRegisterRequest;
-import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApi;
 
 @Slf4j
 public class RunTinkoffBondScanner {
@@ -48,50 +42,25 @@ public class RunTinkoffBondScanner {
             } else if ("q".equals (decision)) {
                 return;
             } else {
-                initializeProfile (profile);
+                loadCurrencyQuotes (profile);
             }
         } else {            
-            initializeProfile (profile);
+            loadCurrencyQuotes (profile);
         }
     }
     
-    private static void initializeProfile (ITBSProfile profile) {
-        try {
-            log.info ("Reading token from file...");
-            final var token = Files.readString (Paths.get (profile.getTokenFilename ()));
-            openConnection (profile, token);
-        } catch (IOException ioe) {
-            log.error ("Failed to read token: " + ioe, ioe);
-        }
-    }
-    
-    private static void openConnection (ITBSProfile profile, String token) {
-        log.info ("Connecting to Tinkoff API...");
-        log.info ("Profile: {}", profile);
-        try (final var client = new OkHttpOpenApi (token, !profile.isHighResponsible ())) {
-            log.info ("Perform registration in Tinkoff API...");
-            if (client.isSandboxMode ()) {
-                client.getSandboxContext ().performRegistration (new SandboxRegisterRequest ()).join ();
-            }
-            
-            loadCurrencyQuotes (profile, client);
-        } catch (Exception e) {
-            log.error ("Unexpected exception in client: " + e, e);
-        }
-    }
-    
-    private static void loadCurrencyQuotes (ITBSProfile profile, OpenApi client) {
+    private static void loadCurrencyQuotes (ITBSProfile profile) {
         final var currencyManager = TBSCurrencyManager.getInstance ();
-        currencyManager.initialize (profile, client, log);
+        currencyManager.initialize (profile);
         
         log.info ("Quotes: {}", currencyManager.getStringQuotes ());
         
-        searchForBonds (profile, client);
+        searchForBonds (profile);
     }
     
-    private static void searchForBonds (ITBSProfile profile, OpenApi client) {
+    private static void searchForBonds (ITBSProfile profile) {
         final var bondManager = TBSBondManager.getInstance ();
-        bondManager.initialize (profile, client, log);
+        bondManager.initialize (profile);
         
         analizeBonds (profile);
     }
@@ -151,9 +120,7 @@ public class RunTinkoffBondScanner {
     
     private static void showResults (ITBSProfile profile) {
         log.info ("Starting UI...");
-        new Thread (() -> {
-            Application.launch (TBSUIApplication.class);
-        }, "Primary-Window-Thread").start ();
+        new Thread (() -> Application.launch (TBSUIApplication.class)).start ();
         
         while (TBSUIApplication.getInstance () == null) {}
         

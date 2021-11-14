@@ -11,14 +11,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.ITBSProfile;
-import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 import ru.tinkoff.invest.openapi.model.rest.InstrumentType;
 
+@Slf4j
+@NoArgsConstructor (access = AccessLevel.PRIVATE)
 public class TBSBondManager implements Serializable {
     
     private static final long serialVersionUID = 1L;
@@ -74,23 +76,31 @@ public class TBSBondManager implements Serializable {
     private transient Map <String, Bond> ticker2portfolio = new HashMap <> ();
     private transient Map <String, Bond> ticker2scanned = new HashMap <> ();
     
-    public void initialize (ITBSProfile profile, OpenApi client, Logger log) {
-        log.info ("Loading bonds from portfolio (with data from Tinkoff and MOEX)...");
-        portfolio = client.getUserContext ().getAccounts ().join ().getAccounts ().parallelStream ()
-            . flatMap (acc -> {
-                return client.getPortfolioContext ().getPortfolio (acc.getBrokerAccountId ()).join ()
-                     . getPositions ().stream ();
-            })
-            . filter (pos -> pos.getInstrumentType () == InstrumentType.BOND)
-            . map (Bond::new).collect (Collectors.toList ());
-        
-        log.info ("Loading data abount bonds from Tinkoff and MOEX...");
-        scanned = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
-            . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ())).parallel ()
-            . map (Bond::new).filter (profile::testBond)//.limit (profile.getMaxResults ())
-            . collect (Collectors.toList ());
-        
-        updateMapping ();
+    public void initialize (ITBSProfile profile) {
+        try {
+            final var client = TBSClient.getInstance ().getConnection (profile);
+            
+            log.info ("Loading bonds from portfolio (with data from Tinkoff and MOEX)...");
+            portfolio = client.getUserContext ().getAccounts ().join ().getAccounts ().parallelStream ()
+                . flatMap (acc -> {
+                    return client.getPortfolioContext ().getPortfolio (acc.getBrokerAccountId ()).join ()
+                            . getPositions ().stream ();
+                })
+                . filter (pos -> pos.getInstrumentType () == InstrumentType.BOND)
+                . map (Bond::new).collect (Collectors.toList ());
+            
+            log.info ("Loading data abount bonds from Tinkoff and MOEX...");
+            scanned = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
+                . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ())).parallel ()
+                . map (Bond::new).filter (profile::testBond)//.limit (profile.getMaxResults ())
+                . collect (Collectors.toList ());
+            
+            updateMapping ();
+        } catch (IOException ioe) {
+            log.error ("Failed to scan bonds", ioe);
+            portfolio = List.of (); 
+            scanned = List.of ();
+        }
     }
     
     public void analize (ITBSProfile profile) {

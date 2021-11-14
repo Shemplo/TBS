@@ -6,6 +6,7 @@ import static ru.shemplo.tbs.gfx.TBSStyles.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -14,11 +15,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbookType;
 
 import com.panemu.tiwulfx.control.NumberField;
 
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.NumberAxis;
@@ -29,6 +33,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Background;
@@ -42,8 +47,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.MappingROProperty;
+import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSBondManager;
+import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSExcelUtils;
 import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.TBSPlanner.DistributionCategory;
@@ -51,9 +59,11 @@ import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.IPlanningBond;
 import ru.shemplo.tbs.entity.ITBSProfile;
 import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
+import ru.tinkoff.invest.openapi.model.rest.BrokerAccountType;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
+import ru.tinkoff.invest.openapi.model.rest.CurrencyPosition;
 
-
+@Slf4j
 public class TBBSPlannerTool extends HBox {
     
     private AreaChart <Number, Number> distributionChart;
@@ -115,9 +125,28 @@ public class TBBSPlannerTool extends HBox {
         line2.getChildren ().add (typeSelect);
         
         amountField = new NumberField <> (Double.class);
-        amountField.setMinWidth (amounHeader.getWrappingWidth ());
+        amountField.setMinWidth (amounHeader.getWrappingWidth () - 20);
         amountField.setValue (TBSPlanner.getInstance ().getAmount ());
         line2.getChildren ().add (amountField);
+        
+        final var syncBalanceIcon = new ImageView (TBSApplicationIcons.sync24);
+        syncBalanceIcon.setFitHeight (20);
+        syncBalanceIcon.setFitWidth (20);
+        
+        final var syncBalanceButton = new Button (null, syncBalanceIcon);
+        syncBalanceButton.setTooltip (new Tooltip ("Load total RUB balance from your Tinkoff accounts"));
+        syncBalanceButton.setPadding (new Insets (2, 0, 2, 0));
+        syncBalanceButton.setBackground (Background.EMPTY);
+        syncBalanceButton.setCursor (Cursor.HAND);
+        syncBalanceButton.disableProperty ().bind (Bindings.notEqual (
+            typeSelect.valueProperty (), DistributionCategory.SUM
+        ));
+        syncBalanceButton.setOnMouseClicked (me -> {
+            if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
+                syncBalance (TBSUIApplication.getInstance ().getProfile ());
+            }
+        });
+        line2.getChildren ().add (syncBalanceButton);
         
         final var line3 = new HBox (16);
         line3.setAlignment (Pos.BOTTOM_LEFT);
@@ -145,8 +174,8 @@ public class TBBSPlannerTool extends HBox {
         
         final var diversificationField = new NumberField <> ();
         diversificationField.setMaxWidth (
-            typeSelect.getMinWidth () + amountField.getMinWidth () + line2.getSpacing () 
-            - diversificationSlider.getMinWidth () - line4.getSpacing ()
+            typeSelect.getMinWidth () + amountField.getMinWidth () + syncBalanceIcon.getFitWidth ()
+            + line2.getSpacing () * 2 - diversificationSlider.getMinWidth () - line4.getSpacing ()
         );
         line4.getChildren ().add (diversificationField);
         
@@ -156,7 +185,10 @@ public class TBBSPlannerTool extends HBox {
         //xAxis.setMinorTickVisible (true);
         
         distributionChart = new AreaChart <> (xAxis, new NumberAxis ());
-        distributionChart.setMinWidth (typeSelect.getMinWidth () + amountField.getMinWidth () + line2.getSpacing ());
+        distributionChart.setMinWidth (
+            typeSelect.getMinWidth () + amountField.getMinWidth () + syncBalanceIcon.getFitWidth () 
+            + line2.getSpacing () * 2
+        );
         distributionChart.setMaxWidth  (distributionChart.getMinWidth ());
         distributionChart.setMaxHeight (distributionChart.getMaxWidth () * 1.5);
         VBox.setMargin (distributionChart, new Insets (0, 0, 24, 0));
@@ -205,6 +237,7 @@ public class TBBSPlannerTool extends HBox {
         excelExportIcon.setFitWidth (16);
         
         final var excelExportButton = new Button ("Export", excelExportIcon);
+        excelExportButton.setPadding (new Insets (4, 8, 4, 8));
         excelExportButton.setGraphicTextGap (8);
         excelExportButton.setOnMouseClicked (me -> {
             if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
@@ -415,58 +448,92 @@ public class TBBSPlannerTool extends HBox {
         final var file = fileChooser.showSaveDialog (TBSUIApplication.getInstance ().getStage ());
         if (file == null) { return; }
         
-        try (final var wb = new XSSFWorkbook (XSSFWorkbookType.XLSX)) {
-            final var sheet = wb.createSheet ("Bonds plan");
-            
-            int tc = 0;
-            sheet.setColumnWidth (tc++, 256 * 4);
-            sheet.setColumnWidth (tc++, 256 * 48);
-            sheet.setColumnWidth (tc++, 256 * 16);
-            sheet.setColumnWidth (tc++, 256 * 20);
-            sheet.setColumnWidth (tc++, 256 * 20);
-            sheet.setColumnWidth (tc++, 256 * 8);
-            sheet.setColumnWidth (tc++, 256 * 16);
-            sheet.setColumnWidth (tc++, 256 * 8);
-            
-            tc = 0;
-            TBSExcelUtils.setValue (sheet, 0, tc++, "#");
-            TBSExcelUtils.setValue (sheet, 0, tc++, "Bond");
-            TBSExcelUtils.setValue (sheet, 0, tc++, "Ticker");
-            TBSExcelUtils.setValue (sheet, 0, tc++, "Next coupon (buy date)");
-            TBSExcelUtils.setValue (sheet, 0, tc++, "Recommended price");
-            TBSExcelUtils.setValue (sheet, 0, tc++, "Amount");
-            TBSExcelUtils.setValue (sheet, 0, tc++, "Total price");
-            TBSExcelUtils.setValue (sheet, 0, tc++, "Bought?");
-            
-            tc = 0;
-            for (int i = 0; i < bonds.size (); i++, tc = 0) {
-                final var bond = bonds.get (i);
-                TBSExcelUtils.setValue (sheet, i + 1, tc++, i + 1);
-                TBSExcelUtils.setValue (sheet, i + 1, tc++, TBSBondManager.getBondName (bond.getCode ()));
-                TBSExcelUtils.setValue (sheet, i + 1, tc++, bond.getCode ());
-                TBSExcelUtils.setValue (sheet, i + 1, tc++, TBSBondManager.getBondNextCoupon (bond.getCode ()));
-                double price = TBSBondManager.getBondPrice (bond.getCode ()), amount = bond.getCurrentValue ();
-                TBSExcelUtils.setValue (sheet, i + 1, tc++, price);
-                TBSExcelUtils.setValue (sheet, i + 1, tc++, amount);
-                TBSExcelUtils.setValue (sheet, i + 1, tc++, amount * price);
+        TBSBackgroundExecutor.getInstance ().runInBackground (() -> {            
+            try (final var wb = new XSSFWorkbook (XSSFWorkbookType.XLSX)) {
+                final var sheet = wb.createSheet ("Bonds plan");
+                
+                int tc = 0;
+                sheet.setColumnWidth (tc++, 256 * 4);
+                sheet.setColumnWidth (tc++, 256 * 48);
+                sheet.setColumnWidth (tc++, 256 * 16);
+                sheet.setColumnWidth (tc++, 256 * 20);
+                sheet.setColumnWidth (tc++, 256 * 20);
+                sheet.setColumnWidth (tc++, 256 * 8);
+                sheet.setColumnWidth (tc++, 256 * 16);
+                sheet.setColumnWidth (tc++, 256 * 8);
+                
+                tc = 0;
+                TBSExcelUtils.setValue (sheet, 0, tc++, "#");
+                TBSExcelUtils.setValue (sheet, 0, tc++, "Bond");
+                TBSExcelUtils.setValue (sheet, 0, tc++, "Ticker");
+                TBSExcelUtils.setValue (sheet, 0, tc++, "Next coupon (buy date)");
+                TBSExcelUtils.setValue (sheet, 0, tc++, "Recommended price");
+                TBSExcelUtils.setValue (sheet, 0, tc++, "Amount");
+                TBSExcelUtils.setValue (sheet, 0, tc++, "Total price");
+                TBSExcelUtils.setValue (sheet, 0, tc++, "Bought?");
+                
+                tc = 0;
+                for (int i = 0; i < bonds.size (); i++, tc = 0) {
+                    final var bond = bonds.get (i);
+                    TBSExcelUtils.setValue (sheet, i + 1, tc++, i + 1);
+                    TBSExcelUtils.setValue (sheet, i + 1, tc++, TBSBondManager.getBondName (bond.getCode ()));
+                    TBSExcelUtils.setValue (sheet, i + 1, tc++, bond.getCode ());
+                    TBSExcelUtils.setValue (sheet, i + 1, tc++, TBSBondManager.getBondNextCoupon (bond.getCode ()));
+                    double price = TBSBondManager.getBondPrice (bond.getCode ()), amount = bond.getCurrentValue ();
+                    TBSExcelUtils.setValue (sheet, i + 1, tc++, price);
+                    TBSExcelUtils.setValue (sheet, i + 1, tc++, amount);
+                    TBSExcelUtils.setValue (sheet, i + 1, tc++, amount * price);
+                }
+                
+                tc = 10;
+                sheet.setColumnWidth (tc++, 256 * 12);
+                sheet.setColumnWidth (tc++, 256 * 12);
+                
+                tc = 10;
+                TBSExcelUtils.setValue (sheet, 0, tc++, "Total price");
+                TBSExcelUtils.setValue (sheet, 0, tc++, "Total lots");
+                
+                tc = 10;
+                TBSExcelUtils.setValue (sheet, 1, tc++, TBSPlanner.getInstance ().getSummaryPrice ().get ());
+                TBSExcelUtils.setValue (sheet, 1, tc++, TBSPlanner.getInstance ().getSummaryLots ().getValue ());
+                
+                wb.write (new FileOutputStream (file));
+            } catch (IOException ioe) {
+                
             }
-            
-            tc = 10;
-            sheet.setColumnWidth (tc++, 256 * 12);
-            sheet.setColumnWidth (tc++, 256 * 12);
-            
-            tc = 10;
-            TBSExcelUtils.setValue (sheet, 0, tc++, "Total price");
-            TBSExcelUtils.setValue (sheet, 0, tc++, "Total lots");
-            
-            tc = 10;
-            TBSExcelUtils.setValue (sheet, 1, tc++, TBSPlanner.getInstance ().getSummaryPrice ().get ());
-            TBSExcelUtils.setValue (sheet, 1, tc++, TBSPlanner.getInstance ().getSummaryLots ().getValue ());
-            
-            wb.write (new FileOutputStream (file));
-        } catch (IOException ioe) {
-            
-        }
+        });
+    }
+    
+    private void syncBalance (ITBSProfile profile) {
+        TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
+            try {
+                final var client = TBSClient.getInstance ().getConnection (profile);
+                final var accounts = client.getUserContext ().getAccounts ().join ();
+                
+                double sumRUB = 0;
+                for (final var account : accounts.getAccounts ()) {
+                    if (account.getBrokerAccountType () != BrokerAccountType.TINKOFF) {
+                        continue;
+                    }
+                    
+                    final var portfolio = client.getPortfolioContext ()
+                        . getPortfolioCurrencies (account.getBrokerAccountId ())
+                        . join ();
+                    
+                    sumRUB += portfolio.getCurrencies ().stream ()
+                        .filter (cur -> cur.getCurrency () == Currency.RUB).findFirst ()
+                        .map (CurrencyPosition::getBalance).orElse (BigDecimal.ZERO)
+                        .doubleValue ();
+                }
+                
+                final var finalSumRUB = sumRUB;
+                Platform.runLater (() -> {
+                    amountField.setValue (finalSumRUB);
+                });
+            } catch (IOException ioe) {
+                log.error ("Failed to sync balance", ioe);
+            }
+        });
     }
     
 }
