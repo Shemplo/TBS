@@ -153,8 +153,9 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
         
         final var priceBalance = profile.getSafeMaxPrice (lastPrice) - lastPrice;
         final var monthsBalance = months - profile.getSafeMinMonths ();
-        score = pureCredit * currencyCoeff + monthsBalance * 1.13 + priceBalance * currencyCoeff * 1.35 
-              - lots * 0.25 + couponsPerYear * 0.25 + percentage * 1.4 - 200.0;
+        score = pureCredit * currencyCoeff / (months == 0 ? 1000 : months) * 1.37 + Math.sqrt (monthsBalance) * 0.23 
+              + priceBalance * currencyCoeff * 1.18 - lots * 0.25 + couponsPerYear * 0.15 + percentage * 1.13 
+              - 70.0;
         score *= nominalValue != 0.0 ? 1000.0 / nominalValue : 1.0; // align to 1k nominal
     }
     

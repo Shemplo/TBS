@@ -89,7 +89,7 @@ public class TBSBondManager implements Serializable {
                 . filter (pos -> pos.getInstrumentType () == InstrumentType.BOND)
                 . map (Bond::new).collect (Collectors.toList ());
             
-            log.info ("Loading data abount bonds from Tinkoff and MOEX...");
+            log.info ("Loading data about bonds from Tinkoff and MOEX...");
             scanned = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
                 . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ())).parallel ()
                 . map (Bond::new).filter (profile::testBond)//.limit (profile.getMaxResults ())
