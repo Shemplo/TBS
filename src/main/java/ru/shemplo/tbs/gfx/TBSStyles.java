@@ -18,6 +18,7 @@ import ru.shemplo.tbs.gfx.table.TBSTableCell;
 
 public class TBSStyles {
     
+    public static final String STYLE_MULTI_CHART = "/multi-chart.css";
     public static final String STYLE_TABLES = "/table.css";
     public static final String STYLE_TABS = "/tabs.css";
     

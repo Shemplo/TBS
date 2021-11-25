@@ -52,7 +52,8 @@ public class TBSUIApplication extends Application {
     private static volatile TBSUIApplication instance;
     
     private TableView <IBond> tableScanned, tablePortfolio;
-    private TBBSPlannerTool plannerTool;
+    private TBSBalanceControl balanceControl;
+    private TBSPlannerTool plannerTool;
     private Text profileDetails;
     
     @Getter
@@ -109,9 +110,14 @@ public class TBSUIApplication extends Application {
         tabs.getTabs ().add (tabPortfolio);
         
         final var tabPlanner = new Tab ("Planning tool");
-        tabPlanner.setContent (plannerTool = new TBBSPlannerTool ());
+        tabPlanner.setContent (plannerTool = new TBSPlannerTool ());
         tabPlanner.setClosable (false);
         tabs.getTabs ().add (tabPlanner);
+        
+        final var tabBalance = new Tab ("Balance control");
+        tabBalance.setContent (balanceControl = new TBSBalanceControl ());
+        tabBalance.setClosable (false);
+        tabs.getTabs ().add (tabBalance);
         
         instance = this;
     }
@@ -242,7 +248,7 @@ public class TBSUIApplication extends Application {
                 .highlighter (null).converter (null)
                 .build ());
             table.getColumns ().add (TBSUIUtils.<IBond, Long> buildTBSTableColumn ()
-                .name ("Ys").tooltip ("Months till end (value from range 0 to 12)")
+                .name ("Ms").tooltip ("Months till end (value from range 0 to 12)")
                 .alignment (Pos.BASELINE_LEFT).minWidth (50.0).sortable (false)
                 .propertyFetcher (bond -> new SimpleObjectProperty <> (bond.getMonthsToEnd () % 12))
                 .highlighter (null).converter (null)

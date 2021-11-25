@@ -64,7 +64,7 @@ import ru.tinkoff.invest.openapi.model.rest.Currency;
 import ru.tinkoff.invest.openapi.model.rest.CurrencyPosition;
 
 @Slf4j
-public class TBBSPlannerTool extends HBox {
+public class TBSPlannerTool extends HBox {
     
     private AreaChart <Number, Number> distributionChart;
     private ChoiceBox <DistributionCategory> typeSelect;
@@ -72,7 +72,7 @@ public class TBBSPlannerTool extends HBox {
     private NumberField <Double> amountField;
     private TableView <IPlanningBond> table;
     
-    public TBBSPlannerTool () {
+    public TBSPlannerTool () {
         setPadding (new Insets (2, 0, 0, 0));
         setFillHeight (true);
         
@@ -92,7 +92,7 @@ public class TBBSPlannerTool extends HBox {
     private Parent makeLeftPannel () {
         final var scroll = new ScrollPane ();
         scroll.setPadding (new Insets (10, 16, 12, 16));
-        scroll.setBackground (null);
+        scroll.setBackground (Background.EMPTY);
         scroll.setMinWidth (352);
         scroll.setBorder (null);
         
