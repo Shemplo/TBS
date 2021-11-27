@@ -10,7 +10,7 @@ _score value is not a ground truth but we try to make it as more objective as po
 
 ### Requirements
 
-* Installed JRE 16+
+* Installed JRE 17+
 * Stable Internet connection
 
 ### How to run
