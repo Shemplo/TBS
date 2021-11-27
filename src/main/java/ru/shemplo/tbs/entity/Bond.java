@@ -74,7 +74,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
                 code = description.getBondCode ().orElse ("");
                 
                 couponsPerYear = description.getBondCouponsPerYear ().orElse (1);
-                nextCoupon = description.getBondNextCouponDate ().orElse (null);
+                //nextCoupon = description.getBondNextCouponDate ().orElse (null);
                 nominalValue = description.getBondNominalValue ().orElse (1.0);
                 percentage = description.getBondPercentage ().orElse (0.0);
                 emitterId = description.getBondEmitterID ().orElse (-1L);
@@ -100,6 +100,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
                 
                 for (final var coupon : Optional.ofNullable (cops.getRows ()).orElse (List.of ())) {
                     coupons.add (previous = new Coupon (coupon, previous, offers, now));
+                    if (previous.isNextCoupon ()) { nextCoupon = previous.getDate (); }
                 }
             });
         }

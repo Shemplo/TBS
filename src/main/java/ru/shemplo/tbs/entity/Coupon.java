@@ -19,6 +19,8 @@ public class Coupon extends AbstractObservableEntity <ICoupon> implements ICoupo
     
     private static final long serialVersionUID = 1L;
 
+    public static final String NEXT_COUPON = "➥";
+    
     private LocalDate date;
     
     private double amount;
@@ -33,7 +35,7 @@ public class Coupon extends AbstractObservableEntity <ICoupon> implements ICoupo
         date = row.getCouponLocalDate ();
         
         if (!NOW.isAfter (date) && NOW.isAfter (previous.getDate ())) {
-            symbol = "➥";
+            symbol = NEXT_COUPON;
         }
         
         final var offer = offers.floor (date);
@@ -50,6 +52,10 @@ public class Coupon extends AbstractObservableEntity <ICoupon> implements ICoupo
         final var days = date.until (end, ChronoUnit.DAYS);
         final var credit = amount / Math.pow (1 + profile.getInflation (), days / 365.0);
         return reliable ? credit : (credit * 0.9);
+    }
+    
+    public boolean isNextCoupon () {
+        return symbol.contains (NEXT_COUPON);
     }
     
 }
