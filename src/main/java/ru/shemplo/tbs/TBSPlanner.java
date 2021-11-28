@@ -70,6 +70,8 @@ public class TBSPlanner implements Serializable {
             
             updateDistribution ();
             dump ();
+            
+            TBSBalanceController.getInstance ().updateBalance ();
         }
     }
     
@@ -83,6 +85,8 @@ public class TBSPlanner implements Serializable {
                     
                     updateDistribution ();
                     dump ();
+                    
+                    TBSBalanceController.getInstance ().updateBalance ();
                 }
             }
         }
@@ -110,6 +114,8 @@ public class TBSPlanner implements Serializable {
         this.category = category; this.amount = amount; this.diversification = diversification;
         updateDistribution ();
         dump ();
+        
+        TBSBalanceController.getInstance ().updateBalance ();
     }
     
     public void updateDistribution () {
@@ -191,6 +197,8 @@ public class TBSPlanner implements Serializable {
         
         sortThis ();
         updateDistribution ();
+        
+        TBSBalanceController.getInstance ().updateBalance ();
     }
     
     private List <IPlanningBond> _serializeBonds;

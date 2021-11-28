@@ -50,6 +50,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.MappingROProperty;
 import ru.shemplo.tbs.TBSBackgroundExecutor;
+import ru.shemplo.tbs.TBSBalanceController;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSExcelUtils;
@@ -120,7 +121,7 @@ public class TBSPlannerTool extends HBox {
         typeSelect = new ChoiceBox <DistributionCategory> ();
         typeSelect.getItems ().setAll (DistributionCategory.values ());
         typeSelect.setMinWidth (typeHeader.getWrappingWidth ());  
-        typeSelect.setValue (DistributionCategory.SUM);
+        //typeSelect.setValue (DistributionCategory.SUM);
         typeSelect.setValue (TBSPlanner.getInstance ().getCategory ());
         line2.getChildren ().add (typeSelect);
         
@@ -402,6 +403,8 @@ public class TBSPlannerTool extends HBox {
                     b.getRWProperty ("customValue", () -> 0).set (value);
                     planner.updateDistribution ();
                     planner.dump ();
+                    
+                    TBSBalanceController.getInstance ().updateBalance ();
                     updateChart ();
                 });
             });

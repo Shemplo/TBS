@@ -52,6 +52,7 @@ public class TBSUIApplication extends Application {
     private static volatile TBSUIApplication instance;
     
     private TableView <IBond> tableScanned, tablePortfolio;
+    @SuppressWarnings ("unused")
     private TBSBalanceControl balanceControl;
     private TBSPlannerTool plannerTool;
     private Text profileDetails;
