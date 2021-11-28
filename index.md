@@ -5,12 +5,11 @@ There are **50.000+** bonds available on [Tinkoff investments](https://www.tinko
 I have same question all the time and default bonds filter in Tinkoff doesn't help because it makes to do some manual work 
 for understanding quality of each bond, so I made the application that helps to answer this question and makes search for bonds *easier*.
 
-Prerequisites for using TBS is quite simple:
+Prerequisites for using TBS are quite simple:
 * You need to have installed Java 17 (or higher). You can download it from [OpenJDK 17](https://jdk.java.net/java-se-ri/17) (community build, free to use) or from [Oracle](https://www.oracle.com/java/technologies/downloads/) (official maintaner build, but have some license restrictions)
 * Account(s) in Tinkoff investmens with API token that can be retrieved by [this](https://tinkoffcreditsystems.github.io/invest-openapi/auth/) instruction.
 
 And that's all. Now we can use all capabilities of TBS. 
-
 
 ### Download
 
@@ -20,6 +19,8 @@ You need to chose the version (the latest is recommended), download `.jar` file 
 Caused by JavaFX uses OpenGL for rendering it have some platform-specific dependencies. In releases `.jar` files are build for Windows,
 so you can try to start them on Linux or MacOS but it's not guaranteed that it will run. For Linux and MacOS you can clone repository,
 change JavaFX depencecies classifier to your platform and make a package via Maven.  
+
+More detailed instruction how to use TBS is written in [repository](https://github.com/Shemplo/TBS).
 
 ### Scanned bonds
 
@@ -39,8 +40,6 @@ Going from the top to the bottom you can choose bonds that you like the most.
 On the second tab you can find your portfolio. It has almost the same table without some columns. 
 They are removed because of their inconsistency, for example `Price` because different lots can be bought at different time 
 and different price, what value should be then in this column? Average? My thoughts sais that it's useless information.
-
-More detailed instruction how to use TBS is written in [repository](https://github.com/Shemplo/TBS).
 
 ### Planning tool
 
