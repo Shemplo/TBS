@@ -1,7 +1,5 @@
 # Tinkoff bonds scanner
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/R5R176T4O)
-
 This tools allows to scan tinkoff investment for the bonds using set of various parameters. 
 It can be useful when you need to decide what to buy next because it provides also score for 
 each bond and sorts appropriate variants according to it. **Be careful (disclaimer)**:
