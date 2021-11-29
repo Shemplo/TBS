@@ -11,6 +11,10 @@
     
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
+    <!-- 
+      Change your platform (OS) here. Possible values: win, linux, mac, ... 
+    -->
+    <javafx.platform>win</javafx.platform>
     <javafx.version>17.0.1</javafx.version>
     
     <poi.version>5.1.0</poi.version>
@@ -56,12 +60,13 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <version>1.18.20</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <version>1.8.0-beta4</version>
-      <scope>provided</scope>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -91,21 +96,25 @@
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-base</artifactId>
       <version>${javafx.version}</version>
+      <classifier>${javafx.platform}</classifier>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
       <version>${javafx.version}</version>
+      <classifier>${javafx.platform}</classifier>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-fxml</artifactId>
       <version>${javafx.version}</version>
+      <classifier>${javafx.platform}</classifier>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-graphics</artifactId>
       <version>${javafx.version}</version>
+      <classifier>${javafx.platform}</classifier>
     </dependency>
     <dependency>
       <groupId>com.panemu</groupId>

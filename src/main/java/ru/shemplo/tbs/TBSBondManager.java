@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -98,8 +99,8 @@ public class TBSBondManager implements Serializable {
             updateMapping ();
         } catch (IOException ioe) {
             log.error ("Failed to scan bonds", ioe);
-            portfolio = List.of (); 
-            scanned = List.of ();
+            portfolio = new ArrayList <> (); 
+            scanned = new ArrayList <> ();
         }
     }
     
