@@ -43,7 +43,9 @@
 
 ### Scanned bonds
 
-![image](https://user-images.githubusercontent.com/14365346/143763226-730f4b16-a914-467d-b643-755e86194d4c.png)
+<a data-fslightbox href="https://user-images.githubusercontent.com/14365346/143763226-730f4b16-a914-467d-b643-755e86194d4c.png">
+  <img src="https://user-images.githubusercontent.com/14365346/143763226-730f4b16-a914-467d-b643-755e86194d4c.png">
+</a>
 
 На первой вкладке пользовательского интерфейса приведена таблица с облигациями, удовлетворяющих условиям поиска. 
 Таблица отсортированая по столцу `Score` по убыванию. Этот значение описыывает некоторую собирательную характеристику облигации 
@@ -59,7 +61,9 @@
 
 Если Вы хотите купить что-то здесь и сейчас, то достаточно просмотреть эту таблицу сверху вниз и выбрать то, что Вам больше всего подходит.
 
-![image](https://user-images.githubusercontent.com/14365346/143876737-f6ac916d-64c3-4c4a-8bb8-da7127d97dec.png)
+<a data-fslightbox href="https://user-images.githubusercontent.com/14365346/143876737-f6ac916d-64c3-4c4a-8bb8-da7127d97dec.png">
+  <img src="https://user-images.githubusercontent.com/14365346/143876737-f6ac916d-64c3-4c4a-8bb8-da7127d97dec.png">
+</a>
 
 Если нажать на кнопку для просмотра купонов, то откроется следующее окно. 
 
@@ -69,7 +73,9 @@
 
 ### Portfolio bonds
 
-![image](https://user-images.githubusercontent.com/14365346/143763400-59758dad-6990-4046-b933-0ac618cab23d.png)
+<a data-fslightbox href="https://user-images.githubusercontent.com/14365346/143763400-59758dad-6990-4046-b933-0ac618cab23d.png">
+  <img src="https://user-images.githubusercontent.com/14365346/143763400-59758dad-6990-4046-b933-0ac618cab23d.png">
+</a>
 
 На второй вкладке находится таблица с облигациями из всех Ваших портфелей. Содержание колонок то же самое, за исключением того, 
 что некоторые из них скрыты, потому что есть некоторая идеалогическая проблема с тем, что в них показывать. Например `Price` -- 
@@ -81,7 +87,9 @@
 
 ### Planning tool
 
-![image](https://user-images.githubusercontent.com/14365346/143763619-40c0af6c-5501-45f6-b6f5-80cc77cc4b99.png)
+<a data-fslightbox href="https://user-images.githubusercontent.com/14365346/143763619-40c0af6c-5501-45f6-b6f5-80cc77cc4b99.png">
+  <img src="https://user-images.githubusercontent.com/14365346/143763619-40c0af6c-5501-45f6-b6f5-80cc77cc4b99.png">
+</a>
 
 Если Вы не хотите покупать что-то здесь и сейчас, а хотите спланировать своё будущее, то Вам стоит воспользоваться планировщиком
 на третей вкладке. 
@@ -89,10 +97,15 @@
 В таблице будут отображаться все отмеченные облигации на первых двух вкладках. Ставите галочку, и облигация сразу же появится
 в планировщике, убираете галочку -- облигация пропадает:
 
-![image](https://user-images.githubusercontent.com/14365346/143763733-01c5b3b9-6736-49ff-9df7-d80d221ea6fb.png)
+<a data-fslightbox href="https://user-images.githubusercontent.com/14365346/143763733-01c5b3b9-6736-49ff-9df7-d80d221ea6fb.png">
+  <img src="https://user-images.githubusercontent.com/14365346/143763733-01c5b3b9-6736-49ff-9df7-d80d221ea6fb.png">
+</a>
+
 <div align="center">☟</div>
 
-![image](https://user-images.githubusercontent.com/14365346/143763771-a9f5f81c-7392-40fe-a895-6383bca17b73.png)
+<a data-fslightbox href="https://user-images.githubusercontent.com/14365346/143763771-a9f5f81c-7392-40fe-a895-6383bca17b73.png">
+  <img src="https://user-images.githubusercontent.com/14365346/143763771-a9f5f81c-7392-40fe-a895-6383bca17b73.png">
+</a>
 
 После того, как Вы выбрали то, что теоретически хотели бы приобрести, Вы можете начать планирование. Для этого
 нужно выбрать величину -- денежные средства (SUM) или количество лотов (LOTS), которая будет распределяться, 
@@ -106,7 +119,7 @@
 
 |Diversification 31.88%|Diversification 78.26%|
 |-|-|
-| ![image](https://user-images.githubusercontent.com/14365346/143764052-4dd15a6b-c269-434f-b6c1-cd55e90c4eca.png) | ![image](https://user-images.githubusercontent.com/14365346/143764061-7434db17-9ea8-41bb-a8ac-1f9e273c8abe.png) |
+| <a data-fslightbox href="https://user-images.githubusercontent.com/14365346/143764052-4dd15a6b-c269-434f-b6c1-cd55e90c4eca.png"><img src="https://user-images.githubusercontent.com/14365346/143764052-4dd15a6b-c269-434f-b6c1-cd55e90c4eca.png"></a> | <a data-fslightbox href="https://user-images.githubusercontent.com/14365346/143764061-7434db17-9ea8-41bb-a8ac-1f9e273c8abe.png"><img src="https://user-images.githubusercontent.com/14365346/143764061-7434db17-9ea8-41bb-a8ac-1f9e273c8abe.png"></a> |
 
 Даже, когда вы определились с уровнем диверсификации, но вам всё равно не нравится распределение для каких-то конкретных облигаций, вы всё ещё можете
 поменять, введя желаемое значение в поле ввода этой облигации. Ваше слово остаётся последним, и приложение с ним просто смирится.
@@ -121,7 +134,9 @@
 
 ### Balance control
 
-![image](https://user-images.githubusercontent.com/14365346/143764262-ba195b92-3e3e-4026-94d3-c891be00e4ed.png)
+<a data-fslightbox href="https://user-images.githubusercontent.com/14365346/143764262-ba195b92-3e3e-4026-94d3-c891be00e4ed.png">
+  <img src="https://user-images.githubusercontent.com/14365346/143764262-ba195b92-3e3e-4026-94d3-c891be00e4ed.png">
+</a>
 
 На последней (четвёртой) вкладке можно посмотреть на то, как будет меняться Ваш балан во времени. 
 
@@ -136,5 +151,3 @@
 Я надеюсь, что приложение TBS поможет Вам с поиском и планированием покупок облигаций. 
 
 Если у Вас есть какие-то замечания или предложения, то Вы можете связаться со мной в телеграме ([@Shemplo](https://t.me/shemplo)), либо открыв [issue](https://github.com/Shemplo/TBS/issues) в репозитории, потому что я открыт для общения и заинтересован в том, чтобы развивать это приложение в дальнейшем.
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N076UDA)
