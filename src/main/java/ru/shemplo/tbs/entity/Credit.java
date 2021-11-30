@@ -1,5 +1,7 @@
 package ru.shemplo.tbs.entity;
 
+import java.time.LocalDate;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -8,8 +10,10 @@ import ru.shemplo.tbs.TBSUtils;
 
 @Getter
 @RequiredArgsConstructor (access =  AccessLevel.PRIVATE)
-public class Credit {
+public class Credit extends AbstractObservableEntity <ICredit> implements ICredit {
     
+    private static final long serialVersionUID = 1L;
+
     private final Bond bond;
     
     private final Integer lots;
@@ -29,6 +33,10 @@ public class Credit {
         final var currencyCoeff = TBSCurrencyManager.getInstance ().getToRubCoefficient (bond.getCurrency ());
         final var credit = TBSUtils.mapIfNN (coupon, Coupon::getAmount, bond.getNominalValue ());
         return credit * currencyCoeff * TBSUtils.aOrB (lots, bond.getLots ());
+    }
+    
+    public LocalDate getCreditDate () {
+        return TBSUtils.mapIfNN (coupon, Coupon::getDate, bond.getEnd ());
     }
     
     // 

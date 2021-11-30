@@ -8,15 +8,17 @@ import java.util.Map;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import ru.shemplo.tbs.entity.BalanceScale;
 import ru.shemplo.tbs.entity.Credit;
 import ru.shemplo.tbs.entity.DateCredit;
-import ru.shemplo.tbs.entity.BalanceScale;
+import ru.shemplo.tbs.entity.ICredit;
 
 //@Slf4j
 @Getter
@@ -134,7 +136,7 @@ public class TBSBalanceController {
         return totalSum;
     }
     
-    private LocalDate getScaledDate (LocalDate date) {
+    public LocalDate getScaledDate (LocalDate date) {
         return switch (scale) {
             case DAY -> date;
             case MONTH -> date.withDayOfMonth (1);
@@ -203,6 +205,26 @@ public class TBSBalanceController {
         }, credits));
         
         return series;
+    }
+    
+    public ObservableList <ICredit> makeTableRowsList () {
+        final var list = FXCollections.<ICredit> observableArrayList ();
+        credits.addListener ((ListChangeListener <DateCredit>) change -> {
+            list.clear ();
+            
+            for (int i = offset, rowIndex = 1; i < credits.size (); i++) {
+                final var dateCredit = credits.get (i);
+                
+                for (final var credit : dateCredit) {   
+                    final var prop = credit.getProperty (ICredit.INDEX_PROPERTY, () -> 0, false);
+                    prop.set (rowIndex++);
+                        
+                    list.add (credit);
+                }
+            }
+        });
+        
+        return list;
     }
     
 }
