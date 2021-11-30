@@ -108,6 +108,8 @@ public class TBSBalanceController {
         double totalSum = 0.0;
         for (final var planningBond : TBSPlanner.getInstance ().getBonds ()) {
             final var bond = TBSBondManager.getBondByTicker (planningBond.getCode (), false);
+            if (bond == null) { continue; } // Do not consider bond that now not in list
+            
             final var lots = planningBond.getCurrentValue ();
             
             for (final var coupon : bond.getCoupons ()) {
