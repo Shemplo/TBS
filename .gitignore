@@ -3,3 +3,16 @@ _site
 .jekyll-cache
 .jekyll-metadata
 vendor
+
+/.settings
+/target
+
+/*token*.txt
+
+.classpath
+.project
+
+**.bin
+/**.xml
+**.exe
+
