@@ -149,15 +149,16 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
         couponsCredit = coupons.stream ().mapToDouble (c -> c.getCredit (profile, now, end)).sum ();
         
         final var inflationFactor =  Math.pow (1 + profile.getInflation (), days / 365.0);        
-        pureCredit = (nominalValue - lastPrice) / inflationFactor + couponsCredit;
         nominalValueWithInflation = nominalValue / inflationFactor;
+        pureCredit = nominalValueWithInflation + couponsCredit - lastPrice;
+        //pureCredit = (nominalValue - lastPrice) / inflationFactor + couponsCredit;
         
         final var priceBalance = profile.getSafeMaxPrice (lastPrice) - lastPrice;
         final var monthsBalance = months - profile.getSafeMinMonths ();
-        score = pureCredit * currencyCoeff / (months == 0 ? 1000 : months) * 1.37 + Math.sqrt (monthsBalance) * 0.23 
-              + priceBalance * currencyCoeff * 1.18 - lots * 0.25 + couponsPerYear * 0.15 + percentage * 1.13 
-              - 70.0;
+        score = pureCredit * currencyCoeff /*/ (months == 0 ? 1000 : months)*/ * 1.31 - Math.sqrt (monthsBalance) * 0.23 
+              + priceBalance * currencyCoeff * 1.18 - lots * 0.25 + couponsPerYear * 0.15 + percentage * 1.13;
         score *= nominalValue != 0.0 ? 1000.0 / nominalValue : 1.0; // align to 1k nominal
+        score = Math.signum (score) * Math.sqrt (Math.abs (score)) - 10.0;
     }
     
 }
