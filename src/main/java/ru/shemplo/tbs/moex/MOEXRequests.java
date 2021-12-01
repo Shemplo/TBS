@@ -29,7 +29,7 @@ public class MOEXRequests {
         try {
             return new URL (String.format (
                 "https://iss.moex.com/iss/engines/stock/markets/bonds/boards/%s/securities/%s.xml"
-                        + "?iss.meta=off&iss.only=marketdata&marketdata.columns=SECID,LAST", 
+                        + "?iss.meta=off&iss.only=marketdata&marketdata.columns=SECID,LAST,MARKETPRICE,LCURRENTPRICE", 
                 "TQCB", ticker
             ));
         } catch (MalformedURLException e) {

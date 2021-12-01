@@ -54,6 +54,12 @@ public class Row {
     @XmlAttribute (name = "LAST")
     private String lastPrice;
     
+    @XmlAttribute (name = "LCURRENTPRICE")
+    private String lastCurrentPrice;
+    
+    @XmlAttribute (name = "MARKETPRICE")
+    private String marketPrice;
+    
     @XmlAttribute (name = "offerdate")
     @Getter (value = AccessLevel.PRIVATE)
     private String _offerdate;
@@ -81,6 +87,14 @@ public class Row {
     public LocalDate getOfferLocalDate () {
         return _offerdate == null || _offerdate.isBlank () || "0000-00-00".equals (_offerdate) 
              ? null : LocalDate.parse (_offerdate);
+    }
+    
+    public String getPrice () {
+        return lastPrice == null || lastPrice.isBlank () 
+             ? marketPrice == null || marketPrice.isBlank ()
+                 ? lastCurrentPrice == null || lastCurrentPrice.isBlank () ? "" : lastCurrentPrice
+                 : marketPrice
+             : lastPrice;
     }
     
 }

@@ -50,15 +50,21 @@ public interface ITBSProfile extends Serializable {
     
     default boolean testBond (Bond bond) {
         final var currencyCoeff = TBSCurrencyManager.getInstance ().getToRubCoefficient (bond.getCurrency ());
-        return bond != null && getCurrencies ().contains (bond.getCurrency ())
-            && getCouponValuesModes ().contains (bond.getCouponValuesMode ())
-            && !getBannedEmitters ().contains (bond.getEmitterId ())
-            && (getMaxDaysToCoupon () == null ? true : bond.getDaysToCoupon () <= getMaxDaysToCoupon ())
-            && (getCouponsPerYear () == null ? true : bond.getCouponsPerYear () >= getCouponsPerYear ())
-            && (getMonthsTillEnd () == null ? true : bond.getMonthsToEnd () >= getMonthsTillEnd ())
-            && (getMinPercentage () == null ? true : bond.getPercentage () >= getMinPercentage ())
-            && (getMaxPrice () == null ? true : bond.getLastPrice () * currencyCoeff <= getMaxPrice ())
-            && (getNominalValue () == null ? true : bond.getNominalValue () * currencyCoeff >= getNominalValue ());
+        return debugConditions (String.valueOf (bond)) 
+            && bond != null && getCurrencies ().contains (bond.getCurrency ()) && debugConditions ("Bond and currency passed")
+            && getCouponValuesModes ().contains (bond.getCouponValuesMode ()) && debugConditions ("Coupons mode passed")
+            && !getBannedEmitters ().contains (bond.getEmitterId ()) && debugConditions ("Banned emitters passed")
+            && (getMaxDaysToCoupon () == null || bond.getDaysToCoupon () <= getMaxDaysToCoupon ()) && debugConditions ("Max days to coupon passed")
+            && (getCouponsPerYear () == null || bond.getCouponsPerYear () >= getCouponsPerYear ()) && debugConditions ("Coupons per year passed")
+            && (getMonthsTillEnd () == null || bond.getMonthsToEnd () >= getMonthsTillEnd ()) && debugConditions ("Month till end passed")
+            && (getMinPercentage () == null || bond.getPercentage () >= getMinPercentage ()) && debugConditions ("Min percentage passed")
+            && (getMaxPrice () == null || bond.getLastPrice () * currencyCoeff <= getMaxPrice ()) && debugConditions ("Max price passed")
+            && (getNominalValue () == null || bond.getNominalValue () * currencyCoeff >= getNominalValue ()) && debugConditions ("Nominal value passed"); 
+    }
+    
+    default boolean debugConditions (String message) {
+        //System.out.println (message); // SYSOUT
+        return true;
     }
     
     default String getProfileDescription () {
