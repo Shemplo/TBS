@@ -30,6 +30,7 @@ public class RunTinkoffBondScanner {
         @SuppressWarnings ("resource")
         final var scanner = new Scanner (System.in);
         
+        
         if (DUMP_FILE.exists () && DUMP_FILE.canRead ()) {
             System.out.print (
                 "There are dumped bonds (" + new Date (DUMP_FILE.lastModified ()) + "). "
