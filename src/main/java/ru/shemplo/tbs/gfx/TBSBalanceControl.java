@@ -58,6 +58,8 @@ public class TBSBalanceControl extends ScrollPane {
         content.getChildren ().add (makeTopToolbar ());
         content.getChildren ().add (makeTopChart ());
         content.getChildren ().add (makeBottomTable ());
+        
+        TBSBalanceController.getInstance ().updateBalance ();
     }
     
     private Parent makeTopToolbar () {

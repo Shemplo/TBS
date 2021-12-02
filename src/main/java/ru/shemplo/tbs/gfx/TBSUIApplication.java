@@ -196,7 +196,7 @@ public class TBSUIApplication extends Application {
                 .highlighter (grThreshold).converter (null)
                 .build ());
             table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
-                .name ("Credit").tooltip ("Coupons credit plus difference between price and inflated price")
+                .name ("Credit").tooltip ("Coupons credit plus difference between inflated nominal value and price")
                 .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
                 .propertyFetcher (bond -> bond.getRWProperty ("pureCredit", null))
                 .highlighter (grThreshold).converter (null)
