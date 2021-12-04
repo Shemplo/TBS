@@ -21,7 +21,7 @@ import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.entity.Bond;
-import ru.shemplo.tbs.entity.ITBSProfile;
+import ru.shemplo.tbs.entity.IProfile;
 
 @Slf4j
 public class TBSUIApplication extends Application {
@@ -39,7 +39,7 @@ public class TBSUIApplication extends Application {
     private Stage stage;
     
     @Getter
-    private ITBSProfile profile;
+    private IProfile profile;
     
     @Override
     public void start (Stage stage) throws Exception {
@@ -64,10 +64,12 @@ public class TBSUIApplication extends Application {
         });
         
         stage.getIcons ().add (TBSApplicationIcons.window);
-        stage.setTitle ("Tinkoff Bonds Scanner | v1.0");
+        stage.setTitle ("Tinkoff Bonds Scanner");
+        stage.setMinHeight (600.0);
+        stage.setMinWidth (800.0);
         stage.setMaximized (true);
         stage.setScene (scene);
-        stage.show ();
+        //stage.show ();
         
         root.getChildren ().add (profileDetails = new Text ());
         profileDetails.setFont (Font.font ("Consolas", 10.0));
@@ -101,7 +103,7 @@ public class TBSUIApplication extends Application {
         instance = this;
     }
     
-    public void applyData (ITBSProfile profile) {
+    public void applyData (IProfile profile) {
         this.profile = profile;
         
         profileDetails.setText (profile.getProfileDescription ());

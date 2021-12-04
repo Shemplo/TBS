@@ -8,7 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
-import ru.shemplo.tbs.gfx.LinkedSymbolOrImage;
+import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
 
 public class TBSIconTableCell <F> extends TBSTableCell <F, LinkedSymbolOrImage> {
 

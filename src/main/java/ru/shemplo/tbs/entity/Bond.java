@@ -140,7 +140,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     private boolean reliableCoupons;
     private double score = 0.0;
     
-    public void updateScore (ITBSProfile profile) {
+    public void updateScore (IProfile profile) {
         final var currencyCoeff = TBSCurrencyManager.getInstance ().getToRubCoefficient (currency);
         final var months = now.until (end, ChronoUnit.MONTHS);
         final var days = now.until (end, ChronoUnit.DAYS);

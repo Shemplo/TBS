@@ -40,7 +40,7 @@
 
 ### Продвинутый запуск и конфигурация
 
-По умолчанию приложение запустится с параметрами `DEFAULT_RUB`, заданные в файле [TBSProfile.java](https://github.com/Shemplo/TBS/blob/master/src/main/java/ru/shemplo/tbs/entity/TBSProfile.java). 
+По умолчанию приложение запустится с параметрами `DEFAULT_RUB`, заданные в файле [ProfilePreset.java](https://github.com/Shemplo/TBS/blob/master/src/main/java/ru/shemplo/tbs/entity/ProfilePreset.java). 
 Если Вас это не устраивает, то приложение поддерживает гибкую кастомизацию параметров.
 
 * Если вы хотите использовать готовый пресет из того же файла, в консольной строке запустите приложение с именем пресета
@@ -64,7 +64,7 @@
         
         В теге `token` замените `{{TOKEN}}` на абсолютный или относительный путь до файла с вашим API токеном.
         Если какой-то атрибут тега `params` не указан (все они необязательные), то соответствующий параметр не будет использоваться для фильтрации.
-        Имена атрибутов получены из первых букв слов в названии соответствующего параметра, которые можно увидеть в файле [TBSProfile.java](https://github.com/Shemplo/TBS/blob/master/src/main/java/ru/shemplo/tbs/entity/TBSProfile.java).
+        Имена атрибутов получены из первых букв слов в названии соответствующего параметра, которые можно увидеть в файле [ProfilePreset.java](https://github.com/Shemplo/TBS/blob/master/src/main/java/ru/shemplo/tbs/entity/ProfilePreset.java).
         В теге `bannede` можно перечислить через запятую идентификаторы эмитентов, облигации которых точно не должны попасть в таблицу с результатами сканирования.
       
      4. Запустите приложение с Вашими параметрами `TBS.exe {{NAME}}.xml` или `java -jar TBS.jar {{NAME}}.xml`.

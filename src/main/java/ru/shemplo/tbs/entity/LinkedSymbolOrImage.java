@@ -1,4 +1,4 @@
-package ru.shemplo.tbs.gfx;
+package ru.shemplo.tbs.entity;
 
 import javafx.scene.image.Image;
 import lombok.Getter;

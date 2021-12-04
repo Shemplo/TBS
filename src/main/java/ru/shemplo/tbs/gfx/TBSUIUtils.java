@@ -14,6 +14,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import lombok.Builder;
 import ru.shemplo.tbs.TBSUtils;
+import ru.shemplo.tbs.entity.LinkedObject;
+import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
 import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
 import ru.shemplo.tbs.gfx.table.TBSIconTableCell;
 import ru.shemplo.tbs.gfx.table.TBSTableCell;

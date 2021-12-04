@@ -8,7 +8,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TextField;
-import ru.shemplo.tbs.gfx.LinkedObject;
+import ru.shemplo.tbs.entity.LinkedObject;
 
 public class TBSEditTableCell <F, S, TF extends TextField> extends TBSTableCell <F, LinkedObject <S>> {
     

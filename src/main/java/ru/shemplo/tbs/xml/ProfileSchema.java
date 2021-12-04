@@ -13,7 +13,7 @@ import lombok.ToString;
 @Getter @Setter
 @XmlRootElement (name = "profile")
 @XmlAccessorType (XmlAccessType.FIELD)
-public class Profile {
+public class ProfileSchema {
     
     @XmlElement
     private String name;

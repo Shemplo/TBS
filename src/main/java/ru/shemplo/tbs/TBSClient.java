@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ru.shemplo.tbs.entity.ITBSProfile;
+import ru.shemplo.tbs.entity.IProfile;
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.model.rest.SandboxRegisterRequest;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApi;
@@ -32,12 +32,17 @@ public class TBSClient implements AutoCloseable {
     
     private volatile OpenApi connection;
     
-    private String readToken (ITBSProfile profile) throws IOException {
+    private String readToken (IProfile profile) throws IOException {
         log.info ("Reading token from file...");
-        return Files.readString (Paths.get (profile.getTokenFilename ()));
+        final var path = Paths.get (profile.getToken ());
+        if (Files.exists (path)) {
+            return Files.readString (path);
+        } else {
+            return profile.getToken ();
+        }
     }
     
-    public OpenApi getConnection (ITBSProfile profile) throws IOException {
+    public OpenApi getConnection (IProfile profile) throws IOException {
         if (connection == null) {
             synchronized (this) {
                 if (connection == null) {

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ru.shemplo.tbs.entity.ITBSProfile;
+import ru.shemplo.tbs.entity.IProfile;
 import ru.tinkoff.invest.openapi.model.rest.Candle;
 import ru.tinkoff.invest.openapi.model.rest.CandleResolution;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
@@ -40,7 +40,7 @@ public class TBSCurrencyManager implements Serializable {
     
     private Map <Currency, Double> currency2coefficient;
     
-    public void initialize (ITBSProfile profile) {
+    public void initialize (IProfile profile) {
         try {
             final var client = TBSClient.getInstance ().getConnection (profile);
             

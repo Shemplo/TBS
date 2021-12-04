@@ -28,6 +28,8 @@ import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.CouponValueMode;
 import ru.shemplo.tbs.entity.IBond;
+import ru.shemplo.tbs.entity.LinkedObject;
+import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
 import ru.shemplo.tbs.gfx.table.TBSTableCell;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 

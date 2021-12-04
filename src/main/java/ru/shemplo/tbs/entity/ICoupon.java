@@ -5,6 +5,6 @@ import java.time.LocalDate;
 
 public interface ICoupon extends Serializable, ObservableEntity <ICoupon> {
     
-    double getCredit (ITBSProfile profile, LocalDate forDate, LocalDate end);
+    double getCredit (IProfile profile, LocalDate forDate, LocalDate end);
     
 }

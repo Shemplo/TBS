@@ -7,6 +7,9 @@ import java.util.function.Consumer;
 import javafx.scene.Cursor;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -14,6 +17,7 @@ import javafx.scene.text.Text;
 import ru.shemplo.tbs.TBSConstants;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.CouponValueMode;
+import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
 import ru.shemplo.tbs.gfx.table.TBSTableCell;
 
 public class TBSStyles {
@@ -25,6 +29,8 @@ public class TBSStyles {
     //public static final Background BG_NO_OUTLINES = new Background (new BackgroundFill (Color.HONEYDEW, null, null));
     public static final Background BG_APPROPRIATE = new Background (new BackgroundFill (Color.HONEYDEW, null, null));
     public static final Background BG_SO_CLOSE = new Background (new BackgroundFill (Color.BEIGE, null, null));
+    
+    public static final Border BORDER_DEFAULT = new Border (new BorderStroke (Color.LIGHTGRAY, BorderStrokeStyle.SOLID, null, null));
     
     public static final Font FONT_DEFAULT = Font.font (null, FontWeight.NORMAL, 12.0);
     public static final Font FONT_BOLD = Font.font (null, FontWeight.BOLD, 12.0);

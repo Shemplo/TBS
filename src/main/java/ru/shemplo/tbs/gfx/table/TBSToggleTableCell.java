@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
-import ru.shemplo.tbs.gfx.LinkedObject;
+import ru.shemplo.tbs.entity.LinkedObject;
 
 public class TBSToggleTableCell <F> extends TBSTableCell <F, LinkedObject <Boolean>> {
     

@@ -1,5 +1,6 @@
 package ru.shemplo.tbs;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
@@ -7,6 +8,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +18,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.entity.Bond;
-import ru.shemplo.tbs.entity.ITBSProfile;
+import ru.shemplo.tbs.entity.IProfile;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 import ru.tinkoff.invest.openapi.model.rest.InstrumentType;
 
@@ -38,6 +40,16 @@ public class TBSBondManager implements Serializable {
         }
         
         return instance;
+    }
+    
+    public static final File DUMP_FILE = new File ("dump.bin");
+    
+    public static Date getDumpDate () {
+        if (DUMP_FILE.exists ()) {
+            return new Date (DUMP_FILE.lastModified ());
+        }
+        
+        return null;
     }
     
     public static String getBondName (String ticker) {
@@ -77,7 +89,7 @@ public class TBSBondManager implements Serializable {
     private transient Map <String, Bond> ticker2portfolio = new HashMap <> ();
     private transient Map <String, Bond> ticker2scanned = new HashMap <> ();
     
-    public void initialize (ITBSProfile profile) {
+    public void initialize (IProfile profile) {
         try {
             final var client = TBSClient.getInstance ().getConnection (profile);
             
@@ -104,7 +116,7 @@ public class TBSBondManager implements Serializable {
         }
     }
     
-    public void analize (ITBSProfile profile) {
+    public void analize (IProfile profile) {
         portfolio.forEach (bond -> {
             bond.updateScore (profile);
         });

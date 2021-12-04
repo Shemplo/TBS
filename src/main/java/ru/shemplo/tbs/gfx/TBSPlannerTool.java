@@ -58,7 +58,9 @@ import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.TBSPlanner.DistributionCategory;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.IPlanningBond;
-import ru.shemplo.tbs.entity.ITBSProfile;
+import ru.shemplo.tbs.entity.IProfile;
+import ru.shemplo.tbs.entity.LinkedObject;
+import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
 import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
 import ru.tinkoff.invest.openapi.model.rest.BrokerAccountType;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
@@ -413,7 +415,7 @@ public class TBSPlannerTool extends HBox {
         return field;
     }
     
-    public void applyData (ITBSProfile profile) {
+    public void applyData (IProfile profile) {
         final var bonds = TBSPlanner.getInstance ().getBonds ();
         if (table.getItems () != bonds) {            
             table.setItems (bonds);
@@ -507,7 +509,7 @@ public class TBSPlannerTool extends HBox {
         });
     }
     
-    private void syncBalance (ITBSProfile profile) {
+    private void syncBalance (IProfile profile) {
         TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
             try {
                 final var client = TBSClient.getInstance ().getConnection (profile);

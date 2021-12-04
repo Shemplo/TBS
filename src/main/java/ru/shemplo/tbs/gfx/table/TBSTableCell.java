@@ -12,7 +12,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.Background;
 import lombok.Getter;
 import ru.shemplo.tbs.TBSUtils;
-import ru.shemplo.tbs.gfx.LinkedObject;
+import ru.shemplo.tbs.entity.LinkedObject;
 
 public class TBSTableCell <F, S> extends TableCell <F, S> {
     

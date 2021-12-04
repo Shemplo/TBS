@@ -44,7 +44,7 @@ public class Coupon extends AbstractObservableEntity <ICoupon> implements ICoupo
         }
     }
     
-    public double getCredit (ITBSProfile profile, LocalDate forDate, LocalDate end) {
+    public double getCredit (IProfile profile, LocalDate forDate, LocalDate end) {
         if (date == null || !forDate.plusDays (profile.getSafeMaxDaysToCoupon ()).isBefore (date)) {
             return 0.0;
         }

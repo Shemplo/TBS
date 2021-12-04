@@ -22,6 +22,7 @@ import javafx.stage.Window;
 import ru.shemplo.tbs.MappingROProperty;
 import ru.shemplo.tbs.entity.IBond;
 import ru.shemplo.tbs.entity.ICoupon;
+import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
 
 public class TBSCouponsInspection {
     

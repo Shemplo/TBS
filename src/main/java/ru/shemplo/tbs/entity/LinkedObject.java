@@ -1,4 +1,4 @@
-package ru.shemplo.tbs.gfx;
+package ru.shemplo.tbs.entity;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

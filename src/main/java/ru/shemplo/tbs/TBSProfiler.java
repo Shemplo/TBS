@@ -12,21 +12,24 @@ import javax.xml.bind.JAXBException;
 
 import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.entity.CouponValueMode;
-import ru.shemplo.tbs.entity.ITBSProfile;
-import ru.shemplo.tbs.entity.TBSProfile;
-import ru.shemplo.tbs.xml.Profile;
+import ru.shemplo.tbs.entity.IProfile;
+import ru.shemplo.tbs.entity.Profile;
+import ru.shemplo.tbs.entity.ProfilePreset;
+import ru.shemplo.tbs.entity.Range;
+import ru.shemplo.tbs.xml.ProfileSchema;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 @Slf4j
+@Deprecated
 public class TBSProfiler {
     
-    public static ITBSProfile fetchProfile (String [] args) {
+    public static IProfile fetchProfile (String [] args) {
         if (args == null || args.length == 0) {
-            return TBSProfile.DEFAULT_RUB;
+            return ProfilePreset.DEFAULT_RUB;
         }
         
         try {
-            final var constant = TBSProfile.valueOf (args [0]);
+            final var constant = ProfilePreset.valueOf (args [0]);
             if (constant != null) { return constant; }
         } catch (IllegalArgumentException iea) {
             // do nothing - go to next parser
@@ -34,7 +37,7 @@ public class TBSProfiler {
         return parseCustomProfile (args [0]);
     }
     
-    private static ITBSProfile parseCustomProfile (String filename) {
+    private static IProfile parseCustomProfile (String filename) {
         final var file = new File (filename);
         if (!file.exists () || !file.canRead ()) {
             log.error ("Failed to read file with custom profile: {}", file.getAbsolutePath ());
@@ -42,8 +45,8 @@ public class TBSProfiler {
         }
         
         try (final var is = new FileInputStream (file)) {
-            final var context = JAXBContext.newInstance (Profile.class);
-            final var profile = (Profile) context.createUnmarshaller ().unmarshal (is);
+            final var context = JAXBContext.newInstance (ProfileSchema.class);
+            final var profile = (ProfileSchema) context.createUnmarshaller ().unmarshal (is);
             
             final var currencies = Arrays.stream (profile.getCurrencies ().split ("\\s*,\\s*"))
                 . map (Currency::fromValue).filter (Objects::nonNull)
@@ -60,18 +63,18 @@ public class TBSProfiler {
                     }
                 }).filter (Objects::nonNull).collect (Collectors.toSet ());
             
-            return TBSCustomProfile.builder ()
+            return Profile.builder ()
                 .name (profile.getName ())
                 .highResponsible (profile.getToken ().isResponsible ())
-                .tokenFilename (profile.getToken ().getFilename ())
+                .token (profile.getToken ().getFilename ())
                 .inflation (profile.getGeneral ().getInflation ())
                 .maxResults (profile.getGeneral ().getMr ())
-                .monthsTillEnd (profile.getParams ().getMte ())
-                .couponsPerYear (profile.getParams ().getCpy ())
-                .maxDaysToCoupon (profile.getParams ().getMdtc ())
-                .nominalValue (profile.getParams ().getNv ())
-                .minPercentage (profile.getParams ().getMinp ())
-                .maxPrice (profile.getParams ().getMaxpr ())
+                .monthsTillEnd (new Range <> (TBSUtils.mapIfNN (profile.getParams ().getMte (), Long::intValue, null), null))
+                .couponsPerYear (new Range <> (TBSUtils.mapIfNN (profile.getParams ().getCpy (), Long::intValue, null), null))
+                .daysToCoupon (new Range <> (null, TBSUtils.mapIfNN (profile.getParams ().getMdtc (), Long::intValue, null)))
+                .nominalValue (new Range <> (profile.getParams ().getNv (), null))
+                .percentage (new Range <> (profile.getParams ().getMinp (), null))
+                .price (new Range <> (null, profile.getParams ().getMaxpr ()))
                 .currencies (currencies)
                 .couponValuesModes (cmodes)
                 .bannedEmitters (bannede)
