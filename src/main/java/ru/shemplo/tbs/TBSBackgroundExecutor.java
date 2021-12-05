@@ -25,7 +25,7 @@ public class TBSBackgroundExecutor implements AutoCloseable {
         return instance;
     }
     
-    private final ExecutorService executors = Executors.newSingleThreadExecutor ();
+    private final ExecutorService executors = Executors.newFixedThreadPool (4);
     
     public void runInBackground (Runnable task) {
         executors.execute (task);

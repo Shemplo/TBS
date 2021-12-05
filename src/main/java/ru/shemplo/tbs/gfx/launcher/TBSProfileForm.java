@@ -46,10 +46,10 @@ public class TBSProfileForm {
         root.getChildren ().add (makeGeneralSection (profile, isNew, stage));
         
         stage.setTitle (String.format ("Tinkoff Bonds Scanner | Launcher | Profile form"));
-        stage.initModality (Modality.WINDOW_MODAL);
-        stage.initOwner (window);
         stage.getIcons ().add (TBSApplicationIcons.window);
+        stage.initModality (Modality.WINDOW_MODAL);
         stage.setResizable (false);
+        stage.initOwner (window);
         stage.setScene (scene);
         stage.sizeToScene ();
         stage.show ();

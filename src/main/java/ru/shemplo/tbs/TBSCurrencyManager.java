@@ -12,13 +12,11 @@ import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.tinkoff.invest.openapi.model.rest.Candle;
 import ru.tinkoff.invest.openapi.model.rest.CandleResolution;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 
-@Slf4j
 @NoArgsConstructor (access = AccessLevel.PRIVATE)
 public class TBSCurrencyManager implements Serializable {
     
@@ -40,9 +38,9 @@ public class TBSCurrencyManager implements Serializable {
     
     private Map <Currency, Double> currency2coefficient;
     
-    public void initialize (IProfile profile) {
+    public void initialize (IProfile profile, TBSLogWrapper log) {
         try {
-            final var client = TBSClient.getInstance ().getConnection (profile);
+            final var client = TBSClient.getInstance ().getConnection (profile, log);
             
             log.info ("Loading current currency quotes from Tinkoff...");
             currency2coefficient = client.getMarketContext ().getMarketCurrencies ().join ().getInstruments ().stream ()

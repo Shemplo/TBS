@@ -42,7 +42,7 @@ public class TBSClient implements AutoCloseable {
         }
     }
     
-    public OpenApi getConnection (IProfile profile) throws IOException {
+    public OpenApi getConnection (IProfile profile, TBSLogWrapper log) throws IOException {
         if (connection == null) {
             synchronized (this) {
                 if (connection == null) {
@@ -50,7 +50,7 @@ public class TBSClient implements AutoCloseable {
                     if (token == null) { return null; }
                     
                     log.info ("Connecting to Tinkoff API...");
-                    log.info ("Profile: {}", profile);
+                    log.info ("{}", profile);
                     connection = new OkHttpOpenApi (token, !profile.isHighResponsible ());
                     log.info ("Perform registration in Tinkoff API...");
                     if (connection.isSandboxMode ()) {
@@ -69,6 +69,7 @@ public class TBSClient implements AutoCloseable {
         if (connection != null) {
             log.info ("Closing connection to Tinkoff API...");
             connection.close ();
+            connection = null;
         }
     }
     

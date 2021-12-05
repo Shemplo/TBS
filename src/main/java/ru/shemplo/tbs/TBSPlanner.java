@@ -19,16 +19,16 @@ import javafx.collections.ObservableList;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.entity.IPlanningBond;
 import ru.shemplo.tbs.entity.PlanningBond;
 import ru.shemplo.tbs.entity.PlanningDump;
 
+@Slf4j
 @NoArgsConstructor (access = AccessLevel.PRIVATE)
 public class TBSPlanner implements Serializable {
     
     private static final long serialVersionUID = 1L;
-    
-    public static final File DUMP_FILE = new File ("plan.bin");
     
     private static volatile TBSPlanner instance;
     
@@ -42,6 +42,22 @@ public class TBSPlanner implements Serializable {
         }
         
         return instance;
+    }
+    
+    public static final File DUMP_FILE = new File ("plan.bin");
+    
+    public static void restore () {
+        log.info ("Restoring planning bonds from a binary file...");
+        if (DUMP_FILE.exists ()) {
+            TBSDumpService.getInstance ().restore (
+                TBSPlanner.DUMP_FILE.getName (), 
+                PlanningDump.class
+            );
+        } else {
+            getInstance ().updateParameters (
+                DistributionCategory.SUM, 0.0, 0.0
+            );
+        }
     }
     
     @Getter

@@ -54,6 +54,7 @@ import ru.shemplo.tbs.TBSBalanceController;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSExcelUtils;
+import ru.shemplo.tbs.TBSLogWrapper;
 import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.TBSPlanner.DistributionCategory;
 import ru.shemplo.tbs.TBSUtils;
@@ -512,7 +513,7 @@ public class TBSPlannerTool extends HBox {
     private void syncBalance (IProfile profile) {
         TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
             try {
-                final var client = TBSClient.getInstance ().getConnection (profile);
+                final var client = TBSClient.getInstance ().getConnection (profile, new TBSLogWrapper ());
                 final var accounts = client.getUserContext ().getAccounts ().join ();
                 
                 double sumRUB = 0;

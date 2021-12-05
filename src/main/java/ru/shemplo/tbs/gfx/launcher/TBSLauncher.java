@@ -1,7 +1,5 @@
 package ru.shemplo.tbs.gfx.launcher;
 
-import static ru.shemplo.tbs.TBSBondManager.*;
-
 import java.io.File;
 import java.util.ArrayList;
 
@@ -25,16 +23,14 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import lombok.extern.slf4j.Slf4j;
+import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSBondManager;
-import ru.shemplo.tbs.TBSCurrencyManager;
+import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSDumpService;
 import ru.shemplo.tbs.TBSPlanner;
-import ru.shemplo.tbs.TBSPlanner.DistributionCategory;
 import ru.shemplo.tbs.TBSUtils;
-import ru.shemplo.tbs.entity.Dump;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.shemplo.tbs.entity.LauncherDump;
-import ru.shemplo.tbs.entity.PlanningDump;
 import ru.shemplo.tbs.entity.Profile;
 import ru.shemplo.tbs.gfx.TBSApplicationIcons;
 import ru.shemplo.tbs.gfx.TBSStyles;
@@ -43,16 +39,18 @@ import ru.shemplo.tbs.gfx.TBSUIApplication;
 @Slf4j
 public class TBSLauncher extends Application {
     
-    public static final File PROFILES_FILE = new File ("profiles.bin");
+    private static final File PROFILES_FILE = new File ("launcher.bin");
     
     private ObservableList <IProfile> profiles;
     
     private Button openScannedBondsButton;
     private Button startNewScanningButton;
     private Button createProfileButton;
-    private Button cloneProfileButton;
     private Button deleteProfileButton;
+    private Button cloneProfileButton;
+    private Text bondsDumpDateText;
     
+    private boolean dontStopExecutors = false;
     private ListView <IProfile> profilesList;
     
     private Stage stage;
@@ -68,6 +66,16 @@ public class TBSLauncher extends Application {
         root.getChildren ().add (makeOpenExistingSection ());
         root.getChildren ().add (makeScanNewSection ());
         
+        stage.setOnCloseRequest (we -> {
+            if (!dontStopExecutors) {
+                try {
+                    TBSBackgroundExecutor.getInstance ().close ();
+                    TBSClient.getInstance ().close ();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         
         stage.setTitle ("Tinkoff Bonds Scanner | Launcher");
         stage.getIcons ().add (TBSApplicationIcons.window);
@@ -77,28 +85,42 @@ public class TBSLauncher extends Application {
         stage.show ();
         
         this.stage = stage;
+        
+        openScannedBondsButton.setOnMouseClicked (me -> {
+            if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
+                final var profile = TBSBondManager.restore ();
+                TBSPlanner.restore ();
+                
+                openTBSApplication (profile);
+            }
+        });
+        
+        final var profileProperty = profilesList.getSelectionModel ().selectedItemProperty ();
+        startNewScanningButton.setOnMouseClicked (me -> {
+            if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
+                new TBSScanLog (scene.getWindow (), this).scan (profileProperty.get (), this::updateOpenExistingSection);
+            }
+        });
+        cloneProfileButton.setOnMouseClicked (me -> {
+            profiles.add (profileProperty.get ().copy ());
+            dumpLauncher ();
+        });
+        deleteProfileButton.setOnMouseClicked (me -> {
+            profiles.remove (profileProperty.get ());
+            dumpLauncher ();
+        });
     }
     
     private Parent makeOpenExistingSection () {
         final var line = new HBox (8.0);
         line.setAlignment (Pos.BASELINE_LEFT);
         
-        final var dumpDate = TBSBondManager.getDumpDate ();
         openScannedBondsButton = new Button ("Open scanned bonds");
-        openScannedBondsButton.setDisable (dumpDate == null);
-        openScannedBondsButton.setOnMouseClicked (me -> {
-            if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
-                restoreBonds ();
-            }
-        });
         line.getChildren ().add (openScannedBondsButton); 
         
-        final var bondsTimestampText = new Text (dumpDate == null 
-            ? "There is no scanned bonds dump file" 
-            : "There is scanned bonds dump file (" + dumpDate + ")"
-        );
-        line.getChildren ().add (bondsTimestampText);
+        line.getChildren ().add (bondsDumpDateText = new Text ());
         
+        updateOpenExistingSection ();
         return line;
     }
     
@@ -155,20 +177,6 @@ public class TBSLauncher extends Application {
         deleteProfileButton.disableProperty ().bind (itemProperty.isNull ());
         cloneProfileButton.disableProperty ().bind (itemProperty.isNull ());
         
-        startNewScanningButton.setOnMouseClicked (me -> {
-            if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
-                loadCurrencyQuotes (itemProperty.get ());
-            }
-        });
-        cloneProfileButton.setOnMouseClicked (me -> {
-            profiles.add (itemProperty.get ().copy ());
-            dumpLauncher ();
-        });
-        deleteProfileButton.setOnMouseClicked (me -> {
-            profiles.remove (itemProperty.get ());
-            dumpLauncher ();
-        });
-        
         return line;
     }
     
@@ -202,82 +210,23 @@ public class TBSLauncher extends Application {
         );
     }
     
-    private void loadCurrencyQuotes (IProfile profile) {
-        final var currencyManager = TBSCurrencyManager.getInstance ();
-        currencyManager.initialize (profile);
-        
-        log.info ("Quotes: {}", currencyManager.getStringQuotes ());
-        
-        searchForBonds (profile);
-    }
-    
-    private void searchForBonds (IProfile profile) {
-        final var bondManager = TBSBondManager.getInstance ();
-        bondManager.initialize (profile);
-        
-        analizeBonds (profile);
-    }
-    
-    private void analizeBonds (IProfile profile) {
-        final var bondManager = TBSBondManager.getInstance ();
-        log.info ("Analizing loaded bonds (total: {} + {})...", 
-            bondManager.getScanned ().size (), 
-            bondManager.getPortfolio ().size ()
+    private void updateOpenExistingSection () {
+        final var dumpDate = TBSBondManager.getDumpDate ();
+        openScannedBondsButton.setDisable (dumpDate == null);
+        bondsDumpDateText.setText (dumpDate == null 
+            ? "There is no scanned bonds dump file" 
+            : "There is scanned bonds dump file (" + dumpDate + ")"
         );
-        
-        bondManager.analize (profile);
-        dumpBonds (profile);
     }
     
-    private void dumpBonds (IProfile profile) {
-        log.info ("Dumping bonds to a binary file...");
-        final var currencyManager = TBSCurrencyManager.getInstance ();
-        final var bondManager = TBSBondManager.getInstance ();
-        
-        TBSDumpService.getInstance ().dump (
-            new Dump (profile, currencyManager, bondManager), 
-            DUMP_FILE.getName ()
-        );
-        
-        restorePlanningBonds ();
-        showResults (profile);
-    }
-    
-    private void restoreBonds () {
-        log.info ("Restoring bonds from a binary file...");
-        final var dump = TBSDumpService.getInstance ().restore (
-            TBSBondManager.DUMP_FILE.getName (), Dump.class
-        );
-        
-        if (dump != null) {
-            restorePlanningBonds ();
-            showResults (dump.getProfile ());
-        } else {
-            log.error ("Dump was not restored. Exit...");
-        }
-    }
-    
-    private void restorePlanningBonds () {
-        log.info ("Restoring planning bonds from a binary file...");
-        if (TBSPlanner.DUMP_FILE.exists ()) {
-            TBSDumpService.getInstance ().restore (
-                TBSPlanner.DUMP_FILE.getName (), 
-                PlanningDump.class
-            );
-        } else {
-            TBSPlanner.getInstance ().updateParameters (
-                DistributionCategory.SUM, 0.0, 0.0
-            );
-        }
-    }
-    
-    private void showResults (IProfile profile) {
+    public void openTBSApplication (IProfile profile) {
         log.info ("Starting UI...");
         try {
             final var stage = new Stage (StageStyle.DECORATED);
             new TBSUIApplication ().start (stage);
             
             TBSUIApplication.getInstance ().applyData (profile);
+            dontStopExecutors = true;
             this.stage.close ();
             stage.show ();
         } catch (Exception e) {

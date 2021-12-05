@@ -23,6 +23,7 @@ public class Profile implements IProfile {
 
     private String name;
     
+    @ToString.Exclude
     private String token;
     private boolean highResponsible;
     private long maxResults;

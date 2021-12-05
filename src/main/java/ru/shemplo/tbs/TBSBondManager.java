@@ -18,6 +18,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.entity.Bond;
+import ru.shemplo.tbs.entity.BondsDump;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 import ru.tinkoff.invest.openapi.model.rest.InstrumentType;
@@ -50,6 +51,15 @@ public class TBSBondManager implements Serializable {
         }
         
         return null;
+    }
+    
+    public static IProfile restore () {
+        log.info ("Restoring bonds from a binary file...");
+        final var dump = TBSDumpService.getInstance ().restore (
+            TBSBondManager.DUMP_FILE.getName (), BondsDump.class
+        );
+        
+        return TBSUtils.mapIfNN (dump, BondsDump::getProfile, null);
     }
     
     public static String getBondName (String ticker) {
@@ -89,9 +99,9 @@ public class TBSBondManager implements Serializable {
     private transient Map <String, Bond> ticker2portfolio = new HashMap <> ();
     private transient Map <String, Bond> ticker2scanned = new HashMap <> ();
     
-    public void initialize (IProfile profile) {
+    public void initialize (IProfile profile, TBSLogWrapper log) {
         try {
-            final var client = TBSClient.getInstance ().getConnection (profile);
+            final var client = TBSClient.getInstance ().getConnection (profile, log);
             
             log.info ("Loading bonds from portfolio (with data from Tinkoff and MOEX)...");
             portfolio = client.getUserContext ().getAccounts ().join ().getAccounts ().parallelStream ()
@@ -116,7 +126,7 @@ public class TBSBondManager implements Serializable {
         }
     }
     
-    public void analize (IProfile profile) {
+    public void analize (IProfile profile, TBSLogWrapper log) {
         portfolio.forEach (bond -> {
             bond.updateScore (profile);
         });

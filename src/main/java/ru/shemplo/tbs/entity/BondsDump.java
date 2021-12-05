@@ -9,7 +9,7 @@ import ru.shemplo.tbs.TBSCurrencyManager;
 
 @Getter
 @RequiredArgsConstructor
-public class Dump implements Serializable {
+public class BondsDump implements Serializable {
 
     private static final long serialVersionUID = 1L;
     
