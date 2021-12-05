@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
-  <headerType>console</headerType>
+  <headerType>gui</headerType>
   <jar>..\target\TBS.jar</jar>
   <outfile>..\target\TBS.exe</outfile>
   <errTitle></errTitle>
@@ -24,12 +24,12 @@
     <runtimeBits>64</runtimeBits>
   </jre>
   <versionInfo>
-    <fileVersion>1.5.0.0</fileVersion>
-    <txtFileVersion>Balance control view</txtFileVersion>
+    <fileVersion>1.6.0.0</fileVersion>
+    <txtFileVersion>TBS Launcher</txtFileVersion>
     <fileDescription>Tinkoff bonds scanner application</fileDescription>
     <copyright>https://github.com/Shemplo/TBS</copyright>
-    <productVersion>1.5.0.0</productVersion>
-    <txtProductVersion>Balance control view</txtProductVersion>
+    <productVersion>1.6.0.0</productVersion>
+    <txtProductVersion>TBS Launcher</txtProductVersion>
     <productName>Tinkoff bonds scanner</productName>
     <companyName></companyName>
     <internalName>TBS</internalName>
