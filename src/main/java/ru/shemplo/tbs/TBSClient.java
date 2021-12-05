@@ -52,7 +52,7 @@ public class TBSClient implements AutoCloseable {
                     log.info ("Connecting to Tinkoff API...");
                     log.info ("{}", profile);
                     connection = new OkHttpOpenApi (token, !profile.isHighResponsible ());
-                    log.info ("Perform registration in Tinkoff API...");
+                    log.info ("Perform indentification in Tinkoff API...");
                     if (connection.isSandboxMode ()) {
                         connection.getSandboxContext ().performRegistration (
                             new SandboxRegisterRequest ()
