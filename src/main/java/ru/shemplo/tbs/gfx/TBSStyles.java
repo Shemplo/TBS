@@ -32,8 +32,10 @@ public class TBSStyles {
     
     public static final Border BORDER_DEFAULT = new Border (new BorderStroke (Color.LIGHTGRAY, BorderStrokeStyle.SOLID, null, null));
     
+    public static final Font FONT_MONO_12 = Font.font ("monospace", FontWeight.NORMAL, 12.0);
     public static final Font FONT_DEFAULT = Font.font (null, FontWeight.NORMAL, 12.0);
-    public static final Font FONT_BOLD = Font.font (null, FontWeight.BOLD, 12.0);
+    public static final Font FONT_BOLD_12 = Font.font (null, FontWeight.BOLD, 12.0);
+    public static final Font FONT_BOLD_14 = Font.font (null, FontWeight.BOLD, 14.0);
     
     public static final Color COLOR_POSITIVE = Color.GREEN;
     public static final Color COLOR_DEFAULT = Color.BLACK;
@@ -75,7 +77,7 @@ public class TBSStyles {
             
             if (withinMonth && days <= 14 && days >= 0) {
                 cell.setTextFill (COLOR_POSITIVE);
-                cell.setFont (FONT_BOLD);
+                cell.setFont (FONT_BOLD_12);
             } else if (days <= 28 && days >= 0) {
                 cell.setTextFill (COLOR_POSITIVE);
                 cell.setFont (FONT_DEFAULT);

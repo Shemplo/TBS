@@ -142,6 +142,16 @@ public interface IProfile extends Serializable {
         );
     }
     
+    default String getShortProfileDescription () {
+        return String.format (
+            "%10s    MR: %-4d      I: %-10.2f          Ms: %-10s    CPY: %-10s%n"
+            + "DTC: %-10s       N (RUB): %-10s     P (RUB): %-10s     P%%: %-10s%nC: %s  CM: %s", 
+            isHighResponsible () ? "Production" : "Sandbox", getMaxResults (), getInflation () * 100, getMonthsTillEnd (), 
+            getCouponsPerYear (), getDaysToCoupon (), getNominalValue (), getPrice (), getPercentage (), getCurrencies (), 
+            getCouponValuesModes ()
+        );
+    }
+    
     IProfile copy ();
     
 }

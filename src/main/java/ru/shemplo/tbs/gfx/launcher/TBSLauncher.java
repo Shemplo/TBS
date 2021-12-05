@@ -169,7 +169,7 @@ public class TBSLauncher extends Application {
         profilesList.setBackground (Background.EMPTY);
         HBox.setHgrow (profilesList, Priority.NEVER);
         profilesList.setMaxHeight (300.0);
-        profilesList.setMinWidth (600.0);
+        profilesList.setMinWidth (650.0);
         setupColumn.getChildren ().addAll (profilesList);
         
         final var itemProperty = profilesList.getSelectionModel ().selectedItemProperty ();

@@ -103,7 +103,7 @@ public class TBSProfileForm {
         couponsPerYear.getNodes () [0].setMax (TBSUtils.mapIfNN (profile.getCouponsPerYear (), Range::getMax, null));
         column.getChildren ().add (couponsPerYear);
         
-        final var nominal = new TileWithHeader <> ("Nominal value:", new RangeFields <> (Double.class));
+        final var nominal = new TileWithHeader <> ("Nominal value (RUB):", new RangeFields <> (Double.class));
         nominal.getNodes () [0].setMin (TBSUtils.mapIfNN (profile.getNominalValue (), Range::getMin, null));
         nominal.getNodes () [0].setMax (TBSUtils.mapIfNN (profile.getNominalValue (), Range::getMax, null));
         column.getChildren ().add (nominal);
@@ -113,7 +113,7 @@ public class TBSProfileForm {
         percentage.getNodes () [0].setMax (TBSUtils.mapIfNN (profile.getPercentage (), Range::getMax, null));
         column.getChildren ().add (percentage);
         
-        final var price = new TileWithHeader <> ("Committed price:", new RangeFields <> (Double.class));
+        final var price = new TileWithHeader <> ("Committed price (RUB):", new RangeFields <> (Double.class));
         price.getNodes () [0].setMin (TBSUtils.mapIfNN (profile.getPrice (), Range::getMin, null));
         price.getNodes () [0].setMax (TBSUtils.mapIfNN (profile.getPrice (), Range::getMax, null));
         column.getChildren ().add (price);
