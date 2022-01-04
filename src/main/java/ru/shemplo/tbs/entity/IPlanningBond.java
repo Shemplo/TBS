@@ -17,6 +17,12 @@ public interface IPlanningBond extends Serializable, CustomValueHolder <Integer>
     
     void setAmount (int amount);
     
+    void setRecommendedPrice (double price);
+    
+    default String getFIGI () {
+        return TBSBondManager.getBondByTicker (getCode (), true).getFigi ();
+    }
+    
     default double getPrice () {
         return TBSUtils.aOrB (TBSBondManager.getBondPrice (getCode ()), 0.0);
     }

@@ -29,7 +29,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     
     private static final long serialVersionUID = 1L;
     
-    private String name, code;
+    private String name, code, figi;
     private Currency currency;
     
     @Setter
@@ -49,19 +49,21 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     private String primaryBoard;
     
     public Bond (MarketInstrument instrument) {
-        this (instrument.getTicker (), instrument.getCurrency (), NOW, 0);
+        this (instrument.getTicker (), instrument.getFigi (), instrument.getCurrency (), NOW, 0);
     }
     
     public Bond (PortfolioPosition portfolio) {
         this (
-            portfolio.getTicker (), portfolio.getAveragePositionPrice ().getCurrency (), 
+            portfolio.getTicker (), portfolio.getFigi (), 
+            portfolio.getAveragePositionPrice ().getCurrency (), 
             FAR_PAST, portfolio.getLots ()
         );
     }
     
-    private Bond (String ticker, Currency currency, LocalDate scoreNow, int lots) {
+    private Bond (String ticker, String figi, Currency currency, LocalDate scoreNow, int lots) {
         this.currency = currency;
         this.now = scoreNow;
+        this.figi = figi;
         this.lots = lots;
         
         final var MOEX_DESCRIPION_URL = MOEXRequests.makeBondDescriptionURLForMOEX (ticker);

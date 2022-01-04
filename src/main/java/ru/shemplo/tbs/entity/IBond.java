@@ -12,6 +12,8 @@ public interface IBond extends Serializable, ObservableEntity <IBond> {
     
     String getCode ();
     
+    String getFigi ();
+    
     LocalDate getNow ();
     
     LocalDate getEnd ();

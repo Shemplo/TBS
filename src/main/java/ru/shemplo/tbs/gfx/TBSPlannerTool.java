@@ -8,6 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.OffsetTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -34,7 +36,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -52,6 +53,7 @@ import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSBalanceController;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSClient;
+import ru.shemplo.tbs.TBSConstants;
 import ru.shemplo.tbs.TBSExcelUtils;
 import ru.shemplo.tbs.TBSLogWrapper;
 import ru.shemplo.tbs.TBSPlanner;
@@ -65,6 +67,7 @@ import ru.shemplo.tbs.gfx.component.SliderWithField;
 import ru.shemplo.tbs.gfx.component.TileWithHeader;
 import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
 import ru.tinkoff.invest.openapi.model.rest.BrokerAccountType;
+import ru.tinkoff.invest.openapi.model.rest.CandleResolution;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 import ru.tinkoff.invest.openapi.model.rest.CurrencyPosition;
 
@@ -130,7 +133,7 @@ public class TBSPlannerTool extends HBox {
         line2.getChildren ().add (typeSelect);
         
         amountField = new NumberField <> (Double.class);
-        amountField.setMinWidth (amounHeader.getWrappingWidth () - 32);
+        amountField.setMinWidth (amounHeader.getWrappingWidth () - 40.0);
         amountField.setValue (TBSPlanner.getInstance ().getAmount ());
         line2.getChildren ().add (amountField);
         
@@ -140,14 +143,14 @@ public class TBSPlannerTool extends HBox {
         
         final var syncBalanceButton = new Button (null, syncBalanceIcon);
         syncBalanceButton.setTooltip (new Tooltip ("Load total RUB balance from your Tinkoff accounts"));
-        syncBalanceButton.setPadding (new Insets (2, 0, 2, 0));
+        syncBalanceButton.setPadding (new Insets (2, 0, 2, 8));
         syncBalanceButton.setBackground (Background.EMPTY);
         syncBalanceButton.setCursor (Cursor.HAND);
         syncBalanceButton.disableProperty ().bind (Bindings.notEqual (
             typeSelect.valueProperty (), DistributionCategory.SUM
         ));
         syncBalanceButton.setOnMouseClicked (me -> {
-            if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
+            if (TBSUIUtils.SIMPLE_CLICK.test (me)) {
                 syncBalance (TBSUIApplication.getInstance ().getProfile ());
             }
         });
@@ -177,6 +180,42 @@ public class TBSPlannerTool extends HBox {
         distributionChart.setCreateSymbols (false);
         distributionChart.setAnimated (false);
         column.getChildren ().add (distributionChart);
+        
+        // Price recommendation
+        
+        final var lineRecommend = new HBox (12);
+        lineRecommend.setAlignment (Pos.CENTER_LEFT);
+        column.getChildren ().add (lineRecommend);
+        
+        final var recommendIcon = new ImageView (TBSApplicationIcons.range);
+        recommendIcon.setFitHeight (20);
+        recommendIcon.setFitWidth (20);
+        
+        final var defaultDays = TBSPlanner.getInstance ().getAnalyzeDays ();
+        final var daysSlider = new SliderWithField <> (Double.class, 1.0, 14.0, defaultDays);
+        daysSlider.getSlider ().setShowTickLabels (true);
+        daysSlider.getSlider ().setShowTickMarks (true);
+        daysSlider.getSlider ().setMajorTickUnit (2.0);
+        daysSlider.getSlider ().setMinorTickCount (1);
+        daysSlider.getSlider ().setSnapToTicks (true);
+        daysSlider.setMinWidth (300.0 - recommendIcon.getFitWidth () - lineRecommend.getSpacing ());
+        
+        final var daysTile = new TileWithHeader <> ("Days to analyze for price recommendation", daysSlider);
+        lineRecommend.getChildren ().add (daysTile);
+        
+        final var recommendButton = new Button (null, recommendIcon);
+        recommendButton.setTooltip (new Tooltip ("..."));
+        recommendButton.setPadding (new Insets (6, 0, 0, 0));
+        recommendButton.setBackground (Background.EMPTY);
+        recommendButton.setCursor (Cursor.HAND);
+        recommendButton.setOnMouseClicked (me -> {
+            if (TBSUIUtils.SIMPLE_CLICK.test (me)) {
+                final var profile = TBSUIApplication.getInstance ().getProfile ();
+                final var days = daysSlider.getValueProperty ().longValue ();
+                recommendPrice (profile, days);
+            }
+        });
+        lineRecommend.getChildren ().add (recommendButton);
         
         // Summary rows
         
@@ -222,7 +261,7 @@ public class TBSPlannerTool extends HBox {
         excelExportButton.setPadding (new Insets (4, 8, 4, 8));
         excelExportButton.setGraphicTextGap (8);
         excelExportButton.setOnMouseClicked (me -> {
-            if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
+            if (TBSUIUtils.SIMPLE_CLICK.test (me)) {
                 exportToExcel (TBSPlanner.getInstance ().getBonds ());
             }
         });
@@ -239,7 +278,7 @@ public class TBSPlannerTool extends HBox {
         distributionChart.getData ().add (calculatedSeries);
         
         typeSelect.valueProperty ().addListener ((__, ___, value) -> {
-            TBSPlanner.getInstance ().updateParameters (
+            TBSPlanner.getInstance ().updateDistributionParameters (
                 value, TBSUtils.aOrB (amountField.getValue (), 0.0), 
                 diversificationProperty.get ()
             );
@@ -247,7 +286,7 @@ public class TBSPlannerTool extends HBox {
         });
         
         amountField.valueProperty ().addListener ((__, ___, value) -> {
-            TBSPlanner.getInstance ().updateParameters (
+            TBSPlanner.getInstance ().updateDistributionParameters (
                 typeSelect.getValue (), TBSUtils.aOrB (value, 0.0), 
                 diversificationProperty.get ()
             );
@@ -256,7 +295,7 @@ public class TBSPlannerTool extends HBox {
         
         diversificationProperty = diversificationSlider.getValueProperty ();
         diversificationProperty.addListener ((__, ___, div) -> {
-            TBSPlanner.getInstance ().updateParameters (
+            TBSPlanner.getInstance ().updateDistributionParameters (
                 typeSelect.getValue (), TBSUtils.aOrB (amountField.getValue (), 0.0), 
                 diversificationProperty.get ()
             );
@@ -333,7 +372,13 @@ public class TBSPlannerTool extends HBox {
                 bond.getRWProperty ("code", () -> ""), 
                 TBSBondManager::getBondPrice
             ))
-            .highlighter (grThreshold).converter (null)
+            .highlighter (null).converter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, Number> buildTBSTableColumn ()
+            .name ("R price").tooltip ("Recommended purchase price")
+            .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("recommendedPrice", () -> 0.0))
+            .highlighter (null).converter (null)
             .build ());
         table.getColumns ().add (TBSUIUtils.<IPlanningBond, LocalDate> buildTBSTableColumn ()
             .name ("Next C").tooltip ("Closest date of the next coupon")
@@ -514,6 +559,43 @@ public class TBSPlannerTool extends HBox {
                 });
             } catch (IOException ioe) {
                 log.error ("Failed to sync balance", ioe);
+            }
+        });
+    }
+    
+    private void recommendPrice (IProfile profile, long days) {
+        TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
+            try {
+                final var client = TBSClient.getInstance ().getConnection (profile, new TBSLogWrapper ());
+                final var time = OffsetTime.now ();
+                
+                final var from = TBSConstants.NOW.minusDays (days).atTime (time);
+                final var to = TBSConstants.NOW.atTime (time);
+                
+                for (final var bond : TBSPlanner.getInstance ().getBonds ()) {
+                    final var candles = client.getMarketContext ().getMarketCandles (
+                        bond.getFIGI (), from, to, CandleResolution.DAY
+                    ).join ();
+                    
+                    if (candles.isEmpty ()) { 
+                        continue;
+                    }
+                    
+                    double sum = 0, denom = 0;
+                    for (final var candle : candles.get ().getCandles ()) {
+                        final var off = candle.getTime ().until (to, ChronoUnit.DAYS);
+                        sum += candle.getC ().doubleValue () * off;
+                        denom += off;
+                    }
+                    
+                    if (denom != 0.0) {
+                        bond.setRecommendedPrice (sum / denom);
+                    }
+                }
+                
+                TBSPlanner.getInstance ().updateRecommendationsParameter (days);
+            } catch (IOException ioe) {
+                log.error ("Failed to calculate recommended price", ioe);
             }
         });
     }

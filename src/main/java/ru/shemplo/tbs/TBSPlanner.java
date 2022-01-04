@@ -54,7 +54,7 @@ public class TBSPlanner implements Serializable {
                 PlanningDump.class
             );
         } else {
-            getInstance ().updateParameters (
+            getInstance ().updateDistributionParameters (
                 DistributionCategory.SUM, 0.0, 0.0
             );
         }
@@ -75,6 +75,9 @@ public class TBSPlanner implements Serializable {
     
     @Getter
     private double amount, diversification;
+    
+    @Getter
+    private long analyzeDays = 7L;
     
     public synchronized void addBond (String ticker) {
         if (ticker != null && !ticker2bond.containsKey (ticker)) {
@@ -126,7 +129,7 @@ public class TBSPlanner implements Serializable {
         }
     }
     
-    public void updateParameters (DistributionCategory category, double amount, double diversification) {
+    public void updateDistributionParameters (DistributionCategory category, double amount, double diversification) {
         this.category = category; this.amount = amount; this.diversification = diversification;
         updateDistribution ();
         dump ();
@@ -176,6 +179,11 @@ public class TBSPlanner implements Serializable {
     
     private double linearValue (double x, double k, double b) {
         return k * x + b;
+    }
+    
+    public void updateRecommendationsParameter (long days) {
+        analyzeDays = days;
+        dump ();
     }
     
     public void dump () {

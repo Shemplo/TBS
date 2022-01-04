@@ -125,7 +125,7 @@ public class TBSBondsTable extends VBox {
                 .name ("Price").tooltip ("Last committed price in MOEX")
                 .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
                 .propertyFetcher (bond -> bond.getRWProperty ("lastPrice", null))
-                .highlighter (grThreshold).converter (null)
+                .highlighter (null).converter (null)
                 .build ());
         }
         table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
