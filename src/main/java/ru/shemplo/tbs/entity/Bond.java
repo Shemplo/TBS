@@ -50,6 +50,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     
     public Bond (MarketInstrument instrument) {
         this (instrument.getTicker (), instrument.getCurrency (), NOW, 0);
+        System.out.println (instrument); // SYSOUT
     }
     
     public Bond (PortfolioPosition portfolio) {
@@ -155,8 +156,8 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
         
         final var priceBalance = profile.getSafeMaxPrice (lastPrice) - lastPrice;
         final var monthsBalance = months - profile.getSafeMinMonths ();
-        score = pureCredit * currencyCoeff /*/ (months == 0 ? 1000 : months)*/ * 1.31 - Math.sqrt (monthsBalance) * 0.23 
-              + priceBalance * currencyCoeff * 1.18 - lots * 0.25 + couponsPerYear * 0.15 + percentage * 1.13;
+        score = pureCredit * currencyCoeff /*/ (months == 0 ? 1000 : months)*/ * 1.51 - Math.sqrt (monthsBalance) * 0.34 
+              + priceBalance * currencyCoeff * 1.08 - lots * 0.25 + couponsPerYear * 0.15 + percentage * 1.09;
         score *= nominalValue != 0.0 ? 1000.0 / nominalValue : 1.0; // align to 1k nominal
         score = Math.signum (score) * Math.sqrt (Math.abs (score)) - 10.0;
     }
