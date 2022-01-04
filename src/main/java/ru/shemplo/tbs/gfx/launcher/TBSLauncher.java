@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import javafx.application.Application;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -35,6 +36,7 @@ import ru.shemplo.tbs.entity.Profile;
 import ru.shemplo.tbs.gfx.TBSApplicationIcons;
 import ru.shemplo.tbs.gfx.TBSStyles;
 import ru.shemplo.tbs.gfx.TBSUIApplication;
+import ru.shemplo.tbs.gfx.TBSUIUtils;
 
 @Slf4j
 public class TBSLauncher extends Application {
@@ -86,29 +88,48 @@ public class TBSLauncher extends Application {
         
         this.stage = stage;
         
-        openScannedBondsButton.setOnMouseClicked (me -> {
-            if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
-                final var profile = TBSBondManager.restore ();
-                TBSPlanner.restore ();
-                
-                openTBSApplication (profile);
-            }
-        });
+        openScannedBondsButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenBonds ()));
+        openScannedBondsButton.setOnAction (me -> doOpenBonds ());
         
         final var profileProperty = profilesList.getSelectionModel ().selectedItemProperty ();
-        startNewScanningButton.setOnMouseClicked (me -> {
-            if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
-                new TBSScanLog (scene.getWindow (), this).scan (profileProperty.get (), this::updateOpenExistingSection);
+        startNewScanningButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doStartNewScanning (scene, profileProperty)));
+        startNewScanningButton.setOnAction (ae -> doStartNewScanning (scene, profileProperty));
+        
+        cloneProfileButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doClone (profileProperty)));
+        cloneProfileButton.setOnAction (ae -> doClone (profileProperty));
+        
+        deleteProfileButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doDelete (profileProperty)));
+        deleteProfileButton.setOnAction (ae -> doDelete (profileProperty));
+        
+        scene.setOnKeyTyped (ke -> {
+            final var ch = ke.getCharacter ().charAt (0);
+            if (Character.isDigit (ch)) {
+                final var index = (Character.getNumericValue (ch) + 9) % 10;
+                profilesList.getSelectionModel ().select (index);
+                startNewScanningButton.requestFocus ();
             }
         });
-        cloneProfileButton.setOnMouseClicked (me -> {
-            profiles.add (profileProperty.get ().copy ());
-            dumpLauncher ();
-        });
-        deleteProfileButton.setOnMouseClicked (me -> {
-            profiles.remove (profileProperty.get ());
-            dumpLauncher ();
-        });
+    }
+    
+    private void doOpenBonds () {
+        final var profile = TBSBondManager.restore ();
+        TBSPlanner.restore ();
+        
+        openTBSApplication (profile);
+    }
+    
+    private void doStartNewScanning (Scene scene, ReadOnlyObjectProperty <IProfile> profileProperty) {
+        new TBSScanLog (scene.getWindow (), this).scan (profileProperty.get (), this::updateOpenExistingSection);
+    }
+    
+    private void doClone (ReadOnlyObjectProperty <IProfile> profileProperty) {
+        profiles.add (profileProperty.get ().copy ());
+        dumpLauncher ();
+    }
+    
+    private void doDelete (ReadOnlyObjectProperty <IProfile> profileProperty) {
+        profiles.remove (profileProperty.get ());
+        dumpLauncher ();
     }
     
     private Parent makeOpenExistingSection () {

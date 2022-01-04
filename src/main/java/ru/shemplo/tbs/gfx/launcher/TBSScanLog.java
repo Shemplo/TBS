@@ -15,7 +15,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -33,6 +32,7 @@ import ru.shemplo.tbs.entity.BondsDump;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.shemplo.tbs.gfx.TBSApplicationIcons;
 import ru.shemplo.tbs.gfx.TBSStyles;
+import ru.shemplo.tbs.gfx.TBSUIUtils;
 
 public class TBSScanLog {
     
@@ -143,22 +143,25 @@ public class TBSScanLog {
                 onScanFinished.run ();
                 
                 Platform.runLater (() -> {
-                    openBonds.setOnMouseClicked (me -> {
-                        if (me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1) {
-                            stage.close (); 
-                            
-                            TBSPlanner.restore ();
-                            launcher.openTBSApplication (profile);
-                        }
-                    });
+                    openBonds.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenBonds (profile)));
+                    openBonds.setOnAction (ae -> doOpenBonds (profile));
                     
                     message.setText ("Log is saved to `scan.log` file, you can close this window");
                     isScanning.set (false);
+                    
+                    openBonds.requestFocus ();
                 });
             } catch (Exception e) {
                 e.printStackTrace ();
             }
         });
+    }
+    
+    private void doOpenBonds (IProfile profile) {
+        stage.close (); 
+        
+        TBSPlanner.restore ();
+        launcher.openTBSApplication (profile);
     }
     
 }

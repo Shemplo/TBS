@@ -4,6 +4,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.geometry.Pos;
@@ -11,6 +12,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import lombok.Builder;
 import ru.shemplo.tbs.TBSUtils;
@@ -22,6 +24,14 @@ import ru.shemplo.tbs.gfx.table.TBSTableCell;
 import ru.shemplo.tbs.gfx.table.TBSToggleTableCell;
 
 public class TBSUIUtils {
+    
+    public static Predicate <MouseEvent> SIMPLE_CLICK = me -> me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1;
+    
+    public static void doIfSimpleClick (MouseEvent me, Runnable task) {
+        if (SIMPLE_CLICK.test (me)) {
+            task.run ();
+        }
+    }
     
     @Builder (builderMethodName = "buildTBSTableColumn")
     public static <F, S> TableColumn <F, S> makeTBSTableColumn (
