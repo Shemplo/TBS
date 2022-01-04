@@ -31,7 +31,6 @@ import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Slider;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
@@ -62,6 +61,8 @@ import ru.shemplo.tbs.entity.IPlanningBond;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.shemplo.tbs.entity.LinkedObject;
 import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
+import ru.shemplo.tbs.gfx.component.SliderWithField;
+import ru.shemplo.tbs.gfx.component.TileWithHeader;
 import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
 import ru.tinkoff.invest.openapi.model.rest.BrokerAccountType;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
@@ -129,7 +130,7 @@ public class TBSPlannerTool extends HBox {
         line2.getChildren ().add (typeSelect);
         
         amountField = new NumberField <> (Double.class);
-        amountField.setMinWidth (amounHeader.getWrappingWidth () - 20);
+        amountField.setMinWidth (amounHeader.getWrappingWidth () - 32);
         amountField.setValue (TBSPlanner.getInstance ().getAmount ());
         line2.getChildren ().add (amountField);
         
@@ -152,36 +153,13 @@ public class TBSPlannerTool extends HBox {
         });
         line2.getChildren ().add (syncBalanceButton);
         
-        final var line3 = new HBox (16);
-        line3.setAlignment (Pos.BOTTOM_LEFT);
-        column.getChildren ().add (line3);
-        
-        line3.getChildren ().add (new Text ("Diversification, %"));
-        
-        final var customDiversificationIcon = new ImageView (TBSApplicationIcons.warning);
-        customDiversificationIcon.setVisible (false);
-        customDiversificationIcon.setFitHeight (12);
-        customDiversificationIcon.setFitWidth (12);
-        line3.getChildren ().add (customDiversificationIcon);
-        
         // Diversification parameter
         
-        final var line4 = new HBox (16);
-        VBox.setMargin (line4, new Insets (0, 0, 12, 0));
-        column.getChildren ().add (line4);
+        final var diversificationSlider = new SliderWithField <> (Double.class, 0.0, 100.0, 100.0);
+        diversificationSlider.setMinWidth (300.0);
         
-        final var diversificationSlider = new Slider (0.0, 100.0, 100.0);
-        diversificationSlider.setShowTickLabels (true);
-        diversificationSlider.setShowTickMarks (true);
-        diversificationSlider.setMinWidth (235.0);
-        line4.getChildren ().add (diversificationSlider);
-        
-        final var diversificationField = new NumberField <> ();
-        diversificationField.setMaxWidth (
-            typeSelect.getMinWidth () + amountField.getMinWidth () + syncBalanceIcon.getFitWidth ()
-            + line2.getSpacing () * 2 - diversificationSlider.getMinWidth () - line4.getSpacing ()
-        );
-        line4.getChildren ().add (diversificationField);
+        final var diversificationTile = new TileWithHeader <> ("Diversification, %", diversificationSlider);
+        column.getChildren ().add (diversificationTile);
         
         // Chart
         
@@ -276,9 +254,7 @@ public class TBSPlannerTool extends HBox {
             updateChart ();
         });
         
-        diversificationProperty = diversificationSlider.valueProperty ();
-        diversificationProperty.bindBidirectional (diversificationField.valueProperty ());
-        diversificationSlider.setValue (TBSPlanner.getInstance ().getDiversification ());
+        diversificationProperty = diversificationSlider.getValueProperty ();
         diversificationProperty.addListener ((__, ___, div) -> {
             TBSPlanner.getInstance ().updateParameters (
                 typeSelect.getValue (), TBSUtils.aOrB (amountField.getValue (), 0.0), 

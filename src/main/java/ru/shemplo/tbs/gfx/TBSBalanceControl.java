@@ -5,8 +5,6 @@ import static ru.shemplo.tbs.gfx.TBSStyles.*;
 
 import java.time.LocalDate;
 
-import com.panemu.tiwulfx.control.NumberField;
-
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
@@ -19,7 +17,6 @@ import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Slider;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -29,7 +26,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 import ru.shemplo.tbs.MappingROProperty;
 import ru.shemplo.tbs.TBSBalanceController;
 import ru.shemplo.tbs.TBSUtils;
@@ -37,6 +33,8 @@ import ru.shemplo.tbs.entity.BalanceScale;
 import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.Coupon;
 import ru.shemplo.tbs.entity.ICredit;
+import ru.shemplo.tbs.gfx.component.SliderWithField;
+import ru.shemplo.tbs.gfx.component.TileWithHeader;
 
 public class TBSBalanceControl extends ScrollPane {
     
@@ -65,84 +63,60 @@ public class TBSBalanceControl extends ScrollPane {
     private Parent makeTopToolbar () {
         final var column = new VBox (4);
         
-        final var line1 = new HBox (8);
-        column.getChildren ().add (line1);
-        
-        final var scaleHeader = new Text ("Scale");
-        scaleHeader.setWrappingWidth (100.0);
-        line1.getChildren ().add (scaleHeader);
-        
-        final var offsetHeader = new Text ("Offset");
-        offsetHeader.setWrappingWidth (350.0);
-        line1.getChildren ().add (offsetHeader);
-        
-        final var amountHeader = new Text ("Chart dates");
-        amountHeader.setWrappingWidth (700.0);
-        line1.getChildren ().add (amountHeader);
-        
         final var line2 = new HBox (8);
         column.getChildren ().add (line2);
         
         final var defaultScale = BalanceScale.DAY;
         final var scaleSelect = new ChoiceBox <BalanceScale> ();
         scaleSelect.getItems ().setAll (BalanceScale.values ());
-        scaleSelect.setMinWidth (scaleHeader.getWrappingWidth ());
+        //scaleSelect.setMinWidth (scaleHeader.getWrappingWidth ());
+        scaleSelect.setMinWidth (100.0);
         scaleSelect.setValue (defaultScale);
         line2.getChildren ().add (scaleSelect);
         
-        final var offsetSlider = new Slider (
-            0.0, defaultScale.getMaxOffset (), 
-            defaultScale.getDefaultOffset ()
-        );
-        offsetSlider.setShowTickLabels (true);
-        offsetSlider.setShowTickMarks (true);
-        offsetSlider.setMajorTickUnit (3.0);
-        offsetSlider.setMinorTickCount (2);
-        offsetSlider.setSnapToTicks (true);
-        offsetSlider.setMinWidth (285.0);
-        line2.getChildren ().add (offsetSlider);
+        final var scaleTile = new TileWithHeader <> ("Scale", scaleSelect);
+        line2.getChildren ().add (scaleTile);
         
-        final var offsetField = new NumberField <> ();
-        offsetField.setValue (defaultScale.getDefaultOffset ());
-        offsetField.setMaxWidth (
-            offsetHeader.getWrappingWidth () - offsetSlider.getMinWidth () - line2.getSpacing ()
-        );
-        line2.getChildren ().add (offsetField);
+        final var offsetSlider = new SliderWithField <> (Double.class, 0.0, defaultScale.getMaxOffset (), defaultScale.getDefaultOffset ());
+        offsetSlider.getSlider ().setShowTickLabels (true);
+        offsetSlider.getSlider ().setShowTickMarks (true);
+        offsetSlider.getSlider ().setMajorTickUnit (3.0);
+        offsetSlider.getSlider ().setMinorTickCount (2);
+        offsetSlider.getSlider ().setSnapToTicks (true);
+        offsetSlider.setMinWidth (350.0);
         
-        final var amountSlider = new Slider (
+        final var offsetTile = new TileWithHeader <> ("Offset", offsetSlider);
+        line2.getChildren ().add (offsetTile);
+        
+        final var amountSlider = new SliderWithField <> (Double.class, 
             defaultScale.getMinAmount (), defaultScale.getMaxAmount (), 
             defaultScale.getDefaultAmount ()
         );
-        amountSlider.setShowTickLabels (true);
-        amountSlider.setShowTickMarks (true);
-        amountSlider.setMajorTickUnit (5.0);
-        amountSlider.setMinorTickCount (4);
-        amountSlider.setSnapToTicks (true);
+        amountSlider.getSlider ().setShowTickLabels (true);
+        amountSlider.getSlider ().setShowTickMarks (true);
+        amountSlider.getSlider ().setMajorTickUnit (5.0);
+        amountSlider.getSlider ().setMinorTickCount (4);
+        amountSlider.getSlider ().setSnapToTicks (true);
         amountSlider.setMinWidth (635.0);
-        line2.getChildren ().add (amountSlider);
         
-        final var amountField = new NumberField <> ();
-        amountField.setValue (defaultScale.getDefaultAmount ());
-        amountField.setMaxWidth (
-            amountHeader.getWrappingWidth () - amountSlider.getMinWidth () - line2.getSpacing ()
-        );
-        line2.getChildren ().add (amountField);
+        final var amountTile = new TileWithHeader <> ("Chart dates", amountSlider);
+        line2.getChildren ().add (amountTile);
         
         scaleSelect.valueProperty ().addListener ((__, ___, scale) -> {
             listenersLocked = true;
             TBSBalanceController.getInstance ().updateParameters (scale);
-            offsetSlider.setMax (scale.getMaxOffset ());
-            offsetSlider.setValue (scale.getDefaultOffset ());
-            amountSlider.setMin (scale.getMinAmount ());
-            amountSlider.setMax (scale.getMaxAmount ());
-            amountSlider.setValue (scale.getDefaultAmount ());
+            offsetSlider.getSlider ().setMax (scale.getMaxOffset ());
+            offsetSlider.getSlider ().setValue (scale.getDefaultOffset ());
+            
+            amountSlider.getSlider ().setMin (scale.getMinAmount ());
+            amountSlider.getSlider ().setMax (scale.getMaxAmount ());
+            amountSlider.getSlider ().setValue (scale.getDefaultAmount ());
             listenersLocked = false;
         });
         
-        final var offsetProperty = offsetSlider.valueProperty ();
-        final var amountProperty = amountSlider.valueProperty ();
+        final var offsetProperty = offsetSlider.getValueProperty ();
+        final var amountProperty = amountSlider.getValueProperty ();
         
-        offsetProperty.bindBidirectional (offsetField.valueProperty ());
         offsetProperty.addListener ((__, ___, offset) -> {
             if (listenersLocked) { return; }
             
@@ -152,7 +126,6 @@ public class TBSBalanceControl extends ScrollPane {
             );
         });
         
-        amountProperty.bindBidirectional (amountField.valueProperty ());
         amountProperty.addListener ((__, ___, amount) -> {
             if (listenersLocked) { return; }
             
