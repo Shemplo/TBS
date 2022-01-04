@@ -583,7 +583,7 @@ public class TBSPlannerTool extends HBox {
                     
                     double sum = 0, denom = 0;
                     for (final var candle : candles.get ().getCandles ()) {
-                        final var off = candle.getTime ().until (to, ChronoUnit.DAYS);
+                        final var off = candle.getTime ().until (to, ChronoUnit.DAYS) + 1;
                         sum += candle.getC ().doubleValue () * off;
                         denom += off;
                     }
