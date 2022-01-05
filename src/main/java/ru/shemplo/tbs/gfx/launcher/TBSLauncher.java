@@ -46,6 +46,7 @@ public class TBSLauncher extends Application {
     private ObservableList <IProfile> profiles;
     
     private Button openScannedBondsButton;
+    private Button openEmittertEditorButton;
     private Button startNewScanningButton;
     private Button createProfileButton;
     private Button deleteProfileButton;
@@ -66,6 +67,7 @@ public class TBSLauncher extends Application {
         final var scene = new Scene (root);
         
         root.getChildren ().add (makeOpenExistingSection ());
+        root.getChildren ().add (makeEmittersEditorSection ());
         root.getChildren ().add (makeScanNewSection ());
         
         stage.setOnCloseRequest (we -> {
@@ -142,6 +144,19 @@ public class TBSLauncher extends Application {
         line.getChildren ().add (bondsDumpDateText = new Text ());
         
         updateOpenExistingSection ();
+        return line;
+    }
+    
+    private Parent makeEmittersEditorSection () {
+        final var line = new HBox (8.0);
+        line.setAlignment (Pos.BASELINE_LEFT);
+        
+        openEmittertEditorButton = new Button ("Open emitters editor");
+        openEmittertEditorButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
+        line.getChildren ().add (openEmittertEditorButton);
+        
+        line.getChildren ().add (new Text ("Edit name or credit rating of emitters which bonds were scanned at least once"));
+        
         return line;
     }
     

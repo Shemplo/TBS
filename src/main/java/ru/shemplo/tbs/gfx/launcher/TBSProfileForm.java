@@ -21,6 +21,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import lombok.Setter;
 import ru.shemplo.tbs.TBSUtils;
+import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.CouponValueMode;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.shemplo.tbs.entity.Range;
@@ -125,6 +126,14 @@ public class TBSProfileForm {
         ));
         currencies.setMaxWidth (400.0);
         column.getChildren ().add (currencies);
+        
+        // Credit rating
+        
+        final var creditRating = new TileWithHeader <> ("Bond credit rating:", new EnumSelectionSet <> (
+            BondCreditRating.class, profile.getCreditRatings ()
+        ));
+        creditRating.setMaxWidth (400.0);
+        column.getChildren ().add (creditRating);
         
         // Coupon modes
         

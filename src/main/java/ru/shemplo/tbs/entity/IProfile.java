@@ -81,6 +81,12 @@ public interface IProfile extends Serializable {
         throw new UnsupportedOperationException ();
     }
     
+    Set <BondCreditRating> getCreditRatings ();
+    
+    default void setCreditRatings (Set <BondCreditRating> creditRatings) {
+        throw new UnsupportedOperationException ();
+    }
+    
     Set <CouponValueMode> getCouponValuesModes ();
     
     default void setCouponValuesModes (Set <CouponValueMode> cvm) {
@@ -108,6 +114,7 @@ public interface IProfile extends Serializable {
         return debugConditions (String.valueOf (bond)) 
             && bond != null && getCurrencies ().contains (bond.getCurrency ()) 
             && debugConditions ("    Bond and currency passed")
+            // TODO: add credit rating check
             && getCouponValuesModes ().contains (bond.getCouponValuesMode ()) 
             && debugConditions ("    Coupons mode passed")
             && !getBannedEmitters ().contains (bond.getEmitterId ()) 

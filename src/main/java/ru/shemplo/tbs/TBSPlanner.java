@@ -80,7 +80,7 @@ public class TBSPlanner implements Serializable {
     private long analyzeDays = 7L;
     
     public synchronized void addBond (String ticker) {
-        if (ticker != null && !ticker2bond.containsKey (ticker)) {
+        if (ticker != null && !hasBond (ticker)) {
             final var bond = new PlanningBond (ticker).getProxy ();
             
             ticker2bond.put (ticker, bond);
@@ -113,8 +113,8 @@ public class TBSPlanner implements Serializable {
     
     private void sortThis () {
         bonds.sort (Comparator.<IPlanningBond, Double> comparing (
-            bond -> TBSBondManager.getBondScore (bond.getCode ()
-        )).reversed ());
+            bond -> TBSBondManager.getBondScore (bond.getCode ())
+        ).reversed ());
         
         updateIndices ();
     }

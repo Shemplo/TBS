@@ -54,6 +54,9 @@ public class Profile implements IProfile {
     private Set <Currency> currencies = new HashSet <> ();
     
     @Default
+    private Set <BondCreditRating> creditRatings = new HashSet <> ();
+    
+    @Default
     private Set <Long> bannedEmitters = new HashSet <> ();
     
     @Override
@@ -71,7 +74,7 @@ public class Profile implements IProfile {
             monthsTillEnd.copy (), couponsPerYear.copy (), daysToCoupon.copy (), 
             nominalValue.copy (), percentage.copy (), price.copy (), 
             Set.copyOf (couponValuesModes), Set.copyOf (currencies),
-            Set.copyOf (bannedEmitters)
+            Set.copyOf (creditRatings), Set.copyOf (bannedEmitters)
         );
     }
     
