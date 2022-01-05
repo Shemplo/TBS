@@ -20,6 +20,7 @@ import ru.shemplo.tbs.entity.LinkedObject;
 import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
 import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
 import ru.shemplo.tbs.gfx.table.TBSIconTableCell;
+import ru.shemplo.tbs.gfx.table.TBSSelectTableCell;
 import ru.shemplo.tbs.gfx.table.TBSTableCell;
 import ru.shemplo.tbs.gfx.table.TBSToggleTableCell;
 
@@ -95,6 +96,23 @@ public class TBSUIUtils {
         final var column = makeTBSTableColumnBase (name, sortable, minWidth, propertyFetcher);
         column.setCellFactory (__ -> {
             final var cell = new TBSEditTableCell <> (fieldSupplier, converter, highlighter);
+            TBSUtils.doIfNN (tooltip, t -> cell.setTooltip (new Tooltip (t)));
+            return cell;
+        });
+        
+        return column;
+    }
+    
+    @Builder (builderMethodName = "buildTBSSelectTableColumn", builderClassName = "SelectTableColumnBuilder")
+    public static <F, S extends Enum <S>> TableColumn <F, LinkedObject <S>> makeTBSSelectTableColumn (
+        String name, String tooltip, boolean sortable, double minWidth, Pos alignment, Class <S> enumeration,
+        Function <F, ObjectProperty <LinkedObject <S>>> propertyFetcher, 
+        Consumer <TBSTableCell <F, LinkedObject <S>>> highlighter,
+        BiConsumer <LinkedObject <S>, S> onSelection
+    ) {
+        final var column = makeTBSTableColumnBase (name, sortable, minWidth, propertyFetcher);
+        column.setCellFactory (__ -> {
+            final var cell = new TBSSelectTableCell <> (enumeration, onSelection, highlighter, alignment);
             TBSUtils.doIfNN (tooltip, t -> cell.setTooltip (new Tooltip (t)));
             return cell;
         });

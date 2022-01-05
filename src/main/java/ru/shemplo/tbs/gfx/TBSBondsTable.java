@@ -16,16 +16,15 @@ import javafx.scene.Parent;
 import javafx.scene.control.TableView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
+import ru.shemplo.tbs.MappingROProperty;
 import ru.shemplo.tbs.TBSBondManager;
+import ru.shemplo.tbs.TBSEmitterManager;
 import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.TBSUtils;
+import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.CouponValueMode;
 import ru.shemplo.tbs.entity.IBond;
 import ru.shemplo.tbs.entity.LinkedObject;
@@ -44,14 +43,15 @@ public class TBSBondsTable extends VBox {
     }
     
     private Parent makeTable (TBSTableType type) {
-        table = new TableView <IBond> ();
-        table.setBackground (new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        table = new TableView <> ();
         table.getStylesheets ().setAll (STYLE_TABLES);
+        table.setBackground (TBSStyles.BG_TABLE);
         VBox.setVgrow (table, Priority.ALWAYS);
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
         
         final var grThreshold = TBSStyles.<IBond, Number> threshold (0.0, 1e-6);
+        final var creditRating = TBSStyles.<IBond> creditRating ();
         final var fixedCoupons = TBSStyles.<IBond> fixedCoupons ();
         final var sameMonth = TBSStyles.<IBond> sameMonth (NOW);
         final var linkIcon = TBSStyles.<IBond> linkIcon ();
@@ -172,6 +172,28 @@ public class TBSBondsTable extends VBox {
             .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
             .propertyFetcher (bond -> bond.getRWProperty ("percentage", null))
             .highlighter (grThreshold).converter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, String> buildTBSTableColumn ()
+            .name ("Emitter").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (200.0).sortable (false)
+            .propertyFetcher (bond -> new MappingROProperty <> (
+                bond.<Long> getRWProperty ("emitterId", () -> null), 
+                v -> {
+                    final var emitter = TBSEmitterManager.getInstance ().getEmitterById (v);
+                    if (emitter == null) { return "<Unknown emitter>"; }
+                    
+                    return TBSUtils.notBlank (emitter.getName ()) ? emitter.getName () 
+                         : "#" + emitter.getId ();
+                }
+            ))
+            .highlighter (null).converter ((c, v) -> v)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, BondCreditRating> buildTBSTableColumn ()
+            .name ("Credit rating").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (100.0).sortable (false)
+            .propertyFetcher (bond -> new SimpleObjectProperty <> (TBSBondManager.getBondCreditRating (bond.getCode ())))
+            .converter ((c, v) -> TBSUtils.mapIfNN (v, BondCreditRating::name, ""))
+            .highlighter (creditRating)
             .build ());
         
         return table;

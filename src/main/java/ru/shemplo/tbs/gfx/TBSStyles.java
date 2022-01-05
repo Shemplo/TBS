@@ -4,18 +4,21 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.function.Consumer;
 
+import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import ru.shemplo.tbs.TBSConstants;
 import ru.shemplo.tbs.TBSUtils;
+import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.CouponValueMode;
 import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
 import ru.shemplo.tbs.gfx.table.TBSTableCell;
@@ -27,6 +30,7 @@ public class TBSStyles {
     public static final String STYLE_TABS = "/tabs.css";
     
     //public static final Background BG_NO_OUTLINES = new Background (new BackgroundFill (Color.HONEYDEW, null, null));
+    public static final Background BG_TABLE = new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY));
     public static final Background BG_APPROPRIATE = new Background (new BackgroundFill (Color.HONEYDEW, null, null));
     public static final Background BG_SO_CLOSE = new Background (new BackgroundFill (Color.BEIGE, null, null));
     
@@ -99,6 +103,25 @@ public class TBSStyles {
             } else if (value == CouponValueMode.NOT_FIXED) {
                 cell.setTextFill (COLOR_DEFAULT);
             } else if (value == CouponValueMode.UNDEFINED) {
+                cell.setTextFill (COLOR_NEUTRAL);
+            }
+        };
+    }
+    
+    public static <O> Consumer <TBSTableCell <O, BondCreditRating>> creditRating () {
+        return cell -> {
+            final var value = cell.getItem ();
+            if (value == BondCreditRating.HIGH) {
+                cell.setTextFill (COLOR_POSITIVE);
+                cell.setFont (FONT_BOLD_12);
+            } else if (value == BondCreditRating.MEDIUM) {
+                cell.setTextFill (COLOR_POSITIVE);
+            } else if (value == BondCreditRating.LOW) {
+                cell.setTextFill (COLOR_NEGATIVE);
+            } else if (value == BondCreditRating.SPECULATIVE) {
+                cell.setTextFill (COLOR_NEGATIVE);
+                cell.setFont (FONT_BOLD_12);
+            } else if (value == BondCreditRating.UNDEFINED) {
                 cell.setTextFill (COLOR_NEUTRAL);
             }
         };

@@ -32,7 +32,7 @@ public class TBSToggleTableCell <F> extends TBSTableCell <F, LinkedObject <Boole
             checkBox.setSelected (item.getObject ());
             setGraphic (checkBox);
             
-            getStringValue (item, true);
+            getStringValue (item, true); // to activate highlights
         }
     }
     

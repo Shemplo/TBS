@@ -30,8 +30,10 @@ public class TBSEditTableCell <F, S, TF extends TextField> extends TBSTableCell 
         setText (null);
         
         if (item != null) {
-            if (field.getText () == null || field.getText ().isBlank ()) {                
-                field.setText (getStringValue (item, true));
+            field.setText (getStringValue (item, true));
+            if (field.isFocused ()) {
+                final var text = field.getText ();
+                field.positionCaret (text == null || text.isBlank () ? 0 : text.length ());
             }
             
             setGraphic (field);

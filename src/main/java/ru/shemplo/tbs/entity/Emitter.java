@@ -16,6 +16,6 @@ public class Emitter extends AbstractObservableEntity <IEmitter> implements IEmi
     
     private String name;
     
-    private BondCreditRating rating;
+    private BondCreditRating rating = BondCreditRating.UNDEFINED;
     
 }

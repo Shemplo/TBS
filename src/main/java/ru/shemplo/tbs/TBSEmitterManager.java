@@ -17,11 +17,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.Emitter;
 import ru.shemplo.tbs.entity.EmittersDump;
 import ru.shemplo.tbs.entity.IEmitter;
 import ru.shemplo.tbs.entity.IPlanningBond;
-import ru.shemplo.tbs.entity.PlanningDump;
 
 @Slf4j
 @NoArgsConstructor (access = AccessLevel.PRIVATE)
@@ -49,10 +49,14 @@ public class TBSEmitterManager implements Serializable {
         log.info ("Restoring emitters from a binary file...");
         if (DUMP_FILE.exists ()) {
             TBSDumpService.getInstance ().restore (
-                TBSPlanner.DUMP_FILE.getName (), 
-                PlanningDump.class
+                DUMP_FILE.getName (), 
+                EmittersDump.class
             );
         }
+    }
+    
+    public static BondCreditRating getCreditRating (long emitterId) {
+        return TBSUtils.map2IfNN (emitterId, getInstance ()::getEmitterById, IEmitter::getRating, BondCreditRating.UNDEFINED);
     }
     
     @Getter
@@ -60,7 +64,7 @@ public class TBSEmitterManager implements Serializable {
     private transient Map <Long, IEmitter> id2emitter = new ConcurrentHashMap <> ();
     
     public void addEmitter (long id) {
-        if (!hasEmitter (id)) {
+        if (!hasEmitter (id) && id != -1L) {
             synchronized (id2emitter) {   
                 if (!hasEmitter (id)) {                    
                     final var bond = new Emitter (id).getProxy ();
@@ -76,7 +80,7 @@ public class TBSEmitterManager implements Serializable {
     }
     
     private void sortThis () {
-        emitters.sort (Comparator.<IEmitter, Long> comparing (IEmitter::getId).reversed ());
+        emitters.sort (Comparator.<IEmitter, Long> comparing (IEmitter::getId));
         
         updateIndices ();
     }

@@ -50,7 +50,7 @@ public class TBSPlanner implements Serializable {
         log.info ("Restoring planning bonds from a binary file...");
         if (DUMP_FILE.exists ()) {
             TBSDumpService.getInstance ().restore (
-                TBSPlanner.DUMP_FILE.getName (), 
+                DUMP_FILE.getName (), 
                 PlanningDump.class
             );
         } else {

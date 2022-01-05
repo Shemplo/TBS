@@ -48,6 +48,10 @@ public class TBSUtils {
         }
     }
     
+    public static boolean notBlank (String string) {
+        return string != null && !string.isBlank ();
+    }
+    
     public static Optional <Currency> getCurrencyByTicker (String ticker) {
         final var currency = switch (ticker) {
             case "USD000UTSTOM" -> Currency.USD;

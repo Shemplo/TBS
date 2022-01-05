@@ -18,6 +18,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.entity.Bond;
+import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.BondsDump;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
@@ -86,6 +87,13 @@ public class TBSBondManager implements Serializable {
         return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getLots, 0);
     }
     
+    public static BondCreditRating getBondCreditRating (String ticker) {
+        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), 
+            b -> TBSEmitterManager.getCreditRating (b.getEmitterId ()), 
+            BondCreditRating.UNDEFINED
+        );
+    }
+    
     public static Bond getBondByTicker (String ticker, boolean scannedPreferred) {
         final var portfolio = getInstance ().ticker2portfolio.get (ticker);
         final var scanned = getInstance ().ticker2scanned.get (ticker);
@@ -103,6 +111,9 @@ public class TBSBondManager implements Serializable {
         try {
             final var client = TBSClient.getInstance ().getConnection (profile, log);
             
+            TBSEmitterManager.restore ();
+            final var emitters = TBSEmitterManager.getInstance ();
+            
             log.info ("Loading bonds from portfolio (with data from Tinkoff and MOEX)...");
             portfolio = client.getUserContext ().getAccounts ().join ().getAccounts ().parallelStream ()
                 . flatMap (acc -> {
@@ -115,9 +126,11 @@ public class TBSBondManager implements Serializable {
             log.info ("Loading data about bonds from Tinkoff and MOEX...");
             scanned = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
                 . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ())).parallel ()
-                . map (Bond::new).filter (profile::testBond)//.limit (profile.getMaxResults ())
+                . map (Bond::new).peek (bond -> emitters.addEmitter (bond.getEmitterId ()))
+                . filter (profile::testBond)//.limit (profile.getMaxResults ())
                 . collect (Collectors.toList ());
             
+            emitters.dump ();
             updateMapping ();
         } catch (IOException ioe) {
             log.error ("Failed to scan bonds", ioe);

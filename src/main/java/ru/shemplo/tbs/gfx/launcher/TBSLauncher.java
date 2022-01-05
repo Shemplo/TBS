@@ -28,6 +28,7 @@ import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSDumpService;
+import ru.shemplo.tbs.TBSEmitterManager;
 import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.IProfile;
@@ -93,6 +94,9 @@ public class TBSLauncher extends Application {
         openScannedBondsButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenBonds ()));
         openScannedBondsButton.setOnAction (me -> doOpenBonds ());
         
+        openEmittertEditorButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenEmitters (scene)));
+        openEmittertEditorButton.setOnAction (ae -> doOpenEmitters (scene));
+        
         final var profileProperty = profilesList.getSelectionModel ().selectedItemProperty ();
         startNewScanningButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doStartNewScanning (scene, profileProperty)));
         startNewScanningButton.setOnAction (ae -> doStartNewScanning (scene, profileProperty));
@@ -115,9 +119,14 @@ public class TBSLauncher extends Application {
     
     private void doOpenBonds () {
         final var profile = TBSBondManager.restore ();
+        TBSEmitterManager.restore ();
         TBSPlanner.restore ();
         
         openTBSApplication (profile);
+    }
+    
+    private void doOpenEmitters (Scene scene) {
+        new TBSEmittersTable (scene.getWindow ());
     }
     
     private void doStartNewScanning (Scene scene, ReadOnlyObjectProperty <IProfile> profileProperty) {

@@ -6,7 +6,9 @@
 .classpath
 .project
 
-**.bin
+dump.bin
+launcher.bin
+plan.bin
 /**.xml
 **.exe
 **.log
