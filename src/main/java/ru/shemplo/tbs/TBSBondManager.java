@@ -83,6 +83,10 @@ public class TBSBondManager implements Serializable {
         return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getNextCoupon, null);
     }
     
+    public static LocalDate getBondNextRecord (String ticker) {
+        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getNextRecord, null);
+    }
+    
     public static int getBondLots (String ticker) {
         return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getLots, 0);
     }

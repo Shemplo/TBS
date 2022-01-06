@@ -35,7 +35,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     @Setter
     private int lots = 0;
     
-    private LocalDate start, end, nextCoupon;
+    private LocalDate start, end, nextCoupon, nextRecord;
     private long couponsPerYear;
     private LocalDate now;
     
@@ -98,11 +98,14 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
             });
             
             MOEXCoupons.getCoupons ().map (Data::getRows).ifPresent (cops -> {
-                Coupon previous = new Coupon (FAR_PAST, 0.0, true, "");
+                Coupon previous = new Coupon (FAR_PAST, FAR_PAST, 0.0, true, "");
                 
                 for (final var coupon : Optional.ofNullable (cops.getRows ()).orElse (List.of ())) {
                     coupons.add (previous = new Coupon (coupon, previous, offers, now));
-                    if (previous.isNextCoupon ()) { nextCoupon = previous.getDate (); }
+                    if (previous.isNextCoupon ()) { 
+                        nextRecord = previous.getRecord ();
+                        nextCoupon = previous.getDate (); 
+                    }
                 }
             });
         }

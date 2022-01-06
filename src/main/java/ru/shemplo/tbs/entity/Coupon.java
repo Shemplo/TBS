@@ -21,7 +21,7 @@ public class Coupon extends AbstractObservableEntity <ICoupon> implements ICoupo
 
     public static final String NEXT_COUPON = "➥";
     
-    private LocalDate date;
+    private LocalDate date, record;
     
     private double amount;
     private boolean reliable = true;
@@ -32,6 +32,7 @@ public class Coupon extends AbstractObservableEntity <ICoupon> implements ICoupo
         if (amount == null) { reliable = false; }
         
         this.amount = Optional.ofNullable (amount).orElse (previous.getAmount ());
+        record = row.getCouponRecordLocalDate ();
         date = row.getCouponLocalDate ();
         
         if (!NOW.isAfter (date) && NOW.isAfter (previous.getDate ())) {

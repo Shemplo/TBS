@@ -381,7 +381,16 @@ public class TBSPlannerTool extends HBox {
             .highlighter (null).converter (null)
             .build ());
         table.getColumns ().add (TBSUIUtils.<IPlanningBond, LocalDate> buildTBSTableColumn ()
-            .name ("Next C").tooltip ("Closest date of the next coupon")
+            .name ("Next C R").tooltip ("Closest date to the next coupon record")
+            .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
+            .propertyFetcher (bond -> new MappingROProperty <> (
+                bond.getRWProperty ("code", () -> ""), 
+                TBSBondManager::getBondNextRecord
+            ))
+            .highlighter (sameMonth).converter ((c, v) -> String.valueOf (v))
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, LocalDate> buildTBSTableColumn ()
+            .name ("Next C").tooltip ("Closest date to the next coupon")
             .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
             .propertyFetcher (bond -> new MappingROProperty <> (
                 bond.getRWProperty ("code", () -> ""), 

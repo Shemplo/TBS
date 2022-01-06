@@ -73,6 +73,12 @@ public class TBSCouponsInspection {
             .propertyFetcher (coup -> coup.getRWProperty ("date", null))
             .highlighter (null).converter ((c, v) -> String.valueOf (v))
             .build ());
+        table.getColumns ().add (TBSUIUtils.<ICoupon, LocalDate> buildTBSTableColumn ()
+            .name ("R date").tooltip ("Record date - list of bond owners is fixed after this date")
+            .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
+            .propertyFetcher (coup -> coup.getRWProperty ("record", null))
+            .highlighter (null).converter ((c, v) -> String.valueOf (v))
+            .build ());
         table.getColumns ().add (TBSUIUtils.<ICoupon, Number> buildTBSTableColumn ()
             .name ("Amount").tooltip (null)
             .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)

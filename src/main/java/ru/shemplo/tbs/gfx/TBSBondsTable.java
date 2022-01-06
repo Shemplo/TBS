@@ -141,7 +141,13 @@ public class TBSBondsTable extends VBox {
             .highlighter (null).converter (null)
             .build ());
         table.getColumns ().add (TBSUIUtils.<IBond, LocalDate> buildTBSTableColumn ()
-            .name ("Next C").tooltip ("Closest date of the next coupon")
+            .name ("Next C R").tooltip ("Closest date to the next coupon record")
+            .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("nextRecord", null))
+            .highlighter (sameMonth).converter ((c, v) -> String.valueOf (v))
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, LocalDate> buildTBSTableColumn ()
+            .name ("Next C").tooltip ("Closest date to the next coupon")
             .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
             .propertyFetcher (bond -> bond.getRWProperty ("nextCoupon", null))
             .highlighter (sameMonth).converter ((c, v) -> String.valueOf (v))

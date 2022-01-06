@@ -45,6 +45,10 @@ public class Row {
     @Getter (value = AccessLevel.PRIVATE)
     private String _coupondate;
     
+    @XmlAttribute (name = "recorddate")
+    @Getter (value = AccessLevel.PRIVATE)
+    private String _recorddate;
+    
     @XmlAttribute
     private String boardid;
     
@@ -82,6 +86,10 @@ public class Row {
     
     public LocalDate getCouponLocalDate () {
         return _coupondate == null || _coupondate.isBlank () ? null : LocalDate.parse (_coupondate);
+    }
+    
+    public LocalDate getCouponRecordLocalDate () {
+        return _recorddate == null || _recorddate.isBlank () ? null : LocalDate.parse (_recorddate);
     }
     
     public LocalDate getOfferLocalDate () {
