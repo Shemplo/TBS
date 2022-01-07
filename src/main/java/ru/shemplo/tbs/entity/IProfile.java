@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Set;
 
 import ru.shemplo.tbs.TBSCurrencyManager;
+import ru.shemplo.tbs.TBSEmitterManager;
 import ru.shemplo.tbs.TBSUtils;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 
@@ -111,10 +112,16 @@ public interface IProfile extends Serializable {
     
     default boolean testBond (Bond bond) {
         final var currencyCoeff = TBSCurrencyManager.getInstance ().getToRubCoefficient (bond.getCurrency ());
+        final var creditRating = TBSUtils.mapIfNN (bond, 
+            b -> TBSEmitterManager.getCreditRating (b.getEmitterId ()), 
+            BondCreditRating.UNDEFINED
+        );
+        
         return debugConditions (String.valueOf (bond)) 
             && bond != null && getCurrencies ().contains (bond.getCurrency ()) 
             && debugConditions ("    Bond and currency passed")
-            // TODO: add credit rating check
+            && getCreditRatings ().contains (creditRating) 
+            && debugConditions ("    Emitter credit rating passed")
             && getCouponValuesModes ().contains (bond.getCouponValuesMode ()) 
             && debugConditions ("    Coupons mode passed")
             && !getBannedEmitters ().contains (bond.getEmitterId ()) 

@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import javafx.beans.property.SimpleObjectProperty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.shemplo.tbs.entity.UpdateDateTracker;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -61,6 +62,10 @@ public class ObservableEntityProxy <T> implements InvocationHandler {
                                 field.setAccessible (true);
                                 field.set (instance, value);
                                 field.setAccessible (false);
+                                
+                                if (UpdateDateTracker.class.isAssignableFrom (instance.getClass ())) {
+                                    ((UpdateDateTracker) instance).updateNow ();
+                                }
                             } catch (IllegalArgumentException | IllegalAccessException e) {
                                 // Do nothing if wrong value was tried to be written
                                 e.printStackTrace ();

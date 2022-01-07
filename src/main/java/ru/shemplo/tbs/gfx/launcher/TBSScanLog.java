@@ -26,6 +26,7 @@ import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSCurrencyManager;
 import ru.shemplo.tbs.TBSDumpService;
+import ru.shemplo.tbs.TBSEmitterManager;
 import ru.shemplo.tbs.TBSLogWrapper;
 import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.entity.BondsDump;
@@ -113,7 +114,9 @@ public class TBSScanLog {
     
     public void scan (IProfile profile, Runnable onScanFinished) {
         isScanning.set (true);
-        TBSBackgroundExecutor.getInstance ().runInBackground (() -> { 
+        
+        TBSEmitterManager.restore ();
+        TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
             try {
                 logger.getLines ().clear ();
                 

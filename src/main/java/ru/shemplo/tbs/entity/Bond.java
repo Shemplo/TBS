@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import ru.shemplo.tbs.TBSCurrencyManager;
+import ru.shemplo.tbs.TBSEmitterManager;
 import ru.shemplo.tbs.moex.MOEXRequests;
 import ru.shemplo.tbs.moex.MOEXResposeReader;
 import ru.shemplo.tbs.moex.xml.Data;
@@ -163,6 +164,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
         score = pureCredit * currencyCoeff /*/ (months == 0 ? 1000 : months)*/ * 1.61 - Math.sqrt (monthsBalance) * 0.34 
               + priceBalance * currencyCoeff * 1.08 - lots * 0.25 + couponsPerYear * 0.15 + percentage * 1.09;
         score *= nominalValue != 0.0 ? 1000.0 / nominalValue : 1.0; // align to 1k nominal
+        score *= 1.0 - TBSEmitterManager.getCreditRating (emitterId).getPenalty ();
         score = Math.signum (score) * Math.sqrt (Math.abs (score)) - 10.0;
     }
     

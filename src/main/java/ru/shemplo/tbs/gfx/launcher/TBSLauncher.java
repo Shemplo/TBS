@@ -126,6 +126,8 @@ public class TBSLauncher extends Application {
     }
     
     private void doOpenEmitters (Scene scene) {
+        TBSBondManager.restore ();
+        
         new TBSEmittersTable (scene.getWindow ());
     }
     

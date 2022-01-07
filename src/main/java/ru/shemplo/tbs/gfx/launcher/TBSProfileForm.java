@@ -216,6 +216,7 @@ public class TBSProfileForm {
                 profile.setPrice (price.getNodes () [0].getRange ());
                 
                 profile.setCouponValuesModes (couponModes.getNodes () [0].getOptions ());
+                profile.setCreditRatings (creditRating.getNodes () [0].getOptions ());
                 profile.setCurrencies (currencies.getNodes () [0].getOptions ());
                 
                 profile.setHighResponsible (tokenResponsibilityCheck.isSelected ());
