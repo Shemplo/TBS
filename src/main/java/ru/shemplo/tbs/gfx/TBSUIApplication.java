@@ -3,6 +3,7 @@ package ru.shemplo.tbs.gfx;
 import static ru.shemplo.tbs.gfx.TBSStyles.*;
 
 import java.io.IOException;
+import java.net.URL;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -117,6 +118,10 @@ public class TBSUIApplication extends Application {
         ));
         
         plannerTool.applyData (profile);
+    }
+    
+    public void openLinkInBrowser (URL url) {
+        openLinkInBrowser (url.toExternalForm ());
     }
     
     public void openLinkInBrowser (String url) {

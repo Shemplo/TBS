@@ -22,7 +22,10 @@ public class MOEXResposeReader {
                 connection.connect ();
                 
                 try (final var is = connection.getInputStream ()) {
-                    System.out.println (new String (is.readAllBytes ())); // SYSOUT
+                    System.out.println ("URL: " + url);
+                    System.out.println ("Headers: " + connection.getHeaderFields ()); // SYSOUT
+                    System.out.println ("Response: ");
+                    System.out.println (new String (is.readAllBytes ()));
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace ();

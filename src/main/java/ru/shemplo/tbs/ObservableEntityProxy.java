@@ -2,6 +2,7 @@ package ru.shemplo.tbs;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
@@ -9,6 +10,7 @@ import java.util.function.Supplier;
 import javafx.beans.property.SimpleObjectProperty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.shemplo.tbs.entity.ObservableEntity;
 import ru.shemplo.tbs.entity.UpdateDateTracker;
 
 @Slf4j
@@ -63,8 +65,15 @@ public class ObservableEntityProxy <T> implements InvocationHandler {
                                 field.set (instance, value);
                                 field.setAccessible (false);
                                 
-                                if (UpdateDateTracker.class.isAssignableFrom (instance.getClass ())) {
-                                    ((UpdateDateTracker) instance).updateNow ();
+                                if (!"upadted".equalsIgnoreCase (fieldName)) {
+                                    final var type = instance.getClass ();
+                                    if (UpdateDateTracker.class.isAssignableFrom (type)) {  
+                                        if (ObservableEntity.class.isAssignableFrom (type)) {
+                                            ((ObservableEntity <?>) instance).getRWProperty ("updated", () -> null).set (new Date ());
+                                        } else {
+                                            ((UpdateDateTracker) instance).updateNow ();
+                                        }
+                                    }
                                 }
                             } catch (IllegalArgumentException | IllegalAccessException e) {
                                 // Do nothing if wrong value was tried to be written

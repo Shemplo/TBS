@@ -118,21 +118,34 @@ public class TBSBondManager implements Serializable {
             TBSEmitterManager.restore ();
             final var emitters = TBSEmitterManager.getInstance ();
             
-            log.info ("Loading bonds from portfolio (with data from Tinkoff and MOEX)...");
-            portfolio = client.getUserContext ().getAccounts ().join ().getAccounts ().parallelStream ()
-                . flatMap (acc -> {
-                    return client.getPortfolioContext ().getPortfolio (acc.getBrokerAccountId ()).join ()
-                            . getPositions ().stream ();
-                })
-                . filter (pos -> pos.getInstrumentType () == InstrumentType.BOND)
-                . map (Bond::new).collect (Collectors.toList ());
+            try {
+                log.info ("Loading bonds from portfolio (with data from Tinkoff and MOEX)...");
+                portfolio = client.getUserContext ().getAccounts ().join ().getAccounts ().parallelStream ()
+                    . flatMap (acc -> {
+                        return client.getPortfolioContext ().getPortfolio (acc.getBrokerAccountId ()).join ()
+                             . getPositions ().stream ();
+                    })
+                    . filter (pos -> pos.getInstrumentType () == InstrumentType.BOND)
+                    . map (Bond::new).collect (Collectors.toList ());
+            } catch (Exception e) {
+                log.error ("Failed to load portfolio bonds due to some unexpected error", e);
+                portfolio = new ArrayList <> ();
+                scanned = new ArrayList <> ();
+                return;
+            }
             
-            log.info ("Loading data about bonds from Tinkoff and MOEX...");
-            scanned = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
-                . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ())).parallel ()
-                . map (Bond::new).peek (bond -> emitters.addEmitter (bond.getEmitterId ()))
-                . filter (profile::testBond)//.limit (profile.getMaxResults ())
-                . collect (Collectors.toList ());
+            try {                
+                log.info ("Loading data about bonds from Tinkoff and MOEX...");
+                scanned = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
+                    . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ())).parallel ()
+                    . map (Bond::new).peek (bond -> emitters.addEmitter (bond.getEmitterId ()))
+                    . filter (profile::testBond)//.limit (profile.getMaxResults ())
+                    . collect (Collectors.toList ());
+            } catch (Exception e) {
+                log.error ("Failed to scan bonds due to some unexpected error", e);
+                scanned = new ArrayList <> ();
+                return;
+            }
             
             emitters.dump ();
             updateMapping ();

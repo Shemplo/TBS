@@ -20,7 +20,7 @@ public class TBSLogWrapper {
     }
     
     public void error (String message, Throwable e) {
-        Platform.runLater (() -> lines.add (message + " (message:" + e.getMessage () + ")"));
+        Platform.runLater (() -> lines.add (message + " (message: " + e.getMessage () + ")"));
         log.error (message, e);
     }
     

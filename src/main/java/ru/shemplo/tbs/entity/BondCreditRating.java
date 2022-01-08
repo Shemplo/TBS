@@ -9,8 +9,8 @@ public enum BondCreditRating {
     
     HIGH        (0.0), 
     MEDIUM      (0.1), 
-    LOW         (0.3), 
-    SPECULATIVE (0.5), 
+    LOW         (0.5), 
+    SPECULATIVE (0.75), 
     UNDEFINED   (0.0)
     
     ;

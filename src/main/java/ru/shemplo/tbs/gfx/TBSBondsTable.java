@@ -24,12 +24,14 @@ import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSEmitterManager;
 import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.TBSUtils;
+import ru.shemplo.tbs.TinkoffRequests;
 import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.CouponValueMode;
 import ru.shemplo.tbs.entity.IBond;
 import ru.shemplo.tbs.entity.LinkedObject;
 import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
 import ru.shemplo.tbs.gfx.table.TBSTableCell;
+import ru.shemplo.tbs.moex.MOEXRequests;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 public class TBSBondsTable extends VBox {
@@ -245,15 +247,11 @@ public class TBSBondsTable extends VBox {
     
     private void handleExploreBrowserColumnClick (MouseEvent me, TBSTableCell <IBond, LinkedSymbolOrImage> cell, boolean openInTinkoff) {
         if (me.getButton () == MouseButton.PRIMARY) {
+            final var ticker = cell.getItem ().getLink ();
             if (openInTinkoff) {                        
-                TBSUIApplication.getInstance ().openLinkInBrowser (String.format (
-                    "https://www.tinkoff.ru/invest/bonds/%s/", cell.getItem ().getLink ()
-                ));
+                TBSUIApplication.getInstance ().openLinkInBrowser (TinkoffRequests.makeTinkoffBondPageURL (ticker));
             } else {
-                TBSUIApplication.getInstance ().openLinkInBrowser (String.format (
-                    "https://www.moex.com/ru/issue.aspx?code=%s&utm_source=www.moex.com", 
-                    cell.getItem ().getLink ()
-                ));
+                TBSUIApplication.getInstance ().openLinkInBrowser (MOEXRequests.makeMOEXBondPageURL (ticker));
             }
         }
     }

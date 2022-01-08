@@ -3,11 +3,11 @@ package ru.shemplo.tbs.gfx.launcher;
 import static ru.shemplo.tbs.gfx.TBSStyles.*;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.Date;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -15,6 +15,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
@@ -29,6 +31,7 @@ import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSEmitterManager;
 import ru.shemplo.tbs.TBSUtils;
+import ru.shemplo.tbs.TinkoffRequests;
 import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.IEmitter;
@@ -39,6 +42,7 @@ import ru.shemplo.tbs.gfx.TBSStyles;
 import ru.shemplo.tbs.gfx.TBSUIUtils;
 import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
 import ru.shemplo.tbs.gfx.table.TBSTableCell;
+import ru.shemplo.tbs.moex.MOEXRequests;
 
 public class TBSEmittersTable {
     
@@ -158,9 +162,6 @@ public class TBSEmittersTable {
         return property;
     }
     
-    private final Pattern EMITTER_PAGE_REGEXP = Pattern.compile ("<a.+href='/(.*)'>Отчетность эмитента</a>");
-    private final Pattern EMITTER_NAME_REGEXP = Pattern.compile ("<h1>Отчетность эмитента (.*)</h1>");
-    
     private void handleExploreBrowserColumnClick (MouseEvent me, TBSTableCell <IEmitter, LinkedSymbolOrImage> cell) {
         if (TBSUIUtils.SIMPLE_CLICK.test (me)) {
             TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
@@ -170,35 +171,80 @@ public class TBSEmittersTable {
                     . filter (bond -> Objects.equals (bond.getEmitterId (), emitterId))
                     . map (Bond::getCode).toList ();
                 
+                if (tickers.isEmpty ()) {
+                    Platform.runLater (() -> {                        
+                        final var alert = new Alert (AlertType.WARNING);
+                        alert.setContentText ("No scanned bonds for this emitter");
+                        alert.setTitle ("Failed to fetch emitter parameters");
+                        alert.setHeaderText (alert.getTitle ());
+                        alert.setResizable (false);
+                        
+                        alert.show ();
+                    });
+                }
+                
                 for (final var ticker : tickers) {
                     try {
-                        final var moexBondURL = new URL (String.format (
-                            "https://www.moex.com/ru/issue.aspx?code=%s&utm_source=www.moex.com", 
-                            ticker
-                        ));
-                        
-                        final var responseBond = moexBondURL.openConnection ().getInputStream ().readAllBytes ();
-                        final var matcherBond = EMITTER_PAGE_REGEXP.matcher (new String (responseBond));
-                        
-                        if (matcherBond.find ()) {
-                            final var moexEmitterURL = new URL (String.format ("https://www.moex.com/%s", matcherBond.group (1)));
-                            final var responseEmitter = new String (moexEmitterURL.openConnection ().getInputStream ().readAllBytes ());
-                            
-                            final var matcherName = EMITTER_NAME_REGEXP.matcher (responseEmitter);
-                            if (matcherName.find ()) {
-                                final var emitterName = matcherName.group (1);
-                                TBSEmitterManager.getInstance ().getEmitterById (emitterId)
-                                    .getRWProperty ("name", () -> null).set (emitterName);
-                            }
-                        } else {
-                            System.out.println ("Emitter page is not found");
-                        }
+                        fetchDataFromTinkoff (emitterId, ticker);
+                        fetchDataFromMOEX (emitterId, ticker);
                     } catch (IOException ioe) {
-                        
+                        ioe.printStackTrace ();
+                        continue;
                     }
                 }
             });
         }
+    }
+    
+    private final Pattern EMITTER_PAGE_REGEXP = Pattern.compile ("<a.+href='/(.*)'>Отчетность эмитента</a>");
+    
+    private final Pattern EMITTER_NAME_REGEXP = Pattern.compile ("<h1>Отчетность эмитента (.*)</h1>");
+    private final Pattern EMITTER_NAME_2_REGEXP = Pattern.compile ("<h1.*>(.+),.+\\(.*\\)</h1>");
+    
+    
+    private void fetchDataFromMOEX (long emitterId, String ticker) throws IOException {
+        final var responseBond = MOEXRequests.loadBondPageContent (ticker);
+        final var matcherBond = EMITTER_PAGE_REGEXP.matcher (responseBond);
+        
+        if (matcherBond.find ()) {
+            final var responseEmitter = MOEXRequests.loadEmitterPageContent (matcherBond.group (1));
+            final var matcherName = EMITTER_NAME_REGEXP.matcher (responseEmitter);
+            
+            if (matcherName.find ()) {
+                applyName (emitterId, matcherName.group (1));
+            }
+        } else {
+            final var matcherName = EMITTER_NAME_2_REGEXP.matcher (responseBond);
+            if (matcherName.find ()) {
+                final var rn = matcherName.group (1); // raw name
+                final var name = Character.toUpperCase (rn.charAt (0)) + rn.substring (1);
+                applyName (emitterId, name);
+            }
+        }
+    }
+    
+    // <div class="SecurityHeaderPure__panelText_xF3LC" data-qa-file="SecurityHeaderPure">Умеренный</div>
+    private final Pattern EMITTER_CR_RATING_REGEXP = Pattern.compile (
+        "(?:<div(?:\\w|\\s|-|=|\"|/|\\.)*>)(?!<div)Рейтинг эмитента</div><div(?:\\w|\\s|-|=|\"|/|\\.)*>(\\w+)</div>",
+        Pattern.UNICODE_CHARACTER_CLASS
+    );
+    
+    private void fetchDataFromTinkoff (long emitterId, String ticker) throws IOException {
+        final var responseBond = TinkoffRequests.loadBondPageContent (ticker);
+        final var matcherRating = EMITTER_CR_RATING_REGEXP.matcher (responseBond);
+        
+        if (matcherRating.find ()) {
+            TBSUtils.fetchCreditRating (matcherRating.group (1)).ifPresent (rating -> {
+                TBSEmitterManager.getInstance ().getEmitterById (emitterId).getRWProperty ("rating", () -> null).set (rating);
+            });
+        } else {
+            System.out.println ("Rating information is not found"); // SYSOUT
+        }
+    }
+    
+    
+    private void applyName (long emitterId, String name) {
+        TBSEmitterManager.getInstance ().getEmitterById (emitterId).getRWProperty ("name", () -> null).set (name);
     }
     
 }

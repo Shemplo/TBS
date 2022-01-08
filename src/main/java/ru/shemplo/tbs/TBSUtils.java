@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
+import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 public class TBSUtils {
@@ -60,6 +61,17 @@ public class TBSUtils {
         };
         
         return Optional.ofNullable (currency);
+    }
+    
+    public static Optional <BondCreditRating> fetchCreditRating (String rating) {
+        final var r = switch (rating.toLowerCase ()) {
+            case "высокий" -> BondCreditRating.HIGH;
+            case "умеренный" -> BondCreditRating.MEDIUM;
+            case "низкий" -> BondCreditRating.LOW;
+            default -> null;
+        };
+        
+        return Optional.ofNullable (r);
     }
     
     public static <F, S> void bindBidirectionalMapping (

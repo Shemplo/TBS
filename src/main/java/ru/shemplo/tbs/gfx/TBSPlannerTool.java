@@ -375,7 +375,7 @@ public class TBSPlannerTool extends HBox {
             .highlighter (null).converter (null)
             .build ());
         table.getColumns ().add (TBSUIUtils.<IPlanningBond, Number> buildTBSTableColumn ()
-            .name ("R price").tooltip ("Recommended purchase price")
+            .name ("Top price").tooltip ("Recommended purchase price")
             .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
             .propertyFetcher (bond -> bond.getRWProperty ("recommendedPrice", () -> 0.0))
             .highlighter (null).converter (null)
