@@ -1,5 +1,6 @@
 package ru.shemplo.tbs.gfx.launcher;
 
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import com.panemu.tiwulfx.control.NumberField;
@@ -122,7 +123,7 @@ public class TBSProfileForm {
         // Currencies
         
         final var currencies = new TileWithHeader <> ("Currencies:", new EnumSelectionSet <> (
-            Currency.class, profile.getCurrencies ()
+            Currency.class, TBSUtils.aOrB (profile.getCurrencies (), Set.of ())
         ));
         currencies.setMaxWidth (400.0);
         column.getChildren ().add (currencies);
@@ -130,7 +131,7 @@ public class TBSProfileForm {
         // Credit rating
         
         final var creditRating = new TileWithHeader <> ("Bond credit rating:", new EnumSelectionSet <> (
-            BondCreditRating.class, profile.getCreditRatings ()
+            BondCreditRating.class, TBSUtils.aOrB (profile.getCreditRatings (), Set.of ())
         ));
         creditRating.setMaxWidth (400.0);
         column.getChildren ().add (creditRating);
@@ -138,7 +139,7 @@ public class TBSProfileForm {
         // Coupon modes
         
         final var couponModes = new TileWithHeader <> ("Coupon modes:", new EnumSelectionSet <> (
-            CouponValueMode.class, profile.getCouponValuesModes ()
+            CouponValueMode.class, TBSUtils.aOrB (profile.getCouponValuesModes (), Set.of ())
         ));
         couponModes.setMaxWidth (400.0);
         column.getChildren ().add (couponModes);

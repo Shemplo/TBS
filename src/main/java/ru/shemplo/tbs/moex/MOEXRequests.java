@@ -11,7 +11,7 @@ public class MOEXRequests {
     
     public static URL makeBondDescriptionURLForMOEX (String ticker) {
         try {
-            return new URL (String.format ("%s/iss/securities/%s.xml", MOEX_DOMAIN, ticker));
+            return new URL (String.format ("%s/iss/securities/%s.xml", ISS_DOMAIN, ticker));
         } catch (MalformedURLException e) {
             return null;
         }

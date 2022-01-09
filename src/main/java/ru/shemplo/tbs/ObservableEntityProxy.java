@@ -23,7 +23,6 @@ public class ObservableEntityProxy <T> implements InvocationHandler {
     
     @Override
     public Object invoke (Object proxy, Method method, Object [] args) throws Throwable {
-        //System.out.println ("Call for method `" + method + "`"); // SYSOUT
         final var methodName = method.getName ();
         
         if ("getRealObject".equals (methodName)) {
@@ -33,7 +32,6 @@ public class ObservableEntityProxy <T> implements InvocationHandler {
             final var value = (T) args [0];
             
             final var fieldName = String.format ("%s%s", methodName.substring (3, 4).toLowerCase (), method.getName ().substring (4));
-            //System.out.println ("Set value `" + args [0] + "` to field `" + fieldName + "` of `" + declaringClass + "`"); // SYSOUT
             final var property = getProperty (fieldName, () -> value, true); // initialize property if it not exists
             property.set (value);
             return null;
