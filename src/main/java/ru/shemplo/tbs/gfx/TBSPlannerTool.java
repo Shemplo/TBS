@@ -294,6 +294,7 @@ public class TBSPlannerTool extends HBox {
         });
         
         diversificationProperty = diversificationSlider.getValueProperty ();
+        diversificationProperty.set (TBSPlanner.getInstance ().getDiversification ());
         diversificationProperty.addListener ((__, ___, div) -> {
             TBSPlanner.getInstance ().updateDistributionParameters (
                 typeSelect.getValue (), TBSUtils.aOrB (amountField.getValue (), 0.0), 

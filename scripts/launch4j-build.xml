@@ -22,6 +22,7 @@
     <maxVersion></maxVersion>
     <jdkPreference>preferJre</jdkPreference>
     <runtimeBits>64</runtimeBits>
+    <opt>-Dfile.encoding=UTF-8</opt>
   </jre>
   <versionInfo>
     <fileVersion>1.7.0.0</fileVersion>
