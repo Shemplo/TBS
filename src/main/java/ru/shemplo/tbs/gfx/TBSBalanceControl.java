@@ -217,9 +217,7 @@ public class TBSBalanceControl extends ScrollPane {
         table.getColumns ().add (TBSUIUtils.<ICredit, LocalDate> buildTBSTableColumn ()
             .name ("Date").tooltip (null)
             .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
-            .propertyFetcher (credit -> new SimpleObjectProperty <> (
-                controller.getScaledDate (credit.getCreditDate ())
-            ))
+            .propertyFetcher (credit -> new SimpleObjectProperty <> (credit.getCreditDate ()))
             .highlighter (sameMonth).converter ((c, v) -> String.valueOf (v))
             .build ());
         table.getColumns ().add (TBSUIUtils.<ICredit, String> buildTBSTableColumn ()

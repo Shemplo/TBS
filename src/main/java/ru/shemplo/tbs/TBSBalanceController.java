@@ -2,6 +2,7 @@ package ru.shemplo.tbs;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,7 +72,11 @@ public class TBSBalanceController {
         
         while (!current.isAfter (to)) {
             final var stub = new DateCredit (current);
-            credits.add (date2credits.getOrDefault (current, stub));
+            
+            final var dateCredits = date2credits.getOrDefault (current, stub);
+            dateCredits.sort (Comparator.comparing (Credit::getCreditDate));
+            credits.add (dateCredits);
+            
             current = getNextPeriodDate (current);
         }
         
@@ -215,9 +220,7 @@ public class TBSBalanceController {
             list.clear ();
             
             for (int i = offset, rowIndex = 1; i < credits.size (); i++) {
-                final var dateCredit = credits.get (i);
-                
-                for (final var credit : dateCredit) {   
+                for (final var credit : credits.get (i)) {   
                     final var prop = credit.getProperty (ICredit.INDEX_PROPERTY, () -> 0, false);
                     prop.set (rowIndex++);
                         
