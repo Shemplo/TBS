@@ -38,7 +38,7 @@ public class TBSIconTableCell <F> extends TBSTableCell <F, LinkedSymbolOrImage> 
             if (view != null) {
                 setGraphic (view);
                 
-                if (onClick != null) {
+                if (onClick != null && item.getObject ().isSymbol ()) {
                     view.setOnMouseClicked (me -> onClick.accept (me, this));
                 }
             }

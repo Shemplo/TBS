@@ -4,7 +4,6 @@ import static ru.shemplo.tbs.gfx.TBSStyles.*;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 import javafx.application.Platform;
@@ -28,11 +27,9 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import ru.shemplo.tbs.MappingROProperty;
 import ru.shemplo.tbs.TBSBackgroundExecutor;
-import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSEmitterManager;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.TinkoffRequests;
-import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.IEmitter;
 import ru.shemplo.tbs.entity.LinkedObject;
@@ -153,10 +150,15 @@ public class TBSEmittersTable {
     }
     
     private ObjectProperty <LinkedSymbolOrImage> makeSyncProperty (IEmitter bond, String symbol) {
+        final var bondPropery = bond.<String> getRWProperty ("bond", () -> null);
         final var idPropery = bond.getRWProperty ("id", () -> -1L);
+        
         final var property = new SimpleObjectProperty <LinkedSymbolOrImage> ();
         property.bind (Bindings.createObjectBinding (
-            () -> LinkedSymbolOrImage.symbol (symbol, String.valueOf (idPropery.get ())), 
+            () -> LinkedSymbolOrImage.symbol (
+                TBSUtils.notBlank (bondPropery.get ()) ? symbol : null, 
+                String.valueOf (idPropery.get ())
+            ), 
             idPropery
         ));
         return property;
@@ -167,11 +169,14 @@ public class TBSEmittersTable {
             TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
                 final var emitterId = Long.parseLong (cell.getItem ().getLink ());
                 
+                final var ticker = TBSEmitterManager.getInstance ().getEmitterById (emitterId).getBond ();
+                /*
                 final var tickers = TBSBondManager.getInstance ().getScanned ().stream ()
                     . filter (bond -> Objects.equals (bond.getEmitterId (), emitterId))
                     . map (Bond::getCode).toList ();
+                    */
                 
-                if (tickers.isEmpty ()) {
+                if (/*tickers.isEmpty ()*/ ticker == null) {
                     Platform.runLater (() -> {                        
                         final var alert = new Alert (AlertType.WARNING);
                         alert.setContentText ("No scanned bonds for this emitter");
@@ -183,14 +188,11 @@ public class TBSEmittersTable {
                     });
                 }
                 
-                for (final var ticker : tickers) {
-                    try {
-                        fetchDataFromTinkoff (emitterId, ticker);
-                        fetchDataFromMOEX (emitterId, ticker);
-                    } catch (IOException ioe) {
-                        ioe.printStackTrace ();
-                        continue;
-                    }
+                try {
+                    fetchDataFromTinkoff (emitterId, ticker);
+                    fetchDataFromMOEX (emitterId, ticker);
+                } catch (IOException ioe) {
+                    ioe.printStackTrace ();
                 }
             });
         }

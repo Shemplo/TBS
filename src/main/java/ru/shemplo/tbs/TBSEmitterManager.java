@@ -63,19 +63,24 @@ public class TBSEmitterManager implements Serializable {
     private transient ObservableList <IEmitter> emitters = FXCollections.observableArrayList ();
     private transient Map <Long, IEmitter> id2emitter = new ConcurrentHashMap <> ();
     
-    public void addEmitter (long id) {
+    public void addEmitter (long id, String ticker) {
         if (!hasEmitter (id) && id != -1L) {
             synchronized (id2emitter) {   
                 if (!hasEmitter (id)) {                    
-                    final var bond = new Emitter (id).getProxy ();
+                    final var emitter = new Emitter (id).getProxy ();
                     
-                    id2emitter.put (id, bond);
-                    emitters.add (bond);
+                    id2emitter.put (id, emitter);
+                    emitters.add (emitter);
                     sortThis ();
                     
                     dump ();
                 }
-            }
+            }            
+        }
+        
+        if (id != -1L) {            
+            final var emitter = getEmitterById (id);
+            TBSUtils.doIfNN (emitter, e -> e.setBond (ticker));
         }
     }
     

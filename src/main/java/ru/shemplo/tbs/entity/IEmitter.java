@@ -10,4 +10,8 @@ public interface IEmitter extends Serializable, ObservableEntity <IEmitter> {
     
     BondCreditRating getRating ();
     
+    void setBond (String ticker);
+    
+    String getBond ();
+    
 }

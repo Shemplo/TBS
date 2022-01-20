@@ -138,7 +138,7 @@ public class TBSBondManager implements Serializable {
                 log.info ("Loading data about bonds from Tinkoff and MOEX...");
                 scanned = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
                     . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ())).parallel ()
-                    . map (Bond::new).peek (bond -> emitters.addEmitter (bond.getEmitterId ()))
+                    . map (Bond::new).peek (bond -> emitters.addEmitter (bond.getEmitterId (), bond.getCode ()))
                     . filter (profile::testBond)//.limit (profile.getMaxResults ())
                     . collect (Collectors.toList ());
             } catch (Exception e) {
