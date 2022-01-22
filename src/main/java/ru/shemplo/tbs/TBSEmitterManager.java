@@ -80,7 +80,7 @@ public class TBSEmitterManager implements Serializable {
         
         if (id != -1L) {            
             final var emitter = getEmitterById (id);
-            TBSUtils.doIfNN (emitter, e -> e.setBond (ticker));
+            TBSUtils.doIfNN (emitter, e -> e.getRealObject ().setBond (ticker));
         }
     }
     
