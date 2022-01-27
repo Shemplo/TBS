@@ -11,11 +11,6 @@
     
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
-    <!-- 
-      Change your platform (OS) here. Windows is set by default
-      Possible values: win, linux, mac, ... 
-    -->
-    <javafx.platform>win</javafx.platform>
     <javafx.version>17.0.1</javafx.version>
     
     <poi.version>5.1.0</poi.version>
@@ -140,4 +135,28 @@
       <version>${poi.version}</version>
     </dependency>
   </dependencies>
+  <profiles>
+    <profile>
+      <id>win</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <javafx.platform>win</javafx.platform>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux</id>
+      <properties>
+        <javafx.platform>linux</javafx.platform>
+      </properties>
+    </profile>
+    <profile>
+      <id>mac</id>
+      <properties>
+        <javafx.platform>mac</javafx.platform>
+      </properties>
+    </profile>
+  </profiles>
+
 </project>
