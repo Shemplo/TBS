@@ -16,6 +16,30 @@
     <poi.version>5.1.0</poi.version>
   </properties>
   
+  <profiles>
+    <profile>
+      <id>win</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <javafx.platform>win</javafx.platform>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux</id>
+      <properties>
+        <javafx.platform>linux</javafx.platform>
+      </properties>
+    </profile>
+    <profile>
+      <id>mac</id>
+      <properties>
+        <javafx.platform>mac</javafx.platform>
+      </properties>
+    </profile>
+  </profiles>
+  
   <build>
     <plugins>
       <plugin>
@@ -135,28 +159,5 @@
       <version>${poi.version}</version>
     </dependency>
   </dependencies>
-  <profiles>
-    <profile>
-      <id>win</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <javafx.platform>win</javafx.platform>
-      </properties>
-    </profile>
-    <profile>
-      <id>linux</id>
-      <properties>
-        <javafx.platform>linux</javafx.platform>
-      </properties>
-    </profile>
-    <profile>
-      <id>mac</id>
-      <properties>
-        <javafx.platform>mac</javafx.platform>
-      </properties>
-    </profile>
-  </profiles>
 
 </project>
