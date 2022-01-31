@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class MOEXRequests {
     
     private static final String ISS_DOMAIN = "https://iss.moex.com";
@@ -51,6 +54,7 @@ public class MOEXRequests {
     
     public static String loadBondPageContent (String ticker) throws IOException {
         final var URL = makeMOEXBondPageURL (ticker);
+        log.debug ("Sending request for bond page in MOEX: " + URL);
         
         try (final var connection = URL.openConnection ().getInputStream ()) {            
             return new String (connection.readAllBytes ());
@@ -59,6 +63,7 @@ public class MOEXRequests {
     
     public static String loadEmitterPageContent (String URI) throws IOException {
         final var URL = new URL (String.format ("%s/%s", MOEX_DOMAIN, URI));
+        log.debug ("Sending request for emitter page in MOEX: " + URL);
         
         try (final var connection = URL.openConnection ().getInputStream ()) {            
             return new String (connection.readAllBytes ());

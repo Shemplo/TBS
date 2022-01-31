@@ -25,6 +25,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.MappingROProperty;
 import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSEmitterManager;
@@ -41,6 +42,7 @@ import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
 import ru.shemplo.tbs.gfx.table.TBSTableCell;
 import ru.shemplo.tbs.moex.MOEXRequests;
 
+@Slf4j
 public class TBSEmittersTable {
     
     private TableView <IEmitter> table;
@@ -209,13 +211,19 @@ public class TBSEmittersTable {
         final var matcherBond = EMITTER_PAGE_REGEXP.matcher (responseBond);
         
         if (matcherBond.find ()) {
+            log.info ("Bond page from MOEX is recognized");
+            
             final var responseEmitter = MOEXRequests.loadEmitterPageContent (matcherBond.group (1));
             final var matcherName = EMITTER_NAME_REGEXP.matcher (responseEmitter);
             
             if (matcherName.find ()) {
+                log.info ("Emitter page from MOEX is recognized");
                 applyName (emitterId, matcherName.group (1));
+            } else {                
+                log.info ("Emitter page from MOEX is not recognized");
             }
         } else {
+            log.info ("Bond page from MOEX is not recognized, try to fetch emitter name directly");
             final var matcherName = EMITTER_NAME_2_REGEXP.matcher (responseBond);
             if (matcherName.find ()) {
                 final var rn = matcherName.group (1); // raw name
@@ -236,11 +244,12 @@ public class TBSEmittersTable {
         final var matcherRating = EMITTER_CR_RATING_REGEXP.matcher (responseBond);
         
         if (matcherRating.find ()) {
+            log.debug ("Bond page from Tinkoff is recognized");
             TBSUtils.fetchCreditRating (matcherRating.group (1)).ifPresent (rating -> {
                 TBSEmitterManager.getInstance ().getEmitterById (emitterId).getRWProperty ("rating", () -> null).set (rating);
             });
         } else {
-            System.out.println ("Rating information is not found"); // SYSOUT
+            log.debug ("Bond page from Tinkoff is not recognized");
         }
     }
     
