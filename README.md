@@ -1,5 +1,7 @@
 # Tinkoff bonds scanner
 
+[![Creating Artifacts](https://github.com/Shemplo/TBS/actions/workflows/github-actions.yml/badge.svg?branch=master&event=push)](https://github.com/Shemplo/TBS/actions/workflows/github-actions.yml)
+
 Приложение для поиска, фильтрации и ранжирования облигаций, доступных в [Тинькофф инвестициях](https://www.tinkoff.ru/invest/).
 
 Фильтрация поддерживает несколько параметров (цена, номинал, количество дней до следующего купона, ...), на основании которых
