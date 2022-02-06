@@ -10,7 +10,7 @@ jobs:
         with:
           java-version: '17'
       - name: Build with Maven
-        run: mvn -B package -P linux --file pom.xml
+        run: mvn package
       - name: Get job's artifacts
         uses: actions/upload-artifact@v2
         with:
@@ -26,7 +26,7 @@ jobs:
         with:
           java-version: '17'
       - name: Build with Maven
-        run: mvn -B package -P mac --file pom.xml
+        run: mvn package
       - name: Get job's artifacts
         uses: actions/upload-artifact@v2
         with:
@@ -42,7 +42,7 @@ jobs:
         with:
           java-version: '17'
       - name: Build with Maven
-        run: mvn -B package -P win --file pom.xml
+        run: mvn package
       - name: Get job's artifacts
         uses: actions/upload-artifact@v2
         with:
@@ -51,6 +51,7 @@ jobs:
   Release:
     runs-on: ubuntu-latest
     needs: [Linux-Artifact, Mac-Artifact, Windows-Artifact]
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Download Linux artifact
         uses: actions/download-artifact@v2
@@ -78,7 +79,6 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           draft: true
           files: |
