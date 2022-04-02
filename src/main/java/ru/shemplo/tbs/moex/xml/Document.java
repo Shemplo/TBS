@@ -42,6 +42,10 @@ public class Document {
         return findData ("marketdata");
     }
     
+    public Optional <Data> getSecuritiesData () {
+        return findData ("securities");
+    }
+    
     private Optional <Data> findData (String name) {
         return data.stream ().filter (data -> name.equals (data.getId ())).findFirst ();
     }

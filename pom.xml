@@ -20,7 +20,7 @@
     <profile>
       <id>win</id>
       <activation>
-        <activeByDefault>true</activeByDefault>
+        <os><family>windows</family></os>
       </activation>
       <properties>
         <javafx.platform>win</javafx.platform>
@@ -28,12 +28,18 @@
     </profile>
     <profile>
       <id>linux</id>
+      <activation>
+        <os><family>unix</family></os>
+      </activation>
       <properties>
         <javafx.platform>linux</javafx.platform>
       </properties>
     </profile>
     <profile>
       <id>mac</id>
+      <activation>
+        <os><family>mac</family></os>
+      </activation>
       <properties>
         <javafx.platform>mac</javafx.platform>
       </properties>

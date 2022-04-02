@@ -36,7 +36,7 @@ public class MOEXRequests {
         try {
             return new URL (String.format (
                 "%s/iss/engines/stock/markets/bonds/boards/%s/securities/%s.xml"
-                    + "?iss.meta=off&iss.only=marketdata&marketdata.columns=SECID,LAST,MARKETPRICE,LCURRENTPRICE", 
+                    + "?iss.meta=off&securities.columns=ACCRUEDINT&marketdata.columns=SECID,LAST,MARKETPRICE,LCURRENTPRICE", 
                 ISS_DOMAIN, "TQCB", ticker
             ));
         } catch (MalformedURLException e) {

@@ -19,4 +19,8 @@ public class Rows {
     @XmlElements (@XmlElement (name = "row"))
     private List <Row> rows;
     
+    public Row getFirstRow () {
+        return rows == null || rows.isEmpty () ? null : rows.get (0);
+    }
+    
 }

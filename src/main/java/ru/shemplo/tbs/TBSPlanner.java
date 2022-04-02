@@ -55,7 +55,7 @@ public class TBSPlanner implements Serializable {
             );
         } else {
             getInstance ().updateDistributionParameters (
-                DistributionCategory.SUM, 0.0, 0.0
+                DistributionCategory.SUM, 0.0, 0.0, 0.02
             );
         }
     }
@@ -65,7 +65,10 @@ public class TBSPlanner implements Serializable {
     private transient Map <String, IPlanningBond> ticker2bond = new HashMap <> ();
     
     @Getter
-    private transient SimpleDoubleProperty summaryPrice = new SimpleDoubleProperty (0.0);
+    private transient SimpleDoubleProperty summaryRecommendedPrice = new SimpleDoubleProperty (0.0);
+    
+    @Getter
+    private transient SimpleDoubleProperty summaryRealPrice = new SimpleDoubleProperty (0.0);
     
     @Getter
     private transient Property <Number> summaryLots = new SimpleIntegerProperty (0);
@@ -78,6 +81,9 @@ public class TBSPlanner implements Serializable {
     
     @Getter
     private long analyzeDays = 7L;
+    
+    @Getter
+    private double commission = 0.02;
     
     public synchronized void addBond (String ticker) {
         if (ticker != null && !hasBond (ticker)) {
@@ -129,8 +135,10 @@ public class TBSPlanner implements Serializable {
         }
     }
     
-    public void updateDistributionParameters (DistributionCategory category, double amount, double diversification) {
-        this.category = category; this.amount = amount; this.diversification = diversification;
+    public void updateDistributionParameters (DistributionCategory category, double amount, double diversification, double commission) {
+        this.category = category; this.amount = amount; 
+        this.diversification = diversification; 
+        this.commission = commission;
         updateDistribution ();
         dump ();
         
@@ -147,32 +155,41 @@ public class TBSPlanner implements Serializable {
             sum += Math.max (0.0, linearValue (i, k, b));
         }
         
-        if (sum != 0.0) {
-            double totalPrice = 0.0;
+        final var commissionFactor = 1.0 - commission / 100.0;
+        if (sum != 0.0 && commissionFactor != 0.0) {
+            final var amount = this.amount * commissionFactor;
+            
+            double totalRecommendedPrice = 0.0;
+            double totalRealPrice = 0.0;
             int totalLots = 0;
             
             for (int i = 0; i < b; i++) {
                 final var bond = bonds.get (i);
                 
                 final var factor = Math.max (0.0, linearValue (i, k, b)) / sum;
-                final var price = bond.getRUBPrice ();
+                final var accCouponIncome = bond.getAccCouponIncome ();
+                
+                final var recommendedPrice = bond.getRUBPrice (false) + accCouponIncome;
+                final var realPrice = bond.getRUBPrice (true) + accCouponIncome;
                 
                 if (category == DistributionCategory.LOTS) {
                     bond.setAmount ((int) (factor * amount));
                     bond.updateCalculatedAmount (factor * amount);
-                } else if (category == DistributionCategory.SUM && price != 0.0) {
-                    bond.setAmount ((int) Math.round (factor * amount / price));
-                    bond.updateCalculatedAmount (factor * amount / price);
+                } else if (category == DistributionCategory.SUM && realPrice != 0.0) {
+                    bond.setAmount ((int) Math.round (factor * amount / realPrice));
+                    bond.updateCalculatedAmount (factor * amount / realPrice);
                 } else {
                     bond.updateCalculatedAmount (0.0);
                     bond.setAmount (0);
                 }
                 
-                totalPrice += price * bond.getCurrentValue ();
+                totalRecommendedPrice += (recommendedPrice * bond.getCurrentValue ()) * (1.0 + commission / 100.0);
+                totalRealPrice += realPrice * bond.getCurrentValue () * (1.0 + commission / 100.0);
                 totalLots += bond.getCurrentValue ();
             }
             
-            summaryPrice.setValue (totalPrice);
+            summaryRecommendedPrice.setValue (totalRecommendedPrice);
+            summaryRealPrice.setValue (totalRealPrice);
             summaryLots.setValue (totalLots);
         }
     }
@@ -202,7 +219,8 @@ public class TBSPlanner implements Serializable {
         in.defaultReadObject ();
         instance = this;
         
-        summaryPrice = new SimpleDoubleProperty (0.0);
+        summaryRecommendedPrice = new SimpleDoubleProperty (0.0);
+        summaryRealPrice = new SimpleDoubleProperty (0.0);
         summaryLots = new SimpleIntegerProperty (0);
         
         bonds = FXCollections.observableArrayList ();

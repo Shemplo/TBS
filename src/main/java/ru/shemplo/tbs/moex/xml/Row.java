@@ -64,6 +64,9 @@ public class Row {
     @XmlAttribute (name = "MARKETPRICE")
     private String marketPrice;
     
+    @XmlAttribute (name = "ACCRUEDINT")
+    private String accCouponIncome;
+    
     @XmlAttribute (name = "offerdate")
     @Getter (value = AccessLevel.PRIVATE)
     private String _offerdate;
