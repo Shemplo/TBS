@@ -10,7 +10,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 @Builder
 @ToString

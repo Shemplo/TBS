@@ -6,7 +6,6 @@ import java.util.Set;
 import ru.shemplo.tbs.TBSCurrencyManager;
 import ru.shemplo.tbs.TBSEmitterManager;
 import ru.shemplo.tbs.TBSUtils;
-import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 public interface IProfile extends Serializable {
     

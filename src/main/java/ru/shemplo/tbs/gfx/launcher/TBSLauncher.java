@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import javafx.application.Application;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -52,6 +53,7 @@ public class TBSLauncher extends Application {
     private Button createProfileButton;
     private Button deleteProfileButton;
     private Button cloneProfileButton;
+    private Button openStatisticsButton;
     private Text bondsDumpDateText;
     
     private boolean dontStopExecutors = false;
@@ -68,8 +70,9 @@ public class TBSLauncher extends Application {
         final var scene = new Scene (root);
         
         root.getChildren ().add (makeOpenExistingSection ());
-        root.getChildren ().add (makeEmittersEditorSection ());
         root.getChildren ().add (makeScanNewSection ());
+        root.getChildren ().add (makeEmittersEditorSection ());
+        root.getChildren ().add (makeStatisticsSection ());
         
         stage.setOnCloseRequest (we -> {
             if (!dontStopExecutors) {
@@ -98,6 +101,9 @@ public class TBSLauncher extends Application {
         openEmittertEditorButton.setOnAction (ae -> doOpenEmitters (scene));
         
         final var profileProperty = profilesList.getSelectionModel ().selectedItemProperty ();
+        openStatisticsButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenStatistics (scene, profileProperty)));
+        openStatisticsButton.setOnAction (ae -> doOpenStatistics (scene, profileProperty));
+        
         startNewScanningButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doStartNewScanning (scene, profileProperty)));
         startNewScanningButton.setOnAction (ae -> doStartNewScanning (scene, profileProperty));
         
@@ -129,6 +135,10 @@ public class TBSLauncher extends Application {
         TBSBondManager.restore ();
         
         new TBSEmittersTable (scene.getWindow ());
+    }
+    
+    private void doOpenStatistics (Scene scene, ReadOnlyProperty<IProfile> profileProperty) {
+        new TBSStatistics (scene.getWindow ()).calculateStatistics (profileProperty.getValue ());
     }
     
     private void doStartNewScanning (Scene scene, ReadOnlyObjectProperty <IProfile> profileProperty) {
@@ -223,6 +233,22 @@ public class TBSLauncher extends Application {
         startNewScanningButton.disableProperty ().bind (itemProperty.isNull ());
         deleteProfileButton.disableProperty ().bind (itemProperty.isNull ());
         cloneProfileButton.disableProperty ().bind (itemProperty.isNull ());
+        
+        return line;
+    }
+    
+    private Parent makeStatisticsSection () {
+        final var line = new HBox (8.0);
+        line.setAlignment (Pos.BASELINE_LEFT);
+        
+        openStatisticsButton = new Button ("Calculate statistics");
+        openStatisticsButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
+        line.getChildren ().add (openStatisticsButton);
+        
+        line.getChildren ().add (new Text ("Make detailed report on all operations in your accounts"));
+        
+        final var itemProperty = profilesList.getSelectionModel ().selectedItemProperty ();
+        openStatisticsButton.disableProperty ().bind (itemProperty.isNull ());
         
         return line;
     }

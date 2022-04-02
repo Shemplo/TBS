@@ -24,6 +24,7 @@ import lombok.Setter;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.CouponValueMode;
+import ru.shemplo.tbs.entity.Currency;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.shemplo.tbs.entity.Range;
 import ru.shemplo.tbs.gfx.TBSApplicationIcons;
@@ -31,7 +32,6 @@ import ru.shemplo.tbs.gfx.component.EnumSelectionSet;
 import ru.shemplo.tbs.gfx.component.RangeFields;
 import ru.shemplo.tbs.gfx.component.SliderWithField;
 import ru.shemplo.tbs.gfx.component.TileWithHeader;
-import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 public class TBSProfileForm {
     

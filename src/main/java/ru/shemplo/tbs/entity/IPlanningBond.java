@@ -6,16 +6,16 @@ import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSCurrencyManager;
 import ru.shemplo.tbs.TBSUtils;
 
-public interface IPlanningBond extends Serializable, CustomValueHolder <Integer>, ObservableEntity <IPlanningBond> {
+public interface IPlanningBond extends Serializable, CustomValueHolder <Long>, ObservableEntity <IPlanningBond> {
     
     public static final String INDEX_PROPERTY = "index";
     public static final String CALC_AMOUNT_PROPERTY = "amount-calculated";
     
     String getCode ();
     
-    int getAmount ();
+    long getAmount ();
     
-    void setAmount (int amount);
+    void setAmount (long amount);
     
     void setRecommendedPrice (double price);
     

@@ -13,14 +13,14 @@ public class PlanningBond extends AbstractObservableEntity <IPlanningBond> imple
     
     private final String code;
     
-    private int amount;
+    private long amount;
     
-    private Integer customValue;
+    private Long customValue;
     
     private double recommendedPrice;
     
     @Override
-    public Integer getCurrentValue () {
+    public Long getCurrentValue () {
         return TBSUtils.aOrB (getCustomValue (), getAmount ());
     }
     

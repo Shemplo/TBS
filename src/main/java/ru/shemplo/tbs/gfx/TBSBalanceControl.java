@@ -228,14 +228,14 @@ public class TBSBalanceControl extends ScrollPane {
             ))
             .highlighter (null).converter ((c, v) -> v)
             .build ());
-        table.getColumns ().add (TBSUIUtils.<ICredit, Integer> buildTBSTableColumn ()
+        table.getColumns ().add (TBSUIUtils.<ICredit, Long> buildTBSTableColumn ()
             .name ("Lots").tooltip (null)
             .alignment (Pos.BASELINE_LEFT).minWidth (50.0).sortable (false)
-            .propertyFetcher (credit -> new MappingROProperty <Integer, Integer> (
+            .propertyFetcher (credit -> new MappingROProperty <Long, Long> (
                 credit.getRWProperty ("lots", () -> null), 
                 lots -> {
                     final var bond = credit.<Bond> getProperty ("bond", () -> null, false).get ();
-                    return TBSUtils.aOrB (lots, TBSUtils.mapIfNN (bond, Bond::getLots, 0));
+                    return TBSUtils.aOrB (lots, TBSUtils.mapIfNN (bond, Bond::getLots, 0L));
                 }
             )).converter ((r, v) -> String.valueOf (v))
             .highlighter (null)

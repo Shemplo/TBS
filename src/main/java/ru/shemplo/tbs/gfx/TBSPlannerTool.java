@@ -6,10 +6,9 @@ import static ru.shemplo.tbs.gfx.TBSStyles.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -59,6 +58,7 @@ import ru.shemplo.tbs.TBSLogWrapper;
 import ru.shemplo.tbs.TBSPlanner;
 import ru.shemplo.tbs.TBSPlanner.DistributionCategory;
 import ru.shemplo.tbs.TBSUtils;
+import ru.shemplo.tbs.entity.Currency;
 import ru.shemplo.tbs.entity.IPlanningBond;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.shemplo.tbs.entity.LinkedObject;
@@ -66,10 +66,8 @@ import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
 import ru.shemplo.tbs.gfx.component.SliderWithField;
 import ru.shemplo.tbs.gfx.component.TileWithHeader;
 import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
-import ru.tinkoff.invest.openapi.model.rest.BrokerAccountType;
-import ru.tinkoff.invest.openapi.model.rest.CandleResolution;
-import ru.tinkoff.invest.openapi.model.rest.Currency;
-import ru.tinkoff.invest.openapi.model.rest.CurrencyPosition;
+import ru.tinkoff.piapi.contract.v1.AccountType;
+import ru.tinkoff.piapi.contract.v1.CandleInterval;
 
 @Slf4j
 public class TBSPlannerTool extends HBox {
@@ -545,22 +543,22 @@ public class TBSPlannerTool extends HBox {
         TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
             try {
                 final var client = TBSClient.getInstance ().getConnection (profile, new TBSLogWrapper ());
-                final var accounts = client.getUserContext ().getAccounts ().join ();
+                final var accounts = client.getUserService ().getAccountsSync ();
                 
                 double sumRUB = 0;
-                for (final var account : accounts.getAccounts ()) {
-                    if (account.getBrokerAccountType () != BrokerAccountType.TINKOFF) {
+                for (final var account : accounts) {
+                    if (account.getType () != AccountType.ACCOUNT_TYPE_TINKOFF) {
                         continue;
                     }
                     
-                    final var portfolio = client.getPortfolioContext ()
-                        . getPortfolioCurrencies (account.getBrokerAccountId ())
-                        . join ();
+                    final var portfolio = client.getOperationsService ()
+                        . getWithdrawLimitsSync (account.getId ())
+                        . getMoneyList ();
                     
-                    sumRUB += portfolio.getCurrencies ().stream ()
-                        .filter (cur -> cur.getCurrency () == Currency.RUB).findFirst ()
-                        .map (CurrencyPosition::getBalance).orElse (BigDecimal.ZERO)
-                        .doubleValue ();
+                    sumRUB += portfolio.stream ()
+                        .filter (cur -> Currency.valueOf (cur.getCurrency ()) == Currency.RUB).findFirst ()
+                        .map (money -> Double.parseDouble (money.getUnits () + "." + money.getNano ()))
+                        .orElse (0.0);
                 }
                 
                 final var finalSumRUB = sumRUB;
@@ -579,24 +577,31 @@ public class TBSPlannerTool extends HBox {
                 final var client = TBSClient.getInstance ().getConnection (profile, new TBSLogWrapper ());
                 final var time = OffsetTime.now ();
                 
-                final var from = TBSConstants.NOW.minusDays (days).atTime (time);
-                final var to = TBSConstants.NOW.atTime (time);
+                final var from = Instant.from (TBSConstants.NOW.minusDays (days).atTime (time));
+                final var to = Instant.from (TBSConstants.NOW.atTime (time));
                 
                 for (final var bond : TBSPlanner.getInstance ().getBonds ()) {
+                    final var candles = client.getMarketDataService ().getCandlesSync (
+                        bond.getFIGI (), from, to, CandleInterval.CANDLE_INTERVAL_DAY
+                    );
+                    /*
                     final var candles = client.getMarketContext ().getMarketCandles (
                         bond.getFIGI (), from, to, CandleResolution.DAY
                     ).join ();
+                    */
                     
                     if (candles.isEmpty ()) { 
                         continue;
                     }
                     
                     double sum = 0, denom = 0;
+                    /* // FIXME
                     for (final var candle : candles.get ().getCandles ()) {
                         final var off = candle.getTime ().until (to, ChronoUnit.DAYS) + 1;
                         sum += candle.getC ().doubleValue () * off;
                         denom += off;
                     }
+                    */
                     
                     if (denom != 0.0) {
                         bond.setRecommendedPrice (sum / denom);

@@ -16,7 +16,7 @@ public class Credit extends AbstractObservableEntity <ICredit> implements ICredi
 
     private final Bond bond;
     
-    private final Integer lots;
+    private final Long lots;
     
     private final Coupon coupon;
     
@@ -41,7 +41,7 @@ public class Credit extends AbstractObservableEntity <ICredit> implements ICredi
     
     // 
     
-    public static Credit coupon (Bond bond, Integer lots, Coupon coupon) {
+    public static Credit coupon (Bond bond, Long lots, Coupon coupon) {
         return new Credit (bond, lots, coupon);
     }
     
@@ -49,7 +49,7 @@ public class Credit extends AbstractObservableEntity <ICredit> implements ICredi
         return new Credit (bond, null, coupon);
     }
     
-    public static Credit bondEnd (Bond bond, Integer lots) {
+    public static Credit bondEnd (Bond bond, Long lots) {
         return new Credit (bond, lots, null);
     }
     

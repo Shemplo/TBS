@@ -8,9 +8,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.entity.IProfile;
-import ru.tinkoff.invest.openapi.OpenApi;
-import ru.tinkoff.invest.openapi.model.rest.SandboxRegisterRequest;
-import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApi;
+import ru.tinkoff.piapi.core.InvestApi;
 
 @Slf4j
 @NoArgsConstructor (access = AccessLevel.PRIVATE)
@@ -30,7 +28,7 @@ public class TBSClient implements AutoCloseable {
         return instance;
     }
     
-    private volatile OpenApi connection;
+    private volatile InvestApi connection;
     
     private String readToken (IProfile profile) throws IOException {
         log.info ("Reading token from file...");
@@ -42,7 +40,7 @@ public class TBSClient implements AutoCloseable {
         }
     }
     
-    public OpenApi getConnection (IProfile profile, TBSLogWrapper log) throws IOException {
+    public InvestApi getConnection (IProfile profile, TBSLogWrapper log) throws IOException {
         if (connection == null) {
             synchronized (this) {
                 if (connection == null) {
@@ -51,13 +49,18 @@ public class TBSClient implements AutoCloseable {
                     
                     log.info ("Connecting to Tinkoff API...");
                     log.info ("{}", profile);
-                    connection = new OkHttpOpenApi (token, !profile.isHighResponsible ());
+                    //connection = new OkHttpOpenApi (token, !profile.isHighResponsible ());
+                    connection = profile.isHighResponsible () 
+                               ? InvestApi.create (token) 
+                               : InvestApi.createSandbox (token);
+                    /*
                     log.info ("Perform indentification in Tinkoff API...");
                     if (connection.isSandboxMode ()) {
                         connection.getSandboxContext ().performRegistration (
                             new SandboxRegisterRequest ()
                         ).join ();
                     }
+                    */
                 }
             }
         }
@@ -68,7 +71,6 @@ public class TBSClient implements AutoCloseable {
     public void close () throws IOException {
         if (connection != null) {
             log.info ("Closing connection to Tinkoff API...");
-            connection.close ();
             connection = null;
         }
     }

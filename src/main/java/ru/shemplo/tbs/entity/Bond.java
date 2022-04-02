@@ -20,9 +20,7 @@ import ru.shemplo.tbs.moex.MOEXRequests;
 import ru.shemplo.tbs.moex.MOEXResposeReader;
 import ru.shemplo.tbs.moex.xml.Data;
 import ru.shemplo.tbs.moex.xml.Row;
-import ru.tinkoff.invest.openapi.model.rest.Currency;
-import ru.tinkoff.invest.openapi.model.rest.MarketInstrument;
-import ru.tinkoff.invest.openapi.model.rest.PortfolioPosition;
+import ru.tinkoff.piapi.contract.v1.PortfolioPosition;
 
 @Getter
 @ToString
@@ -34,7 +32,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     private Currency currency;
     
     @Setter
-    private int lots = 0;
+    private long lots = 0;
     
     private LocalDate start, end, nextCoupon, nextRecord;
     private long couponsPerYear;
@@ -49,19 +47,15 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     
     private String primaryBoard;
     
-    public Bond (MarketInstrument instrument) {
-        this (instrument.getTicker (), instrument.getFigi (), instrument.getCurrency (), NOW, 0);
+    public Bond (ru.tinkoff.piapi.contract.v1.Bond instrument) {
+        this (instrument.getTicker (), instrument.getFigi (), Currency.valueOf (instrument.getCurrency ()), NOW, 0);
     }
     
-    public Bond (PortfolioPosition portfolio) {
-        this (
-            portfolio.getTicker (), portfolio.getFigi (), 
-            portfolio.getAveragePositionPrice ().getCurrency (), 
-            FAR_PAST, portfolio.getLots ()
-        );
+    public Bond (String ticker, Currency currency, PortfolioPosition portfolio) {
+        this (ticker, portfolio.getFigi (), currency, FAR_PAST, portfolio.getQuantityLots ().getUnits ());
     }
     
-    private Bond (String ticker, String figi, Currency currency, LocalDate scoreNow, int lots) {
+    private Bond (String ticker, String figi, Currency currency, LocalDate scoreNow, long lots) {
         this.currency = currency;
         this.now = scoreNow;
         this.figi = figi;

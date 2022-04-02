@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
 import ru.shemplo.tbs.entity.BondCreditRating;
-import ru.tinkoff.invest.openapi.model.rest.Currency;
+import ru.shemplo.tbs.entity.Currency;
 
 public class TBSUtils {
     

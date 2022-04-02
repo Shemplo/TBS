@@ -20,9 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.BondsDump;
+import ru.shemplo.tbs.entity.Currency;
 import ru.shemplo.tbs.entity.IProfile;
-import ru.tinkoff.invest.openapi.model.rest.Currency;
-import ru.tinkoff.invest.openapi.model.rest.InstrumentType;
 
 @Slf4j
 @NoArgsConstructor (access = AccessLevel.PRIVATE)
@@ -87,8 +86,8 @@ public class TBSBondManager implements Serializable {
         return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getNextRecord, null);
     }
     
-    public static int getBondLots (String ticker) {
-        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getLots, 0);
+    public static long getBondLots (String ticker) {
+        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getLots, 0L);
     }
     
     public static BondCreditRating getBondCreditRating (String ticker) {
@@ -120,13 +119,19 @@ public class TBSBondManager implements Serializable {
             
             try {
                 log.info ("Loading bonds from portfolio (with data from Tinkoff and MOEX)...");
-                portfolio = client.getUserContext ().getAccounts ().join ().getAccounts ().parallelStream ()
+                portfolio = client.getUserService ().getAccountsSync ().parallelStream ()
                     . flatMap (acc -> {
-                        return client.getPortfolioContext ().getPortfolio (acc.getBrokerAccountId ()).join ()
-                             . getPositions ().stream ();
+                        return client.getOperationsService ().getPortfolioSync (acc.getId ()).getPositionsList ().stream ();
                     })
-                    . filter (pos -> pos.getInstrumentType () == InstrumentType.BOND)
-                    . map (Bond::new).collect (Collectors.toList ());
+                    . filter (pos -> "bond".equalsIgnoreCase (pos.getInstrumentType ()))
+                    . map (ppos -> {
+                        final var bond = client.getInstrumentsService ().getBondByFigiSync (ppos.getFigi ());
+                        final var ticker = bond.map (ru.tinkoff.piapi.contract.v1.Bond::getTicker).orElse (null);
+                        final var currency = bond.map (ru.tinkoff.piapi.contract.v1.Bond::getCurrency)
+                            . map (Currency::valueOf).orElse (null);
+                        
+                        return new Bond (ticker, currency, ppos);
+                    }).collect (Collectors.toList ());
             } catch (Exception e) {
                 log.error ("Failed to load portfolio bonds due to some unexpected error", e);
                 portfolio = new ArrayList <> ();
@@ -136,8 +141,8 @@ public class TBSBondManager implements Serializable {
             
             try {                
                 log.info ("Loading data about bonds from Tinkoff and MOEX...");
-                scanned = client.getMarketContext ().getMarketBonds ().join ().getInstruments ().stream ()
-                    . filter (instrument -> profile.getCurrencies ().contains (instrument.getCurrency ())).parallel ()
+                scanned = client.getInstrumentsService ().getAllBondsSync ().stream ()
+                    . filter (instrument -> profile.getCurrencies ().contains (Currency.valueOf (instrument.getCurrency ()))).parallel ()
                     . map (Bond::new).peek (bond -> emitters.addEmitter (bond.getEmitterId (), bond.getCode ()))
                     . filter (profile::testBond)//.limit (profile.getMaxResults ())
                     . collect (Collectors.toList ());
@@ -163,7 +168,7 @@ public class TBSBondManager implements Serializable {
         
         scanned.forEach (bond -> {
             final var sameBond = getBondByTicker (bond.getCode (), false);
-            bond.setLots (TBSUtils.mapIfNN (sameBond, Bond::getLots, 0));
+            bond.setLots (TBSUtils.mapIfNN (sameBond, Bond::getLots, 0L));
             bond.updateScore (profile);
         });
         

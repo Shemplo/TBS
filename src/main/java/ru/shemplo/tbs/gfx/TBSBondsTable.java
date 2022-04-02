@@ -27,12 +27,12 @@ import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.TinkoffRequests;
 import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.CouponValueMode;
+import ru.shemplo.tbs.entity.Currency;
 import ru.shemplo.tbs.entity.IBond;
 import ru.shemplo.tbs.entity.LinkedObject;
 import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
 import ru.shemplo.tbs.gfx.table.TBSTableCell;
 import ru.shemplo.tbs.moex.MOEXRequests;
-import ru.tinkoff.invest.openapi.model.rest.Currency;
 
 public class TBSBondsTable extends VBox {
     
