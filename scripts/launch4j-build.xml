@@ -25,12 +25,12 @@
     <opt>-Dfile.encoding=UTF-8</opt>
   </jre>
   <versionInfo>
-    <fileVersion>1.7.0.0</fileVersion>
-    <txtFileVersion>TBS Emitters credit rating</txtFileVersion>
+    <fileVersion>1.8.0.0</fileVersion>
+    <txtFileVersion>TBS ACI and commissions</txtFileVersion>
     <fileDescription>Tinkoff bonds scanner application</fileDescription>
     <copyright>https://github.com/Shemplo/TBS</copyright>
-    <productVersion>1.7.0.0</productVersion>
-    <txtProductVersion>TBS Emitters credit rating</txtProductVersion>
+    <productVersion>1.8.0.0</productVersion>
+    <txtProductVersion>TBS ACI and commissions</txtProductVersion>
     <productName>Tinkoff bonds scanner</productName>
     <companyName></companyName>
     <internalName>TBS</internalName>
