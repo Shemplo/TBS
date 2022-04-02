@@ -30,7 +30,7 @@ google_analytics: false
 github:
   releases:
     exe: https://github.com/Shemplo/TBS/releases/latest/download/TBS.exe
-    jar: https://github.com/Shemplo/TBS/releases/latest/download/TBS.jar
+    jar: https://github.com/Shemplo/TBS/releases/latest/download/TBS-linux.jar
 
 # Exclude from processing.
 # The following items will not be processed, by default.
