@@ -20,7 +20,7 @@ import ru.shemplo.tbs.moex.MOEXRequests;
 import ru.shemplo.tbs.moex.MOEXResposeReader;
 import ru.shemplo.tbs.moex.xml.Data;
 import ru.shemplo.tbs.moex.xml.Row;
-import ru.tinkoff.piapi.contract.v1.PortfolioPosition;
+import ru.tinkoff.piapi.core.models.Position;
 
 @Getter
 @ToString
@@ -48,11 +48,11 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     private String primaryBoard;
     
     public Bond (ru.tinkoff.piapi.contract.v1.Bond instrument) {
-        this (instrument.getTicker (), instrument.getFigi (), Currency.valueOf (instrument.getCurrency ()), NOW, 0);
+        this (instrument.getTicker (), instrument.getFigi (), Currency.from (instrument.getCurrency ()), NOW, 0);
     }
     
-    public Bond (String ticker, Currency currency, PortfolioPosition portfolio) {
-        this (ticker, portfolio.getFigi (), currency, FAR_PAST, portfolio.getQuantityLots ().getUnits ());
+    public Bond (String ticker, Currency currency, Position ppos) {
+        this (ticker, ppos.getFigi (), currency, FAR_PAST, ppos.getQuantityLots ().longValue ());
     }
     
     private Bond (String ticker, String figi, Currency currency, LocalDate scoreNow, long lots) {

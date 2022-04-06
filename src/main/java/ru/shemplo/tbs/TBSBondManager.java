@@ -12,7 +12,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -121,14 +123,19 @@ public class TBSBondManager implements Serializable {
                 log.info ("Loading bonds from portfolio (with data from Tinkoff and MOEX)...");
                 portfolio = client.getUserService ().getAccountsSync ().parallelStream ()
                     . flatMap (acc -> {
-                        return client.getOperationsService ().getPortfolioSync (acc.getId ()).getPositionsList ().stream ();
+                        try {                            
+                            return client.getOperationsService ().getPortfolioSync (acc.getId ()).getPositions ().stream ();
+                        } catch (Exception e) {
+                            log.error ("Failed to load portfolio bonds", e);
+                            return Stream.of ();
+                        }
                     })
                     . filter (pos -> "bond".equalsIgnoreCase (pos.getInstrumentType ()))
                     . map (ppos -> {
-                        final var bond = client.getInstrumentsService ().getBondByFigiSync (ppos.getFigi ());
+                        final var bond = Optional.ofNullable (client.getInstrumentsService ().getBondByFigiSync (ppos.getFigi ()));
                         final var ticker = bond.map (ru.tinkoff.piapi.contract.v1.Bond::getTicker).orElse (null);
                         final var currency = bond.map (ru.tinkoff.piapi.contract.v1.Bond::getCurrency)
-                            . map (Currency::valueOf).orElse (null);
+                            . map (Currency::from).orElse (null);
                         
                         return new Bond (ticker, currency, ppos);
                     }).collect (Collectors.toList ());
@@ -142,7 +149,7 @@ public class TBSBondManager implements Serializable {
             try {                
                 log.info ("Loading data about bonds from Tinkoff and MOEX...");
                 scanned = client.getInstrumentsService ().getAllBondsSync ().stream ()
-                    . filter (instrument -> profile.getCurrencies ().contains (Currency.valueOf (instrument.getCurrency ()))).parallel ()
+                    . filter (instrument -> profile.getCurrencies ().contains (Currency.from (instrument.getCurrency ()))).parallel ()
                     . map (Bond::new).peek (bond -> emitters.addEmitter (bond.getEmitterId (), bond.getCode ()))
                     . filter (profile::testBond)//.limit (profile.getMaxResults ())
                     . collect (Collectors.toList ());

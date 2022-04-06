@@ -6,6 +6,7 @@ import static ru.shemplo.tbs.gfx.TBSStyles.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetTime;
@@ -68,6 +69,7 @@ import ru.shemplo.tbs.gfx.component.TileWithHeader;
 import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
 import ru.tinkoff.piapi.contract.v1.AccountType;
 import ru.tinkoff.piapi.contract.v1.CandleInterval;
+import ru.tinkoff.piapi.core.models.Money;
 
 @Slf4j
 public class TBSPlannerTool extends HBox {
@@ -553,12 +555,11 @@ public class TBSPlannerTool extends HBox {
                     
                     final var portfolio = client.getOperationsService ()
                         . getWithdrawLimitsSync (account.getId ())
-                        . getMoneyList ();
+                        . getMoney ();
                     
                     sumRUB += portfolio.stream ()
-                        .filter (cur -> Currency.valueOf (cur.getCurrency ()) == Currency.RUB).findFirst ()
-                        .map (money -> Double.parseDouble (money.getUnits () + "." + money.getNano ()))
-                        .orElse (0.0);
+                        .filter (cur -> Currency.from (cur.getCurrency ()) == Currency.RUB).findFirst ()
+                        .map (Money::getValue).orElse (BigDecimal.ZERO).doubleValue ();
                 }
                 
                 final var finalSumRUB = sumRUB;

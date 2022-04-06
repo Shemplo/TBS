@@ -41,7 +41,7 @@ public class TBSCurrencyManager implements Serializable {
             
             log.info ("Loading current currency quotes from Tinkoff...");
             //client.getInstrumentsService ().getAllCurrenciesSync ().get (0).getF
-            client.getMarketDataService ().getCandlesSync (null, null, null, null);
+            //client.getMarketDataService ().getCandlesSync (null, null, null, null);
             currency2coefficient = client.getInstrumentsService ().getAllCurrenciesSync ().stream ()
                 . map (cur -> {
                     final var currency = TBSUtils.getCurrencyByTicker (cur.getTicker ());
