@@ -131,6 +131,12 @@ public class TBSBondsTable extends VBox {
                 .build ());
         }
         table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
+            .name ("ACI").tooltip ("Accumulated coupon income")
+            .alignment (Pos.BASELINE_LEFT).minWidth (50.0).sortable (false)
+            .propertyFetcher (bond -> bond.getRWProperty ("accCouponIncome", null))
+            .highlighter (null).converter (null)
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<IBond, Number> buildTBSTableColumn ()
             .name ("Nominal").tooltip (null)
             .alignment (Pos.BASELINE_LEFT).minWidth (80.0).sortable (false)
             .propertyFetcher (bond -> bond.getRWProperty ("nominalValue", null))

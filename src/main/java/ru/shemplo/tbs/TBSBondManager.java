@@ -76,6 +76,14 @@ public class TBSBondManager implements Serializable {
         return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getLastPrice, null);
     }
     
+    public static Double getBondNominal (String ticker) {
+        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getNominalValue, null);
+    }
+    
+    public static Double getBondAccCouponIncome (String ticker) {
+        return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getAccCouponIncome, null);
+    }
+    
     public static Currency getBondCurrency (String ticker) {
         return TBSUtils.map2IfNN (ticker, t -> getBondByTicker (t, false), Bond::getCurrency, null);
     }

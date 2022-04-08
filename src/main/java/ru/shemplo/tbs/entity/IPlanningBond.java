@@ -19,18 +19,24 @@ public interface IPlanningBond extends Serializable, CustomValueHolder <Long>, O
     
     void setRecommendedPrice (double price);
     
+    double getRecommendedPrice ();
+    
     default String getFIGI () {
-        return TBSBondManager.getBondByTicker (getCode (), true).getFigi ();
+        return TBSUtils.mapIfNN (TBSBondManager.getBondByTicker (getCode (), true), Bond::getFigi, null);
     }
     
     default double getPrice () {
         return TBSUtils.aOrB (TBSBondManager.getBondPrice (getCode ()), 0.0);
     }
     
-    default double getRUBPrice () {
+    default double getAccCouponIncome () {
+        return TBSUtils.aOrB (TBSBondManager.getBondAccCouponIncome (getCode ()), 0.0);
+    }
+    
+    default double getRUBPrice (boolean real) {
         final var currency = TBSBondManager.getBondCurrency (getCode ());
         final var cur2rub = TBSCurrencyManager.getInstance ().getToRubCoefficient (currency);
-        return TBSUtils.mapIfNN (getPrice (), p -> p * cur2rub, 0.0);
+        return TBSUtils.mapIfNN (real ? getPrice () : getRecommendedPrice (), p -> p * cur2rub, 0.0);
     }
     
     default double getCalculatedAmount () {

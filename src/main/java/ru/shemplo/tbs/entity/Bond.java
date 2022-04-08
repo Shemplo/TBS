@@ -16,6 +16,7 @@ import lombok.Setter;
 import lombok.ToString;
 import ru.shemplo.tbs.TBSCurrencyManager;
 import ru.shemplo.tbs.TBSEmitterManager;
+import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.moex.MOEXRequests;
 import ru.shemplo.tbs.moex.MOEXResposeReader;
 import ru.shemplo.tbs.moex.xml.Data;
@@ -40,7 +41,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     
     private long emitterId;
     
-    private double nominalValue, percentage, lastPrice;
+    private double nominalValue, percentage, lastPrice, accCouponIncome;
     
     private NavigableSet <LocalDate> offers = new TreeSet <> ();
     private List <Coupon> coupons = new ArrayList <> ();
@@ -110,9 +111,12 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
         if (MOEX_PRICE_URL != null) {
             final var MOEXPrice = MOEXResposeReader.read (MOEX_PRICE_URL);
             MOEXPrice.getMarketData ().map (Data::getRows).ifPresent (price -> {
-                final var lastValue = price.getRows () == null || price.getRows ().isEmpty () ? ""
-                                    : price.getRows ().get (0).getPrice ();
+                final var lastValue = TBSUtils.mapIfNN (price.getFirstRow (), Row::getPrice, "");
                 lastPrice = lastValue.isBlank () ? 1e+9 : (Double.parseDouble (lastValue) * nominalValue / 100.0);
+            });
+            MOEXPrice.getSecuritiesData ().map (Data::getRows).ifPresent (securities -> {
+                final var accCouponIncomeValue = TBSUtils.mapIfNN (securities.getFirstRow (), Row::getAccCouponIncome, "");
+                accCouponIncome = accCouponIncomeValue.isBlank () ? 0.0 : Double.parseDouble (accCouponIncomeValue);
             });
         }
     }

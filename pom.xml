@@ -4,7 +4,7 @@
   
   <groupId>ru.shemplo</groupId>
   <artifactId>tinkoff-bond-scanner</artifactId>
-  <version>1.7</version>
+  <version>1.8</version>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -21,7 +21,7 @@
     <profile>
       <id>win</id>
       <activation>
-        <activeByDefault>true</activeByDefault>
+        <os><family>windows</family></os>
       </activation>
       <properties>
         <javafx.platform>win</javafx.platform>
@@ -29,12 +29,18 @@
     </profile>
     <profile>
       <id>linux</id>
+      <activation>
+        <os><family>unix</family></os>
+      </activation>
       <properties>
         <javafx.platform>linux</javafx.platform>
       </properties>
     </profile>
     <profile>
       <id>mac</id>
+      <activation>
+        <os><family>mac</family></os>
+      </activation>
       <properties>
         <javafx.platform>mac</javafx.platform>
       </properties>

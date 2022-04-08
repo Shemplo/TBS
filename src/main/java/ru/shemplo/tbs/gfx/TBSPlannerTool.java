@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -175,7 +176,7 @@ public class TBSPlannerTool extends HBox {
             + line2.getSpacing () * 2
         );
         distributionChart.setMaxWidth  (distributionChart.getMinWidth ());
-        distributionChart.setMaxHeight (distributionChart.getMaxWidth () * 1.5);
+        distributionChart.setMaxHeight (distributionChart.getMaxWidth () * 1.45);
         VBox.setMargin (distributionChart, new Insets (0, 0, 24, 0));
         distributionChart.setCreateSymbols (false);
         distributionChart.setAnimated (false);
@@ -217,17 +218,36 @@ public class TBSPlannerTool extends HBox {
         });
         lineRecommend.getChildren ().add (recommendButton);
         
+        // Broker commission
+        
+        final var brokerCommission = TBSPlanner.getInstance ().getCommission ();
+        final var brokerCommissionSlider = new SliderWithField <> (Double.class, 0.0, 0.5, brokerCommission);
+        brokerCommissionSlider.getSlider ().setShowTickLabels (true);
+        brokerCommissionSlider.getSlider ().setShowTickMarks (true);
+        brokerCommissionSlider.getSlider ().setMajorTickUnit (0.25);
+        brokerCommissionSlider.getSlider ().setMinorTickCount (4);
+        
+        brokerCommissionSlider.getField ().setDigitBehindDecimal (4);
+        
+        final var brokerCommissionTile = new TileWithHeader <> ("Broker commission per operation, %", brokerCommissionSlider);
+        brokerCommissionTile.setMinWidth (268.0);
+        column.getChildren ().add (brokerCommissionTile);
+        
         // Summary rows
         
         final var line5 = new HBox (4);
         column.getChildren ().add (line5);
         
-        final var priceHeader = new Text ("Total price");
-        priceHeader.setWrappingWidth (200.0);
+        final var priceHeader = new Text ("Total price (real)");
+        priceHeader.setWrappingWidth (115.0);
         line5.getChildren ().add (priceHeader);
         
+        final var priceRecommendedHeader = new Text ("Total price (top pr.)");
+        priceRecommendedHeader.setWrappingWidth (115.0);
+        line5.getChildren ().add (priceRecommendedHeader);
+        
         final var lotsHeader = new Text ("Total lots");
-        amounHeader.setWrappingWidth (100.0);
+        amounHeader.setWrappingWidth (65.0);
         line5.getChildren ().add (lotsHeader);
         
         final var line6 = new HBox (4);
@@ -235,17 +255,21 @@ public class TBSPlannerTool extends HBox {
         column.getChildren ().add (line6);
         
         final var priceField = new NumberField <> ();
-        priceField.valueProperty ().bindBidirectional (TBSPlanner.getInstance ().getSummaryPrice ());
-        priceField.setMinWidth (200.0); priceField.setMaxWidth (priceField.getMinWidth ());
+        priceField.valueProperty ().bindBidirectional (TBSPlanner.getInstance ().getSummaryRealPrice ());
+        priceField.setMinWidth (115.0); priceField.setMaxWidth (priceField.getMinWidth ());
         priceField.setEditable (false);
-        //priceField.setDisable (true);
         line6.getChildren ().add (priceField);
+        
+        final var priceRecommendedField = new NumberField <> ();
+        priceRecommendedField.valueProperty ().bindBidirectional (TBSPlanner.getInstance ().getSummaryRecommendedPrice ());
+        priceRecommendedField.setMinWidth (115.0); priceRecommendedField.setMaxWidth (priceRecommendedField.getMinWidth ());
+        priceRecommendedField.setEditable (false);
+        line6.getChildren ().add (priceRecommendedField);
         
         final var lotsField = new NumberField <> ();
         lotsField.valueProperty ().bindBidirectional (TBSPlanner.getInstance ().getSummaryLots ());
-        lotsField.setMinWidth (100.0); lotsField.setMaxWidth (lotsField.getMinWidth ());
+        lotsField.setMinWidth (65.0); lotsField.setMaxWidth (lotsField.getMinWidth ());
         lotsField.setEditable (false);
-        //priceField.setDisable (true);
         line6.getChildren ().add (lotsField);
         
         // Export button
@@ -280,7 +304,8 @@ public class TBSPlannerTool extends HBox {
         typeSelect.valueProperty ().addListener ((__, ___, value) -> {
             TBSPlanner.getInstance ().updateDistributionParameters (
                 value, TBSUtils.aOrB (amountField.getValue (), 0.0), 
-                diversificationProperty.get ()
+                diversificationProperty.get (), 
+                brokerCommissionSlider.getValueProperty ().get ()
             );
             updateChart ();
         });
@@ -288,7 +313,8 @@ public class TBSPlannerTool extends HBox {
         amountField.valueProperty ().addListener ((__, ___, value) -> {
             TBSPlanner.getInstance ().updateDistributionParameters (
                 typeSelect.getValue (), TBSUtils.aOrB (value, 0.0), 
-                diversificationProperty.get ()
+                diversificationProperty.get (), 
+                brokerCommissionSlider.getValueProperty ().get ()
             );
             updateChart ();
         });
@@ -298,7 +324,16 @@ public class TBSPlannerTool extends HBox {
         diversificationProperty.addListener ((__, ___, div) -> {
             TBSPlanner.getInstance ().updateDistributionParameters (
                 typeSelect.getValue (), TBSUtils.aOrB (amountField.getValue (), 0.0), 
-                diversificationProperty.get ()
+                diversificationProperty.get (), 
+                brokerCommissionSlider.getValueProperty ().get ()
+            );
+            updateChart ();
+        });
+        
+        brokerCommissionSlider.getValueProperty ().addListener ((__, ___, com) -> {
+            TBSPlanner.getInstance ().updateDistributionParameters (
+                typeSelect.getValue (), TBSUtils.aOrB (amountField.getValue (), 0.0), 
+                diversificationProperty.get (), com.doubleValue ()
             );
             updateChart ();
         });
@@ -381,6 +416,15 @@ public class TBSPlannerTool extends HBox {
             .propertyFetcher (bond -> bond.getRWProperty ("recommendedPrice", () -> 0.0))
             .highlighter (null).converter (null)
             .build ());
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, Number> buildTBSTableColumn ()
+            .name ("ACI").tooltip ("Accumulated coupon income")
+            .alignment (Pos.BASELINE_LEFT).minWidth (50.0).sortable (false)
+            .propertyFetcher (bond -> new MappingROProperty <> (
+                bond.getRWProperty ("code", () -> ""), 
+                TBSBondManager::getBondAccCouponIncome
+            ))
+            .highlighter (null).converter (null)
+            .build ());
         table.getColumns ().add (TBSUIUtils.<IPlanningBond, LocalDate> buildTBSTableColumn ()
             .name ("Next C R").tooltip ("Closest date to the next coupon record")
             .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
@@ -407,7 +451,7 @@ public class TBSPlannerTool extends HBox {
             .build ());
         table.getColumns ().add (TBSUIUtils.<IPlanningBond, Integer, NumberField <Integer>> buildTBSEditTableColumn ()
             .name ("").tooltip (null)
-            .alignment (Pos.BASELINE_LEFT).minWidth (100.0).sortable (false)
+            .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
             .propertyFetcher (bond -> new MappingROProperty <> (
                 bond.<Integer> getRWProperty ("customValue", () -> null), 
                 v -> new LinkedObject <Integer> (bond.getCode (), v)
@@ -528,10 +572,12 @@ public class TBSPlannerTool extends HBox {
                 
                 tc = 10;
                 TBSExcelUtils.setValue (sheet, 0, tc++, "Total price");
+                TBSExcelUtils.setValue (sheet, 0, tc++, "Total price (recommended)");
                 TBSExcelUtils.setValue (sheet, 0, tc++, "Total lots");
                 
                 tc = 10;
-                TBSExcelUtils.setValue (sheet, 1, tc++, TBSPlanner.getInstance ().getSummaryPrice ().get ());
+                TBSExcelUtils.setValue (sheet, 1, tc++, TBSPlanner.getInstance ().getSummaryRealPrice ().get ());
+                TBSExcelUtils.setValue (sheet, 1, tc++, TBSPlanner.getInstance ().getSummaryRecommendedPrice ().get ());
                 TBSExcelUtils.setValue (sheet, 1, tc++, TBSPlanner.getInstance ().getSummaryLots ().getValue ());
                 
                 wb.write (new FileOutputStream (file));
@@ -582,34 +628,32 @@ public class TBSPlannerTool extends HBox {
                 final var to = Instant.from (TBSConstants.NOW.atTime (time));
                 
                 for (final var bond : TBSPlanner.getInstance ().getBonds ()) {
+                    final var nominal = TBSUtils.aOrB (TBSBondManager.getBondNominal (bond.getCode ()), 0.0);
                     final var candles = client.getMarketDataService ().getCandlesSync (
                         bond.getFIGI (), from, to, CandleInterval.CANDLE_INTERVAL_DAY
                     );
-                    /*
-                    final var candles = client.getMarketContext ().getMarketCandles (
-                        bond.getFIGI (), from, to, CandleResolution.DAY
-                    ).join ();
-                    */
                     
                     if (candles.isEmpty ()) { 
                         continue;
                     }
                     
                     double sum = 0, denom = 0;
-                    /* // FIXME
-                    for (final var candle : candles.get ().getCandles ()) {
-                        final var off = candle.getTime ().until (to, ChronoUnit.DAYS) + 1;
-                        sum += candle.getC ().doubleValue () * off;
+                    for (final var candle : candles) {
+                        final var close = candle.getClose ();
+                        
+                        final var off = Instant.ofEpochSecond (candle.getTime ().getSeconds ()).until (to, ChronoUnit.DAYS) + 1;
+                        sum += Double.parseDouble (close.getUnits () + "." + close.getNano ()) * nominal * off / 100.0;
                         denom += off;
                     }
-                    */
                     
                     if (denom != 0.0) {
                         bond.setRecommendedPrice (sum / denom);
                     }
                 }
                 
-                TBSPlanner.getInstance ().updateRecommendationsParameter (days);
+                final var planner = TBSPlanner.getInstance ();
+                planner.updateRecommendationsParameter (days);
+                planner.updateDistribution ();
             } catch (IOException ioe) {
                 log.error ("Failed to calculate recommended price", ioe);
             }
