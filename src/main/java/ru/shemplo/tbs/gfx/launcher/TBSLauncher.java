@@ -248,8 +248,8 @@ public class TBSLauncher extends Application {
         
         line.getChildren ().add (new Text ("Make detailed report on all operations in your accounts [will be implemented soon]"));
         
-        final var itemProperty = profilesList.getSelectionModel ().selectedItemProperty ();
-        openStatisticsButton.disableProperty ().bind (itemProperty.isNull ());
+        //final var itemProperty = profilesList.getSelectionModel ().selectedItemProperty ();
+        //openStatisticsButton.disableProperty ().bind (itemProperty.isNull ());
         
         return line;
     }
