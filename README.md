@@ -12,7 +12,7 @@
 
 ### Использованные ресурсы
 
-* [API Тинькофф Инвестиций](https://github.com/Tinkoff/invest-api-java-sdk) - получение данных из Тинькофф инвестиций, согласно [документации](https://tinkoff.github.io/investAPI).
+* [API Тинькофф Инвестиций](https://github.com/Tinkoff/invest-api-java-sdk) - получение данных из Тинькофф инвестиций согласно [документации](https://tinkoff.github.io/investAPI).
 * [ISS MOEX](https://iss.moex.com/) - получение детальной информации об облигации (названия, даты, купоны, последняя цена, ...).
 
 ### Требования перед запуском приложения
