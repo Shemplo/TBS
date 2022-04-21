@@ -243,9 +243,10 @@ public class TBSLauncher extends Application {
         
         openStatisticsButton = new Button ("Calculate statistics");
         openStatisticsButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
+        openStatisticsButton.setDisable (true);
         line.getChildren ().add (openStatisticsButton);
         
-        line.getChildren ().add (new Text ("Make detailed report on all operations in your accounts"));
+        line.getChildren ().add (new Text ("Make detailed report on all operations in your accounts [will be implemented soon]"));
         
         final var itemProperty = profilesList.getSelectionModel ().selectedItemProperty ();
         openStatisticsButton.disableProperty ().bind (itemProperty.isNull ());
