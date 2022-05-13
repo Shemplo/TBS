@@ -449,12 +449,12 @@ public class TBSPlannerTool extends HBox {
             .propertyFetcher (bond -> bond.getRWProperty ("amount", () -> 0))
             .converter (null).highlighter (null)
             .build ());
-        table.getColumns ().add (TBSUIUtils.<IPlanningBond, Integer, NumberField <Integer>> buildTBSEditTableColumn ()
+        table.getColumns ().add (TBSUIUtils.<IPlanningBond, Long, NumberField <Long>> buildTBSEditTableColumn ()
             .name ("").tooltip (null)
             .alignment (Pos.BASELINE_LEFT).minWidth (90.0).sortable (false)
             .propertyFetcher (bond -> new MappingROProperty <> (
-                bond.<Integer> getRWProperty ("customValue", () -> null), 
-                v -> new LinkedObject <Integer> (bond.getCode (), v)
+                bond.<Long> getRWProperty ("customValue", () -> null), 
+                v -> new LinkedObject <Long> (bond.getCode (), v)
             ))
             .fieldSupplier (this::makeCustomLotsValueField)
             .converter (null).highlighter (null)
@@ -469,8 +469,8 @@ public class TBSPlannerTool extends HBox {
         return table;
     }
     
-    private NumberField <Integer> makeCustomLotsValueField (TBSEditTableCell <IPlanningBond, Integer, NumberField <Integer>> cell) {
-        final var field = new NumberField <> (Integer.class);
+    private NumberField <Long> makeCustomLotsValueField (TBSEditTableCell <IPlanningBond, Long, NumberField <Long>> cell) {
+        final var field = new NumberField <> (Long.class);
         field.setPadding (new Insets (1, 4, 1, 4));
         field.valueProperty ().addListener ((__, ___, value) -> {
             TBSUtils.doIfNN (cell.getItem (), item -> {
@@ -478,7 +478,7 @@ public class TBSPlannerTool extends HBox {
                 final var bond = planner.getBondByTicker (item.getLink ());
                 
                 TBSUtils.doIfNN (bond, b -> {
-                    b.getRWProperty ("customValue", () -> 0).set (value);
+                    b.getRWProperty ("customValue", () -> 0L).set (value);
                     planner.updateDistribution ();
                     planner.dump ();
                     
