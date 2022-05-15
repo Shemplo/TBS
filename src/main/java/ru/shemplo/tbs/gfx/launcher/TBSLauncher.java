@@ -72,7 +72,7 @@ public class TBSLauncher extends Application {
         root.getChildren ().add (makeOpenExistingSection ());
         root.getChildren ().add (makeScanNewSection ());
         root.getChildren ().add (makeEmittersEditorSection ());
-        root.getChildren ().add (makeStatisticsSection ());
+        //root.getChildren ().add (makeStatisticsSection ());
         
         stage.setOnCloseRequest (we -> {
             if (!dontStopExecutors) {
@@ -138,7 +138,7 @@ public class TBSLauncher extends Application {
     }
     
     private void doOpenStatistics (Scene scene, ReadOnlyProperty<IProfile> profileProperty) {
-        new TBSStatistics (scene.getWindow ()).calculateStatistics (profileProperty.getValue ());
+        new TBSStatistics (scene.getWindow ()).loadStatistics (profileProperty.getValue ());
     }
     
     private void doStartNewScanning (Scene scene, ReadOnlyObjectProperty <IProfile> profileProperty) {
@@ -204,6 +204,11 @@ public class TBSLauncher extends Application {
         deleteProfileButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
         buttonsColumn.getChildren ().add (deleteProfileButton);
         
+        openStatisticsButton = new Button ("Calculate statistics");
+        openStatisticsButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
+        VBox.setMargin (openStatisticsButton, new Insets (8.0, 0.0, 0.0, 0.0));
+        buttonsColumn.getChildren ().add (openStatisticsButton);
+        
         final var setupColumn = new VBox (8.0);
         line.getChildren ().add (setupColumn);
         
@@ -231,25 +236,9 @@ public class TBSLauncher extends Application {
         
         final var itemProperty = profilesList.getSelectionModel ().selectedItemProperty ();
         startNewScanningButton.disableProperty ().bind (itemProperty.isNull ());
+        openStatisticsButton.disableProperty ().bind (itemProperty.isNull ());
         deleteProfileButton.disableProperty ().bind (itemProperty.isNull ());
         cloneProfileButton.disableProperty ().bind (itemProperty.isNull ());
-        
-        return line;
-    }
-    
-    private Parent makeStatisticsSection () {
-        final var line = new HBox (8.0);
-        line.setAlignment (Pos.BASELINE_LEFT);
-        
-        openStatisticsButton = new Button ("Calculate statistics");
-        openStatisticsButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
-        openStatisticsButton.setDisable (true);
-        line.getChildren ().add (openStatisticsButton);
-        
-        line.getChildren ().add (new Text ("Make detailed report on all operations in your accounts [will be implemented soon]"));
-        
-        //final var itemProperty = profilesList.getSelectionModel ().selectedItemProperty ();
-        //openStatisticsButton.disableProperty ().bind (itemProperty.isNull ());
         
         return line;
     }

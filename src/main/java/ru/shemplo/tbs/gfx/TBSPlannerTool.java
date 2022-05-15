@@ -71,6 +71,7 @@ import ru.shemplo.tbs.gfx.table.TBSEditTableCell;
 import ru.tinkoff.piapi.contract.v1.AccountType;
 import ru.tinkoff.piapi.contract.v1.CandleInterval;
 import ru.tinkoff.piapi.core.models.Money;
+import ru.tinkoff.piapi.core.utils.MapperUtils;
 
 @Slf4j
 public class TBSPlannerTool extends HBox {
@@ -642,7 +643,7 @@ public class TBSPlannerTool extends HBox {
                         final var close = candle.getClose ();
                         
                         final var off = Instant.ofEpochSecond (candle.getTime ().getSeconds ()).until (to, ChronoUnit.DAYS) + 1;
-                        sum += Double.parseDouble (close.getUnits () + "." + close.getNano ()) * nominal * off / 100.0;
+                        sum += MapperUtils.quotationToBigDecimal (close).doubleValue () * nominal * off / 100.0;
                         denom += off;
                     }
                     

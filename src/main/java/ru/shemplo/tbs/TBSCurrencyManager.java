@@ -13,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.shemplo.tbs.entity.Currency;
 import ru.shemplo.tbs.entity.IProfile;
+import ru.tinkoff.piapi.core.utils.MapperUtils;
 
 @NoArgsConstructor (access = AccessLevel.PRIVATE)
 public class TBSCurrencyManager implements Serializable {
@@ -40,26 +41,13 @@ public class TBSCurrencyManager implements Serializable {
             final var client = TBSClient.getInstance ().getConnection (profile, log);
             
             log.info ("Loading current currency quotes from Tinkoff...");
-            //client.getInstrumentsService ().getAllCurrenciesSync ().get (0).getF
-            //client.getMarketDataService ().getCandlesSync (null, null, null, null);
             currency2coefficient = client.getInstrumentsService ().getAllCurrenciesSync ().stream ()
                 . map (cur -> {
                     final var currency = TBSUtils.getCurrencyByTicker (cur.getTicker ());
                     if (currency.isEmpty ()) { return null; }
                     
-                    //final var now = Instant.now ();
                     final var price = client.getMarketDataService ().getLastPricesSync (List.of (cur.getFigi ())).get (0).getPrice ();
-                    final var coeff = Double.parseDouble (price.getUnits () + "." + price.getNano ());
-                    /*
-                    final var coeff = client.getMarketDataService ().getCandlesSync (
-                        cur.getFigi (), now.minus (3, ChronoUnit.DAYS), now, 
-                        CandleInterval.CANDLE_INTERVAL_DAY
-                    ).stream ().reduce ((acc, candle) -> {
-                        return candle.getTime ().getSeconds () > acc.getTime ().getSeconds () ? candle : acc;
-                    }).map (HistoricCandle::getClose)
-                    . map (q -> Double.parseDouble (q.getUnits () + "." + q.getNano ()))
-                    . orElse (1.0);
-                    */
+                    final var coeff = MapperUtils.quotationToBigDecimal (price).doubleValue ();
                     
                     return Map.entry (currency.get (), coeff);
                 })
