@@ -117,6 +117,8 @@ public class TBSStatistics {
         final var columnRight = new VBox (8.0);
         row0.getChildren ().add (columnRight);
         
+        final var grThreshold = TBSStyles.<StatisticsData, Number> threshold (0.0, 1e-6);
+        
         table = new TableView <StatisticsData> ();
         table.getStylesheets ().setAll (STYLE_TABLES);
         table.setBackground (TBSStyles.BG_TABLE);
@@ -146,23 +148,23 @@ public class TBSStatistics {
             .tooltip ("Total number of operations of particular type")
             .converter (null).highlighter (null)
             .build ());
-        table.getColumns ().add (TBSUIUtils.<StatisticsData, Double> buildTBSTableColumn ()
+        table.getColumns ().add (TBSUIUtils.<StatisticsData, Number> buildTBSTableColumn ()
             .name ("Max").tooltip (null)
             .alignment (Pos.BASELINE_RIGHT).minWidth (70.0).sortable (false)
             .propertyFetcher (data -> new SimpleObjectProperty <> (data.max ()))
-            .converter (null).highlighter (null)
+            .converter (null).highlighter (grThreshold)
             .build ());
-        table.getColumns ().add (TBSUIUtils.<StatisticsData, Double> buildTBSTableColumn ()
+        table.getColumns ().add (TBSUIUtils.<StatisticsData, Number> buildTBSTableColumn ()
             .name ("Min").tooltip (null)
             .alignment (Pos.BASELINE_RIGHT).minWidth (70.0).sortable (false)
             .propertyFetcher (data -> new SimpleObjectProperty <> (data.min ()))
-            .converter (null).highlighter (null)
+            .converter (null).highlighter (grThreshold)
             .build ());
-        table.getColumns ().add (TBSUIUtils.<StatisticsData, Double> buildTBSTableColumn ()
+        table.getColumns ().add (TBSUIUtils.<StatisticsData, Number> buildTBSTableColumn ()
             .name ("Total value").tooltip (null)
             .alignment (Pos.BASELINE_RIGHT).minWidth (100.0).sortable (false)
             .propertyFetcher (data -> new SimpleObjectProperty <> (data.amount ()))
-            .converter (null).highlighter (null)
+            .converter (null).highlighter (grThreshold)
             .build ());
         
         categoriesSelect = EnumSelectionSet.allOf (OperationTypeCategory.class);
@@ -242,7 +244,7 @@ public class TBSStatistics {
     private volatile Map <OperationTypeCategory, List <Operation>> type2operations = Map.of ();
     
     private final Comparator <StatisticsData> ENTRIES_COMPARATOR = Comparator
-          . <StatisticsData, Double> comparing (StatisticsData::amount).reversed ()
+          . <StatisticsData, Double> comparing (StatisticsData::absAmount).reversed ()
           . thenComparing (ent -> ent.category ().getText ());
     
     private StatisticsDataBundle makeStatisticsData () {
@@ -259,7 +261,7 @@ public class TBSStatistics {
                 return new StatisticsData (cat, 0.0, operations.size (), sum, max, min);
             }).toList ();
         
-        final var total = statistics.stream ().mapToDouble (StatisticsData::amount).sum ();
+        final var total = statistics.stream ().mapToDouble (StatisticsData::absAmount).sum ();
         statistics = statistics.stream ().map (data -> data.normalized (total)).toList ();
         
         final var chartData = statistics.stream ()
@@ -278,8 +280,12 @@ public class TBSStatistics {
         int operations, double amount, double max, double min
     ) {
         
+        public double absAmount () {
+            return Math.abs (amount ());
+        }
+        
         public StatisticsData normalized (double total) {
-            final var norma = total != 0.0 ? amount / total : 0.0;
+            final var norma = total != 0.0 ? Math.abs (amount) / total : 0.0;
             return new StatisticsData (category (), norma, operations (), amount (), max (), min ());
         }
         
