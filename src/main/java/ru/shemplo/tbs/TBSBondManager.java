@@ -57,8 +57,8 @@ public class TBSBondManager implements Serializable {
     
     public static IProfile restore () {
         log.info ("Restoring bonds from a binary file...");
-        final var dump = TBSDumpService.getInstance ().restore (
-            TBSBondManager.DUMP_FILE.getName (), BondsDump.class
+        final var dump = TBSDumpService.getInstance ().<BondsDump> restore (
+            TBSBondManager.DUMP_FILE.getName ()
         );
         
         return TBSUtils.mapIfNN (dump, BondsDump::getProfile, null);

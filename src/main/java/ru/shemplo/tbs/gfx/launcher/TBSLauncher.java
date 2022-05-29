@@ -212,7 +212,7 @@ public class TBSLauncher extends Application {
         final var setupColumn = new VBox (8.0);
         line.getChildren ().add (setupColumn);
         
-        final var restoredDump = TBSDumpService.getInstance ().restore (PROFILES_FILE.getName (), LauncherDump.class);
+        final var restoredDump = TBSDumpService.getInstance ().<LauncherDump> restore (PROFILES_FILE.getName ());
         
         final var profilesDump = TBSUtils.mapIfNN (restoredDump, LauncherDump::getProfiles, new ArrayList <IProfile> ());
         profiles = FXCollections.observableArrayList (profilesDump);

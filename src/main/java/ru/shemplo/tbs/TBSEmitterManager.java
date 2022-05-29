@@ -48,9 +48,8 @@ public class TBSEmitterManager implements Serializable {
     public static void restore () {
         log.info ("Restoring emitters from a binary file...");
         if (DUMP_FILE.exists ()) {
-            TBSDumpService.getInstance ().restore (
-                DUMP_FILE.getName (), 
-                EmittersDump.class
+            TBSDumpService.getInstance ().<EmittersDump> restore (
+                DUMP_FILE.getName ()
             );
         }
     }

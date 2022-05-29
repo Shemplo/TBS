@@ -40,7 +40,7 @@ public class TBSDumpService {
         }
     }
     
-    public <T extends Serializable> T restore (String filename, Class <T> type) {
+    public <T extends Serializable> T restore (String filename) {
         try (
             final var fis = new FileInputStream (filename);
             final var ois = new ObjectInputStream (fis);
