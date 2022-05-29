@@ -159,7 +159,8 @@ public class TBSLauncher extends Application {
         final var line = new HBox (8.0);
         line.setAlignment (Pos.BASELINE_LEFT);
         
-        openScannedBondsButton = new Button ("Open scanned bonds");
+        openScannedBondsButton = new Button ("Open scanned _bonds");
+        openScannedBondsButton.setMnemonicParsing (true);
         line.getChildren ().add (openScannedBondsButton); 
         
         line.getChildren ().add (bondsDumpDateText = new Text ());
@@ -172,8 +173,9 @@ public class TBSLauncher extends Application {
         final var line = new HBox (8.0);
         line.setAlignment (Pos.BASELINE_LEFT);
         
-        openEmittertEditorButton = new Button ("Open emitters editor");
+        openEmittertEditorButton = new Button ("Open _emitters editor");
         openEmittertEditorButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
+        openEmittertEditorButton.setMnemonicParsing (true);
         line.getChildren ().add (openEmittertEditorButton);
         
         line.getChildren ().add (new Text ("Edit name or credit rating of emitters which bonds were scanned at least once"));
@@ -191,21 +193,25 @@ public class TBSLauncher extends Application {
         startNewScanningButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
         buttonsColumn.getChildren ().add (startNewScanningButton);
         
-        createProfileButton = new Button ("Create new profile");
+        createProfileButton = new Button ("Create _new profile");
         createProfileButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
         createProfileButton.setOnMouseClicked (me -> openProfileForm (me, null));
+        createProfileButton.setMnemonicParsing (true);
         buttonsColumn.getChildren ().add (createProfileButton);
         
-        cloneProfileButton = new Button ("Clone profile");
+        cloneProfileButton = new Button ("C_lone profile");
         cloneProfileButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
+        cloneProfileButton.setMnemonicParsing (true);
         buttonsColumn.getChildren ().add (cloneProfileButton);
         
-        deleteProfileButton = new Button ("Delete profile");
+        deleteProfileButton = new Button ("_Delete profile");
         deleteProfileButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
+        deleteProfileButton.setMnemonicParsing (true);
         buttonsColumn.getChildren ().add (deleteProfileButton);
         
-        openStatisticsButton = new Button ("Calculate statistics");
+        openStatisticsButton = new Button ("Calculate _statistics");
         openStatisticsButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
+        openStatisticsButton.setMnemonicParsing (true);
         VBox.setMargin (openStatisticsButton, new Insets (8.0, 0.0, 0.0, 0.0));
         buttonsColumn.getChildren ().add (openStatisticsButton);
         

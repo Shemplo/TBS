@@ -47,6 +47,7 @@ public class TBSBondsTable extends VBox {
     private Parent makeTable (TBSTableType type) {
         table = new TableView <> ();
         table.getStylesheets ().setAll (STYLE_TABLES);
+        TBSUIUtils.enableTableDraggingScroll (table);
         table.setBackground (TBSStyles.BG_TABLE);
         VBox.setVgrow (table, Priority.ALWAYS);
         table.setSelectionModel (null);

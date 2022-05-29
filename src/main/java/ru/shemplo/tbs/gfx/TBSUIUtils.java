@@ -1,5 +1,6 @@
 package ru.shemplo.tbs.gfx;
 
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -7,13 +8,18 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.util.Pair;
 import lombok.Builder;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.LinkedObject;
@@ -135,6 +141,42 @@ public class TBSUIUtils {
         column.setMinWidth (minWidth);
         
         return column;
+    }
+    
+    public static void enableTableDraggingScroll (TableView <?> table) {
+        final var startDragPosition = new AtomicReference <Pair <Double, Double>> ();
+
+        table.setOnMouseDragged (me -> {
+            final var from = startDragPosition.get ();
+            if (from == null) { return; }
+            
+            final var bars = table.lookupAll (".scroll-bar").toArray (ScrollBar []::new);
+            if (bars [0].getOrientation () != Orientation.HORIZONTAL) {
+                final var tmp = bars [0];
+                bars [0] = bars [1];
+                bars [1] = tmp;
+            }
+            
+            final var vertical = bars [1].getValue () + 7.5 * (from.getValue () - me.getY ()) / table.getHeight ();
+            bars [1].setValue (TBSUIUtils.makeValueInBetween (vertical, bars [1]));
+            
+            final var horizontal = bars [0].getValue () + 1250 * (from.getKey () - me.getX ()) / table.getWidth ();
+            bars [0].setValue (TBSUIUtils.makeValueInBetween (horizontal, bars [0]));
+            
+            startDragPosition.set (new Pair <> (me.getX (), me.getY ()));
+        });
+        table.setOnMousePressed (me -> {
+            startDragPosition.set (new Pair <> (me.getX (), me.getY ()));
+            table.setCursor (Cursor.CLOSED_HAND);
+        });
+        table.setOnMouseReleased (me -> {
+            table.setCursor (Cursor.DEFAULT);            
+            startDragPosition.set (null);
+        });
+    }
+    
+    public static double makeValueInBetween (double value, ScrollBar scrollBar) {
+        return Math.max (scrollBar.getMin (), Math.min (scrollBar.getMax (), value));
     }
     
 }
