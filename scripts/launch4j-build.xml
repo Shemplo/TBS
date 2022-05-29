@@ -25,12 +25,12 @@
     <opt>-Dfile.encoding=UTF-8</opt>
   </jre>
   <versionInfo>
-    <fileVersion>2.0.0.0</fileVersion>
-    <txtFileVersion>New Tinkoff investment API </txtFileVersion>
+    <fileVersion>2.1.0.0</fileVersion>
+    <txtFileVersion>Operations statistics</txtFileVersion>
     <fileDescription>Tinkoff bonds scanner application</fileDescription>
     <copyright>https://github.com/Shemplo/TBS</copyright>
-    <productVersion>2.0.0.0</productVersion>
-    <txtProductVersion>TBS New Tinkoff investment API </txtProductVersion>
+    <productVersion>2.1.0.0</productVersion>
+    <txtProductVersion>TBS Operations statistics</txtProductVersion>
     <productName>Tinkoff bonds scanner</productName>
     <companyName></companyName>
     <internalName>TBS</internalName>
