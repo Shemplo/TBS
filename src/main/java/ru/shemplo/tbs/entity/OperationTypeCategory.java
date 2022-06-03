@@ -17,7 +17,8 @@ public enum OperationTypeCategory {
                                      * -MapperUtils.moneyValueToBigDecimal (op.getPrice ()).doubleValue ()),
     BOND_COUPON    ("Coupons",   op -> MapperUtils.moneyValueToBigDecimal (op.getPayment ()).doubleValue ()),
     BOND_REPAYMENT ("Repayment", op -> MapperUtils.moneyValueToBigDecimal (op.getPayment ()).doubleValue ()),
-    BOND_SELL      ("Sell",      op -> MapperUtils.moneyValueToBigDecimal (op.getPrice ()).doubleValue ());
+    BOND_SELL      ("Sell",      op -> (op.getQuantity () - op.getQuantityRest ()) 
+                                     * MapperUtils.moneyValueToBigDecimal (op.getPrice ()).doubleValue ());
     
     private final String text;
     

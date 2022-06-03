@@ -147,7 +147,7 @@ public class TBSCouponsCalendar {
             .converter (null).highlighter (grThreshold)
             .build ());
         table.getColumns ().add (TBSUIUtils.<PendingCoupons, Number> buildTBSTableColumn ()
-            .name ("Amount").tooltip ("Excected income according to published data and number of lots")
+            .name ("Income").tooltip ("Excected income according to published data and number of lots")
             .alignment (Pos.BASELINE_LEFT).minWidth (100.0).sortable (false)
             .propertyFetcher (data -> new SimpleObjectProperty <> (data.amount ()))
             .converter (null).highlighter (grThreshold)
