@@ -255,6 +255,7 @@ public class TBSStatistics {
                 final var operations = type2operations.getOrDefault (cat, List.of ()).stream ()
                     . filter (op -> op.getCurrency ().equalsIgnoreCase ("rub"))
                     . toList ();
+                
                 final var max = operations.stream ().mapToDouble (cat::getSumValue).max ().orElse (0.0);
                 final var min = operations.stream ().mapToDouble (cat::getSumValue).min ().orElse (0.0);
                 final var sum = operations.stream ().mapToDouble (cat::getSumValue).sum ();
@@ -304,7 +305,7 @@ public class TBSStatistics {
         TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
             final var logger = new TBSLogWrapper ();
             try {
-                Platform.runLater (() -> commentT.setText ("Loading operations from Tinkoff..."));
+                Platform.runLater (() -> commentT.setText ("Preparing for loading data from Tinkoff..."));
                 
                 final var client = TBSClient.getInstance ().getConnection (profile, logger);
                 final var accounts = client.getUserService ().getAccountsSync ();
@@ -314,11 +315,13 @@ public class TBSStatistics {
                 final var to = Instant.from (TBSConstants.FAR_PAST.plusYears (100).atTime (time));
                 final var from = Instant.from (TBSConstants.FAR_PAST.atTime (time));
                 
+                Platform.runLater (() -> commentT.setText ("Loading operations from Tinkoff..."));
                 type2operations = client.getOperationsService ()
-                    . getAllOperationsSync (accounts.get (0).getId (), from, to).stream ()
-                    . filter (op -> op.getInstrumentType ().equalsIgnoreCase ("bond"))
+                    . getExecutedOperationsSync (accounts.get (0).getId (), from, to).stream ()
+                    . filter (op -> "bond".equalsIgnoreCase (op.getInstrumentType ()))
                     . filter (op -> fetchOperationTypeCategory (op.getOperationType ()) != null)
                     . collect (Collectors.groupingBy (op -> fetchOperationTypeCategory (op.getOperationType ())));
+                Platform.runLater (() -> commentT.setText ("Everything is done"));
                 
                 final var statisticsLayout = makeStatisticsLayout ();
                 final var statistics = makeStatisticsData ();
