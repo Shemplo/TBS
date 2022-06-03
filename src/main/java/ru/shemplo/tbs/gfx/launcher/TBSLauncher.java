@@ -54,7 +54,7 @@ public class TBSLauncher extends Application {
     private Button deleteProfileButton;
     private Button cloneProfileButton;
     private Button openStatisticsButton;
-    private Button openPendingCouponsButton;
+    private Button openCouponsCalendarButton;
     private Text bondsDumpDateText;
     
     private boolean dontStopExecutors = false;
@@ -105,8 +105,8 @@ public class TBSLauncher extends Application {
         openStatisticsButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenStatistics (scene, profileProperty)));
         openStatisticsButton.setOnAction (ae -> doOpenStatistics (scene, profileProperty));
         
-        openPendingCouponsButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenPendingCoupons (scene, profileProperty)));
-        openPendingCouponsButton.setOnAction (ae -> doOpenPendingCoupons (scene, profileProperty));
+        openCouponsCalendarButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenPendingCoupons (scene, profileProperty)));
+        openCouponsCalendarButton.setOnAction (ae -> doOpenPendingCoupons (scene, profileProperty));
         
         startNewScanningButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doStartNewScanning (scene, profileProperty)));
         startNewScanningButton.setOnAction (ae -> doStartNewScanning (scene, profileProperty));
@@ -146,7 +146,7 @@ public class TBSLauncher extends Application {
     }
     
     private void doOpenPendingCoupons (Scene scene, ReadOnlyProperty <IProfile> profileProperty) {
-        new TBSPendingCoupons (scene.getWindow ()).loadPendingCoupons (profileProperty.getValue ());
+        new TBSCouponsCalendar (scene.getWindow ()).loadPendingCoupons (profileProperty.getValue ());
     }
     
     private void doStartNewScanning (Scene scene, ReadOnlyObjectProperty <IProfile> profileProperty) {
@@ -224,10 +224,10 @@ public class TBSLauncher extends Application {
         VBox.setMargin (openStatisticsButton, new Insets (8.0, 0.0, 0.0, 0.0));
         buttonsColumn.getChildren ().add (openStatisticsButton);
         
-        openPendingCouponsButton = new Button ("Open _pending coupons");
-        openPendingCouponsButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
-        openPendingCouponsButton.setMnemonicParsing (true);
-        buttonsColumn.getChildren ().add (openPendingCouponsButton);
+        openCouponsCalendarButton = new Button ("Open coupons _calendar");
+        openCouponsCalendarButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
+        openCouponsCalendarButton.setMnemonicParsing (true);
+        buttonsColumn.getChildren ().add (openCouponsCalendarButton);
         
         final var setupColumn = new VBox (8.0);
         line.getChildren ().add (setupColumn);
@@ -255,7 +255,7 @@ public class TBSLauncher extends Application {
         setupColumn.getChildren ().addAll (profilesList);
         
         final var itemProperty = profilesList.getSelectionModel ().selectedItemProperty ();
-        openPendingCouponsButton.disableProperty ().bind (itemProperty.isNull ());
+        openCouponsCalendarButton.disableProperty ().bind (itemProperty.isNull ());
         startNewScanningButton.disableProperty ().bind (itemProperty.isNull ());
         openStatisticsButton.disableProperty ().bind (itemProperty.isNull ());
         deleteProfileButton.disableProperty ().bind (itemProperty.isNull ());

@@ -48,12 +48,12 @@ import ru.tinkoff.piapi.contract.v1.Coupon;
 import ru.tinkoff.piapi.contract.v1.OperationType;
 import ru.tinkoff.piapi.core.utils.MapperUtils;
 
-public class TBSPendingCoupons {
+public class TBSCouponsCalendar {
     
     private final Stage stage;
     private final Pane root;
     
-    public TBSPendingCoupons (Window window) {
+    public TBSCouponsCalendar (Window window) {
         root = new VBox ();
         
         final var scene = new Scene (root);
@@ -61,7 +61,7 @@ public class TBSPendingCoupons {
         stage = new Stage ();
         root.getChildren ().add (makeLoadingLayout ());
         
-        stage.setTitle (String.format ("Tinkoff Bonds Scanner | Launcher | Pending coupons"));
+        stage.setTitle (String.format ("Tinkoff Bonds Scanner | Launcher | Coupons calendar"));
         stage.getIcons ().add (TBSApplicationIcons.window);
         stage.initModality (Modality.WINDOW_MODAL);
         stage.setResizable (false);
