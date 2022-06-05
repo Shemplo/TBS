@@ -11,8 +11,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableNumberValue;
 import ru.shemplo.tbs.entity.BondCreditRating;
 import ru.shemplo.tbs.entity.Currency;
 
@@ -72,6 +75,12 @@ public class TBSUtils {
         };
         
         return Optional.ofNullable (r);
+    }
+    
+    public static <N extends Number> ObservableNumberValue wrapToNumberValue (ObjectProperty <N> property) {
+        final var value = new SimpleDoubleProperty ();
+        value.bind (property);
+        return value;
     }
     
     public static <F, S> void bindBidirectionalMapping (

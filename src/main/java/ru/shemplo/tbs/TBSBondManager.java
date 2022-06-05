@@ -55,6 +55,7 @@ public class TBSBondManager implements Serializable {
         return null;
     }
     
+    
     public static IProfile restore () {
         log.info ("Restoring bonds from a binary file...");
         final var dump = TBSDumpService.getInstance ().<BondsDump> restore (
@@ -62,6 +63,13 @@ public class TBSBondManager implements Serializable {
         );
         
         return TBSUtils.mapIfNN (dump, BondsDump::getProfile, null);
+    }
+    
+    public void dump (IProfile profile) {
+        final var currencyManager = TBSCurrencyManager.getInstance ();
+        final var dump = new BondsDump (profile, currencyManager, this);
+        
+        TBSDumpService.getInstance ().dump (dump, TBSBondManager.DUMP_FILE.getName ());
     }
     
     public static String getBondName (String ticker) {
@@ -116,6 +124,7 @@ public class TBSBondManager implements Serializable {
     
     private List <Bond> scanned;
     private List <Bond> portfolio;
+    private List <Bond> detailed;
     
     private transient Map <String, Bond> ticker2portfolio = new HashMap <> ();
     private transient Map <String, Bond> ticker2scanned = new HashMap <> ();
@@ -158,7 +167,7 @@ public class TBSBondManager implements Serializable {
                 log.info ("Loading data about bonds from Tinkoff and MOEX...");
                 scanned = client.getInstrumentsService ().getAllBondsSync ().stream ()
                     . filter (instrument -> profile.getCurrencies ().contains (Currency.from (instrument.getCurrency ()))).parallel ()
-                    . map (Bond::new).peek (bond -> emitters.addEmitter (bond.getEmitterId (), bond.getCode ()))
+                    . map (instr -> new Bond (instr, false)).peek (bond -> emitters.addEmitter (bond.getEmitterId (), bond.getCode ()))
                     . filter (profile::testBond)//.limit (profile.getMaxResults ())
                     . collect (Collectors.toList ());
             } catch (Exception e) {
@@ -199,6 +208,20 @@ public class TBSBondManager implements Serializable {
         return Collections.unmodifiableList (portfolio);
     }
     
+    public void addDetailed (IProfile profile, Bond bond) {
+        detailed.add (bond);
+        dump (profile);
+    }
+    
+    public void removeDetailed (IProfile profile, String ticker) {
+        detailed.removeIf (bond -> bond.getCode ().equals (ticker));
+        dump (profile);
+    }
+    
+    public List <Bond> getDetailed () {
+        return Collections.unmodifiableList (detailed);
+    }
+    
     private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject ();
         instance = this;
@@ -207,6 +230,10 @@ public class TBSBondManager implements Serializable {
     }
     
     private void updateMapping () {
+        if (detailed == null) {
+            detailed = new ArrayList <> ();
+        }
+        
         if (ticker2portfolio == null) {
             ticker2portfolio = new HashMap <> ();
         }

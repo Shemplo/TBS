@@ -34,6 +34,10 @@ public class Data {
         return findRowWithName ("SHORTNAME").map (Row::getValue);
     }
     
+    public Optional <String> getBondLatinName () {
+        return findRowWithName ("LATNAME").map (Row::getValue);
+    }
+    
     public Optional <String> getBondCode () {
         return findRowWithName ("SECID").map (Row::getValue);
     }
@@ -68,6 +72,18 @@ public class Data {
     
     public Optional <Long> getBondEmitterID () {
         return findRowWithName ("EMITTER_ID").map (Row::getValueAsLong);
+    }
+    
+    public Optional <Long> getBondIssueSize () {
+        return findRowWithName ("ISSUESIZE").map (Row::getValueAsLong);
+    }
+    
+    public Optional <Long> getBondLotSize () {
+        return findRowWithName ("LOTSIZE").map (Row::getValueAsLong);
+    }
+    
+    public Optional <Double> getBondLotValue () {
+        return findRowWithName ("LOTVALUE").map (Row::getValueAsDouble);
     }
     
     private Optional <Row> findRowWithName (String name) {

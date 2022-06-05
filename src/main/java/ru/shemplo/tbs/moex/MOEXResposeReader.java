@@ -13,7 +13,8 @@ public class MOEXResposeReader {
     public static Document read (URL url) {
         try {
             final var context = JAXBContext.newInstance (Document.class);
-            return (Document) context.createUnmarshaller ().unmarshal (url);
+            final var value = (Document) context.createUnmarshaller ().unmarshal (url);
+            return value;
         } catch (JAXBException jaxbe) {
             jaxbe.printStackTrace ();
             

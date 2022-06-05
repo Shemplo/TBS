@@ -5,6 +5,7 @@ import static ru.shemplo.tbs.TBSConstants.*;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.Optional;
@@ -29,7 +30,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     
     private static final long serialVersionUID = 1L;
     
-    private String name, code, figi;
+    private String name, code, figi, ticker;
     private Currency currency;
     
     @Setter
@@ -37,6 +38,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     
     private LocalDate start, end, nextCoupon, nextRecord;
     private long couponsPerYear;
+    private Date lastUpdated;
     private LocalDate now;
     
     private long emitterId;
@@ -48,20 +50,37 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     
     private String primaryBoard;
     
-    public Bond (ru.tinkoff.piapi.contract.v1.Bond instrument) {
+    // // For extended (detailed) version of bond
+    
+    private long lotsIssued, lotSize;
+    private String latinName;
+    private double lotValue;
+    
+    // // End extended (detailed) version of bond
+    
+    public Bond (ru.tinkoff.piapi.contract.v1.Bond instrument, Boolean reload) {
         this (instrument.getTicker (), instrument.getFigi (), Currency.from (instrument.getCurrency ()), NOW, 0);
+        TBSUtils.doIfNN (reload, this::reload);
     }
     
     public Bond (String ticker, Currency currency, Position ppos) {
         this (ticker, ppos.getFigi (), currency, FAR_PAST, ppos.getQuantityLots ().longValue ());
+        reload (false);
     }
     
     private Bond (String ticker, String figi, Currency currency, LocalDate scoreNow, long lots) {
         this.currency = currency;
+        this.ticker = ticker;
         this.now = scoreNow;
         this.figi = figi;
         this.lots = lots;
-        
+    }
+    
+    public void reloadAndUpdateScore (IProfile profile, boolean detailed) {
+        reload (detailed); updateScore (profile);
+    }
+    
+    public void reload (boolean detailed) {
         final var MOEX_DESCRIPION_URL = MOEXRequests.makeBondDescriptionURLForMOEX (ticker);
         final var MOEX_COUPONS_URL = MOEXRequests.makeBondCouponsURLForMOEX (ticker);
         
@@ -78,6 +97,12 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
                 emitterId = description.getBondEmitterID ().orElse (-1L);
                 start = description.getBondStartDate ().orElse (null);
                 end = description.getBondEndDate ().orElse (null);
+                
+                if (detailed) {
+                    lotsIssued = description.getBondIssueSize ().orElse (0L);
+                    latinName = description.getBondLatinName ().orElse ("");
+                    lotSize = description.getBondLotSize ().orElse (1L);
+                }
             });
             
             MOEXData.getBoards ().ifPresent (boards -> {
@@ -116,9 +141,14 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
             });
             MOEXPrice.getSecuritiesData ().map (Data::getRows).ifPresent (securities -> {
                 final var accCouponIncomeValue = TBSUtils.mapIfNN (securities.getFirstRow (), Row::getAccCouponIncome, "");
-                accCouponIncome = accCouponIncomeValue.isBlank () ? 0.0 : Double.parseDouble (accCouponIncomeValue);
+                accCouponIncome = accCouponIncomeValue.isBlank () ? 0.0 : Double.parseDouble (accCouponIncomeValue);   
+                
+                final var lotValueValue = TBSUtils.mapIfNN (securities.getFirstRow (), Row::getLotValue, "");
+                lotValue = lotValueValue.isBlank () ? 0.0 : Double.parseDouble (lotValueValue);
             });
         }
+        
+        lastUpdated = new Date ();
     }
     
     public CouponValueMode getCouponValuesMode () {
@@ -164,6 +194,8 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
         score *= nominalValue != 0.0 ? 1000.0 / nominalValue : 1.0; // align to 1k nominal
         score *= 1.0 - TBSEmitterManager.getCreditRating (emitterId).getPenalty ();
         score = Math.signum (score) * Math.sqrt (Math.abs (score)) - 7.0;
+        
+        lastUpdated = new Date ();
     }
     
 }

@@ -9,8 +9,12 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -21,8 +25,10 @@ import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSClient;
+import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.IProfile;
+import ru.shemplo.tbs.gfx.component.TileWithHeader;
 
 @Slf4j
 public class TBSUIApplication extends Application {
@@ -34,7 +40,9 @@ public class TBSUIApplication extends Application {
     @SuppressWarnings ("unused")
     private TBSBalanceControl balanceControl;
     private TBSPlannerTool plannerTool;
+    
     private Text profileDetails;
+    private TabPane tabs;
     
     @Getter
     private Stage stage;
@@ -72,11 +80,29 @@ public class TBSUIApplication extends Application {
         stage.setScene (scene);
         //stage.show ();
         
-        root.getChildren ().add (profileDetails = new Text ());
-        profileDetails.setFont (Font.font ("Consolas", 10.0));
-        VBox.setMargin (profileDetails, new Insets (12.0));
+        final var topBarRow = new HBox (8.0);
+        root.getChildren ().add (topBarRow);
         
-        final var tabs = new TabPane ();
+        profileDetails = new Text ();
+        profileDetails.setFont (Font.font ("Consolas", 12.0));
+        
+        final var profileScroller = new ScrollPane (profileDetails);
+        topBarRow.getChildren ().add (profileScroller);
+        profileScroller.setPadding (new Insets (16.0, 4.0, 0.0, 12.0));
+        profileScroller.setHbarPolicy (ScrollBarPolicy.AS_NEEDED);
+        profileScroller.setVbarPolicy (ScrollBarPolicy.NEVER);
+        profileScroller.setMinViewportHeight (8.0);
+        profileScroller.setBackground (null);
+        
+        final var bondTickerField = new TextField ();
+        bondTickerField.setFont (Font.font ("Consolas", 12.0));
+        bondTickerField.setMinWidth (200.0);
+        
+        final var bondTickerFieldTitle = new TileWithHeader <> ("Open bond details by ticker", bondTickerField);
+        HBox.setMargin (bondTickerFieldTitle, new Insets (8.0, 8.0, 4.0, 0.0));
+        topBarRow.getChildren ().add (bondTickerFieldTitle);
+        
+        tabs = new TabPane ();
         tabs.getStylesheets ().add (STYLE_TABS);
         VBox.setVgrow (tabs, Priority.ALWAYS);
         root.getChildren ().add (tabs);
@@ -101,7 +127,34 @@ public class TBSUIApplication extends Application {
         tabBalance.setClosable (false);
         tabs.getTabs ().add (tabBalance);
         
+        bondTickerField.setOnAction (ae -> {
+            final var ticker = bondTickerField.getText ();
+            if (TBSUtils.notBlank (ticker)) {
+                openBondTab (bondTickerField.getText ());                
+                bondTickerField.setText ("");
+            }
+        });
+        
         instance = this;
+    }
+    
+    private void openBondTab (String ticker) {
+        final var clearTicker = ticker.trim ();
+        
+        final var existing = tabs.getTabs ().stream ()
+            . filter (t -> t.getText ().contains (clearTicker))
+            . findFirst ();
+        
+        if (existing.isPresent ()) {            
+            tabs.getSelectionModel ().select (existing.get ());            
+        } else {
+            final var tab = new Tab (clearTicker);
+            tab.setOnClosed (e -> TBSBondManager.getInstance ().removeDetailed (profile, clearTicker));
+            tab.setContent (new TBSBondDetails (tab, profile, clearTicker));
+            tabs.getTabs ().add (tab);
+            
+            tabs.getSelectionModel ().select (tab);
+        }
     }
     
     public void applyData (IProfile profile) {
@@ -118,6 +171,13 @@ public class TBSUIApplication extends Application {
         ));
         
         plannerTool.applyData (profile);
+        
+        for (final var detailed : bondManager.getDetailed ()) {
+            final var tab = new Tab (detailed.getCode ());
+            tab.setOnClosed (e -> TBSBondManager.getInstance ().removeDetailed (profile, detailed.getCode ()));
+            tab.setContent (new TBSBondDetails (tab, detailed, profile));
+            tabs.getTabs ().add (tab);
+        }
     }
     
     public void openLinkInBrowser (URL url) {

@@ -179,4 +179,9 @@ public class TBSUIUtils {
         return Math.max (scrollBar.getMin (), Math.min (scrollBar.getMax (), value));
     }
     
+    public static <C> C declareCustomized (C object, Consumer <C> customizer) {
+        customizer.accept (object);
+        return object;
+    }
+    
 }

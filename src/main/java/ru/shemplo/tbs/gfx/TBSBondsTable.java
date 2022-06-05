@@ -71,7 +71,7 @@ public class TBSBondsTable extends VBox {
             .build ());
         table.getColumns ().add (TBSUIUtils.<IBond, LinkedSymbolOrImage> buildTBSIconTableColumn ()
             .name ("C").tooltip (null).minWidth (30.0).sortable (false)
-            .propertyFetcher (b -> makeExloreProperty (b, "🔍")).highlighter (linkIcon)
+            .propertyFetcher (b -> makeExloreProperty (b, "🎫")).highlighter (linkIcon) // 🔍
             .onClick ((me, cell) -> handleExploreCouponsColumnClick (me, cell, type == TBSTableType.SCANNED))
             .build ());
         table.getColumns ().add (TBSUIUtils.<IBond, LinkedObject <Boolean>> buildTBSToggleTableColumn ()

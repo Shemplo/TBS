@@ -30,6 +30,9 @@ public class TBSStyles {
     public static final String STYLE_TABS = "/tabs.css";
     
     //public static final Background BG_NO_OUTLINES = new Background (new BackgroundFill (Color.HONEYDEW, null, null));
+    public static final Background BG_TILE_ACCENT = new Background (new BackgroundFill (
+        Color.rgb (200, 200, 200, 0.5), new CornerRadii (4.0), Insets.EMPTY)
+    );
     public static final Background BG_TABLE = new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY));
     public static final Background BG_APPROPRIATE = new Background (new BackgroundFill (Color.HONEYDEW, null, null));
     public static final Background BG_SO_CLOSE = new Background (new BackgroundFill (Color.BEIGE, null, null));
@@ -37,9 +40,12 @@ public class TBSStyles {
     public static final Border BORDER_DEFAULT = new Border (new BorderStroke (Color.LIGHTGRAY, BorderStrokeStyle.SOLID, null, null));
     
     public static final Font FONT_MONO_12 = Font.font ("monospace", FontWeight.NORMAL, 12.0);
+    public static final Font FONT_NORMAL_16 = Font.font (null, FontWeight.NORMAL, 16.0);
+    public static final Font FONT_NORMAL_20 = Font.font (null, FontWeight.NORMAL, 20.0);
     public static final Font FONT_DEFAULT = Font.font (null, FontWeight.NORMAL, 12.0);
     public static final Font FONT_BOLD_12 = Font.font (null, FontWeight.BOLD, 12.0);
     public static final Font FONT_BOLD_14 = Font.font (null, FontWeight.BOLD, 14.0);
+    public static final Font FONT_BOLD_20 = Font.font (null, FontWeight.BOLD, 20.0);
     
     public static final Color COLOR_POSITIVE = Color.GREEN;
     public static final Color COLOR_DEFAULT = Color.BLACK;
