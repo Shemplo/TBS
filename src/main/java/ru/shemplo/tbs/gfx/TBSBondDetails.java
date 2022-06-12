@@ -36,7 +36,7 @@ import ru.tinkoff.piapi.core.exception.ApiRuntimeException;
 public class TBSBondDetails extends VBox {
     
     private NumberField <Long> lotsInPortfolio, lotsIssued, lotSize, daysToOffer;
-    private NumberField <Double> nominalValue, lotValue;
+    private NumberField <Double> nominalValue, lotValue, score, price;
     private NumberField <Integer> offers;
     private TextField ticker, figi, emitter, start, end, duration, offer;
     private ImageView emitterRating;
@@ -180,21 +180,38 @@ public class TBSBondDetails extends VBox {
         emitterRating.setFitWidth (24.0);
         emitterRow.getChildren ().add (emitterRating);
         
+        final var scoreRow = new HBox (8.0);
+        columnRight.getChildren ().add (scoreRow);
+        
+        scoreRow.getChildren ().add (TBSUIUtils.declareCustomized (
+            new TileWithHeader <> ("Score", score = TBSUIUtils.declareCustomized (
+                    new NumberField <> (Double.class), tf -> defaultTextFiledCustomizer (tf, 180.0)
+                    )), 
+            tile -> defaultTileCustomizer (tile, true)
+        ));
+        
+        scoreRow.getChildren ().add (TBSUIUtils.declareCustomized (
+            new TileWithHeader <> ("Last market price / lot", price = TBSUIUtils.declareCustomized (
+                new NumberField <> (Double.class), tf -> defaultTextFiledCustomizer (tf, 180.0)
+            )), 
+            tile -> defaultTileCustomizer (tile, true)
+        ));
+        
         final var lotsRow = new HBox (8.0);
         columnRight.getChildren ().add (lotsRow);
-        
-        lotsRow.getChildren ().add (TBSUIUtils.declareCustomized (
-            new TileWithHeader <> ("Lots issued", lotsIssued = TBSUIUtils.declareCustomized (
-                new NumberField <> (Long.class), tf -> defaultTextFiledCustomizer (tf, 180.0)
-            )), 
-            tile -> defaultTileCustomizer (tile, false)
-        ));
         
         lotsRow.getChildren ().add (TBSUIUtils.declareCustomized (
             new TileWithHeader <> ("Lots in portfolio", lotsInPortfolio = TBSUIUtils.declareCustomized (
                 new NumberField <> (Long.class), tf -> defaultTextFiledCustomizer (tf, 180.0)
             )), 
             tile -> defaultTileCustomizer (tile, true)
+        ));
+        
+        lotsRow.getChildren ().add (TBSUIUtils.declareCustomized (
+            new TileWithHeader <> ("Lots issued", lotsIssued = TBSUIUtils.declareCustomized (
+                new NumberField <> (Long.class), tf -> defaultTextFiledCustomizer (tf, 180.0)
+            )), 
+            tile -> defaultTileCustomizer (tile, false)
         ));
         
         final var portfolioLotsPercentage = new NumberField <> (Number.class);
@@ -326,6 +343,9 @@ public class TBSBondDetails extends VBox {
             daysToOffer.setValue (TBSUtils.mapIfNN (nextOffer, no -> bond.getNow ().until (nextOffer, ChronoUnit.DAYS), -1L));
             offer.setText (TBSUtils.mapIfNN (nextOffer, LocalDate::toString, "(no offers)"));
             offers.setValue (bond.getOffers ().size ());
+            
+            price.setValue (bond.getLastPrice ());
+            score.setValue (bond.getScore ());
         });
     }
     

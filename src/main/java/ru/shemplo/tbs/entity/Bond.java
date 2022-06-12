@@ -118,6 +118,7 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
                 }
             });
             
+            coupons.clear ();
             MOEXCoupons.getCoupons ().map (Data::getRows).ifPresent (cops -> {
                 Coupon previous = new Coupon (FAR_PAST, FAR_PAST, 0.0, true, "");
                 
