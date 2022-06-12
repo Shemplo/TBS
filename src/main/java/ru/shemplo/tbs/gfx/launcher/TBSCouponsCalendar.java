@@ -1,5 +1,6 @@
 package ru.shemplo.tbs.gfx.launcher;
 
+import static ru.shemplo.tbs.TBSConstants.*;
 import static ru.shemplo.tbs.gfx.TBSStyles.*;
 
 import java.io.IOException;
@@ -115,10 +116,11 @@ public class TBSCouponsCalendar {
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
         table.setMinHeight (500.0);
-        table.setMinWidth (850.0);
+        table.setMinWidth (1050.0);
         column.getChildren ().add (table);
         
         final var grThreshold = TBSStyles.<PendingCoupons, Number> threshold (0.0, 1e-6);
+        final var sameMonth = TBSStyles.<PendingCoupons> sameMonth (NOW);
         
         table.getColumns ().add (TBSUIUtils.<PendingCoupons, String> buildTBSTableColumn ()
             .name ("Name").tooltip (null)
@@ -135,10 +137,16 @@ public class TBSCouponsCalendar {
             .highlighter (null)
             .build ());
         table.getColumns ().add (TBSUIUtils.<PendingCoupons, LocalDate> buildTBSTableColumn ()
+            .name ("Record date").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (100.0).sortable (false)
+            .propertyFetcher (data -> new SimpleObjectProperty <> (data.record ()))
+            .highlighter (sameMonth).converter ((c, v) -> String.valueOf (v))
+            .build ());
+        table.getColumns ().add (TBSUIUtils.<PendingCoupons, LocalDate> buildTBSTableColumn ()
             .name ("Coupon date").tooltip (null)
             .alignment (Pos.BASELINE_LEFT).minWidth (100.0).sortable (false)
             .propertyFetcher (data -> new SimpleObjectProperty <> (data.date ()))
-            .highlighter (null).converter ((c, v) -> String.valueOf (v))
+            .highlighter (sameMonth).converter ((c, v) -> String.valueOf (v))
             .build ());
         table.getColumns ().add (TBSUIUtils.<PendingCoupons, Number> buildTBSTableColumn ()
             .name ("Qty.").tooltip ("Considered amount of lots by the end of coupon period")
@@ -158,11 +166,22 @@ public class TBSCouponsCalendar {
             .propertyFetcher (data -> new SimpleObjectProperty <> (data.payment ()))
             .converter (null).highlighter (grThreshold)
             .build ());
+        table.getColumns ().add (TBSUIUtils.<PendingCoupons, LocalDate> buildTBSTableColumn ()
+            .name ("Payment date").tooltip (null)
+            .alignment (Pos.BASELINE_LEFT).minWidth (100.0).sortable (false)
+            .propertyFetcher (data -> new SimpleObjectProperty <> (data.paymentDate ()))
+            .highlighter (null).converter ((c, v) -> String.valueOf (v))
+            .build ());
         
         return column;
     }
     
-    private record PendingCoupons (String ticker, String name, LocalDate date, long quantity, double amount, double payment) {}
+    private record PendingCoupons (
+        String ticker, String name, 
+        LocalDate record, LocalDate date, 
+        long quantity, double amount, 
+        double payment, LocalDate paymentDate
+    ) {}
     
     public void loadPendingCoupons (IProfile profile) {
         TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
@@ -240,11 +259,12 @@ public class TBSCouponsCalendar {
                     //System.out.println ("Time -> amount: " + time2amount); // SYSOUT
                     
                     for (final var coupon : coupons) {
-                        final var seconds = coupon.getFixDate ().getSeconds ();
+                        final var secondsFix = coupon.getFixDate ().getSeconds ();
+                        final var seconds = coupon.getCouponDate ().getSeconds ();
                         //System.out.println ("  Coupon: " + seconds); // SYSOUT
                         
-                        final var operation = TBSUtils.mapIfNN (time2operation.ceilingEntry (seconds), Entry::getValue, null);
-                        final var quantity = TBSUtils.mapIfNN (time2amount.floorEntry (seconds), Entry::getValue, 0L);
+                        final var operation = TBSUtils.mapIfNN (time2operation.ceilingEntry (secondsFix), Entry::getValue, null);
+                        final var quantity = TBSUtils.mapIfNN (time2amount.floorEntry (secondsFix), Entry::getValue, 0L);
                         final var price = MapperUtils.moneyValueToBigDecimal (coupon.getPayOneBond ());
                         
                         /*
@@ -261,10 +281,21 @@ public class TBSCouponsCalendar {
                         final var amount = price.multiply (BigDecimal.valueOf (quantity)).doubleValue ();
                         
                         if (quantity > 0) {
+                            final var dateFix = LocalDate.ofInstant (new Date (secondsFix * 1000).toInstant (), ZoneId.systemDefault ());                            
                             final var date = LocalDate.ofInstant (new Date (seconds * 1000).toInstant (), ZoneId.systemDefault ());                            
                             final var payment = TBSUtils.mapIfNN (operation, OperationTypeCategory.BOND_COUPON::getSumValue, 0.0);
+                            final var datePayment = TBSUtils.mapIfNN (operation, op -> {
+                                final var secondsPayment = operation.getDate ().getSeconds ();
+                                final var instant = new Date (secondsPayment * 1000).toInstant ();
+                                return LocalDate.ofInstant (instant, ZoneId.systemDefault ());
+                            }, null);
                             
-                            pendingCoupons.add (new PendingCoupons (bond.getTicker (), bond.getName (), date, quantity, amount, payment));
+                            pendingCoupons.add (new PendingCoupons (
+                                bond.getTicker (), bond.getName (), 
+                                dateFix, date, 
+                                quantity, amount, 
+                                payment, datePayment
+                            ));
                         }
                     }
                     
