@@ -23,6 +23,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.TBSBackgroundExecutor;
+import ru.shemplo.tbs.TBSBondDetailsManager;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSUtils;
@@ -149,7 +150,7 @@ public class TBSUIApplication extends Application {
             tabs.getSelectionModel ().select (existing.get ());            
         } else {
             final var tab = new Tab (clearTicker);
-            tab.setOnClosed (e -> TBSBondManager.getInstance ().removeDetailed (profile, clearTicker));
+            tab.setOnClosed (e -> TBSBondDetailsManager.getInstance ().removeDetailed (profile, clearTicker));
             tab.setContent (new TBSBondDetails (tab, profile, clearTicker));
             tabs.getTabs ().add (tab);
             
@@ -162,7 +163,9 @@ public class TBSUIApplication extends Application {
         
         profileDetails.setText (profile.getProfileDescription ());
         
+        final var bondDetailsManager = TBSBondDetailsManager.getInstance ();
         final var bondManager = TBSBondManager.getInstance ();
+        
         scannedBondsTable.applyData (FXCollections.observableArrayList (
             bondManager.getScanned ().stream ().limit (profile.getMaxResults ()).map (Bond::getProxy).toList ()
         ));
@@ -172,9 +175,9 @@ public class TBSUIApplication extends Application {
         
         plannerTool.applyData (profile);
         
-        for (final var detailed : bondManager.getDetailed ()) {
+        for (final var detailed : bondDetailsManager.getDetailed ()) {
             final var tab = new Tab (detailed.getCode ());
-            tab.setOnClosed (e -> TBSBondManager.getInstance ().removeDetailed (profile, detailed.getCode ()));
+            tab.setOnClosed (e -> bondDetailsManager.removeDetailed (profile, detailed.getCode ()));
             tab.setContent (new TBSBondDetails (tab, detailed, profile));
             tabs.getTabs ().add (tab);
         }

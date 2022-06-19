@@ -22,6 +22,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import ru.shemplo.tbs.TBSBackgroundExecutor;
+import ru.shemplo.tbs.TBSBondDetailsManager;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSEmitterManager;
@@ -50,6 +51,8 @@ public class TBSBondDetails extends VBox {
     private IProfile profile;
     private Bond bond;
     
+    private boolean couponsTableInitialized = false;
+    
     public TBSBondDetails (Tab tab, Bond bond, IProfile profile) {
         this.profile = profile;
         this.bond = bond;
@@ -70,7 +73,7 @@ public class TBSBondDetails extends VBox {
             final var log = new TBSLogWrapper ();                
             try {
                 final var bond = loadBondDetailsByTicker (profile, ticker, log);
-                TBSBondManager.getInstance ().addDetailed (profile, bond);
+                TBSBondDetailsManager.getInstance ().addDetailed (profile, bond);
                 this.bond = bond;
                 
                 updateLayout (bond);
@@ -325,12 +328,8 @@ public class TBSBondDetails extends VBox {
             tile -> defaultTileCustomizer (tile, false)
         ));
         
-        coupons = TBSCouponsInspection.initializeTable (bond);
-        coupons.setFixedCellSize (24.0);
-        final var couponsAmount = Bindings.size (coupons.getItems ()).add (1.15);
-        coupons.prefHeightProperty ().bind (coupons.fixedCellSizeProperty ().multiply (couponsAmount));
-        coupons.minHeightProperty ().bind (coupons.prefHeightProperty ());
-        coupons.maxHeightProperty ().bind (coupons.prefHeightProperty ());
+        coupons = new TableView <ICoupon> ();
+        initializeCouponsTable (coupons, bond);
         columnRight.getChildren ().add (coupons);
     }
     
@@ -346,6 +345,18 @@ public class TBSBondDetails extends VBox {
     private void defaultTileCustomizer (TileWithHeader <?> tile, boolean accent) {
         tile.setBackground (accent ? TBSStyles.BG_TILE_ACCENT : null);
         tile.setPadding (new Insets (4.0, 2.0, 2.0, 2.0));
+    }
+    
+    private void initializeCouponsTable (TableView <ICoupon> table, Bond bond) {
+        if (couponsTableInitialized || table == null || bond == null) { return; }
+        
+        TBSCouponsInspection.initializeTable (table, bond);
+        table.setFixedCellSize (24.0);
+        final var couponsAmount = Bindings.size (table.getItems ()).add (1.15);
+        table.prefHeightProperty ().bind (table.fixedCellSizeProperty ().multiply (couponsAmount));
+        table.minHeightProperty ().bind (table.prefHeightProperty ());
+        table.maxHeightProperty ().bind (table.prefHeightProperty ());
+        couponsTableInitialized = true;
     }
     
     private void updateLayout (Bond bond) {
@@ -388,6 +399,7 @@ public class TBSBondDetails extends VBox {
             couponsInflation.setValue (bond.getCouponsCredit ());
             daysToCoupon.setValue (bond.getDaysToCoupon ());
             
+            initializeCouponsTable (coupons, bond);
             coupons.getItems ().setAll (bond.getCoupons ());
         });
     }

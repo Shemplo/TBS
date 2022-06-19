@@ -49,12 +49,19 @@ public class TBSCouponsInspection {
     }
     
     public static TableView <ICoupon> initializeTable (IBond bond) {
-        final var table = new TableView <ICoupon> ();
+        return initializeTable (new TableView <ICoupon> (), bond);
+    }
+    
+    public static TableView <ICoupon> initializeTable (TableView <ICoupon> table, IBond bond) {
         table.setBackground (new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         table.getStylesheets ().setAll (STYLE_TABLES);
         VBox.setVgrow (table, Priority.ALWAYS);
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
+        
+        if (bond == null) {
+            return table;
+        }
         
         final var grThreshold = TBSStyles.<ICoupon, Number> thresholdNotBefore (0.0, 1e-6, NOW, TBSCouponsInspection::fetchDate);
         

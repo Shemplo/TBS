@@ -26,6 +26,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import lombok.extern.slf4j.Slf4j;
 import ru.shemplo.tbs.TBSBackgroundExecutor;
+import ru.shemplo.tbs.TBSBondDetailsManager;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSDumpService;
@@ -129,6 +130,7 @@ public class TBSLauncher extends Application {
     
     private void doOpenBonds () {
         final var profile = TBSBondManager.restore ();
+        TBSBondDetailsManager.restore ();
         TBSEmitterManager.restore ();
         TBSPlanner.restore ();
         
