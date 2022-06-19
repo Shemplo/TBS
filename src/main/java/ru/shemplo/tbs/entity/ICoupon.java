@@ -7,4 +7,6 @@ public interface ICoupon extends Serializable, ObservableEntity <ICoupon> {
     
     double getCredit (IProfile profile, LocalDate forDate, LocalDate end);
     
+    LocalDate getDate ();
+    
 }

@@ -46,9 +46,11 @@ public class Coupon extends AbstractObservableEntity <ICoupon> implements ICoupo
     }
     
     public double getCredit (IProfile profile, LocalDate forDate, LocalDate end) {
+        /*
         if (date == null || !forDate.plusDays (profile.getSafeMaxDaysToCoupon ()).isBefore (date)) {
             return 0.0;
         }
+        */
         
         final var days = date.until (end, ChronoUnit.DAYS);
         final var credit = amount / Math.pow (1 + profile.getInflation (), days / 365.0);

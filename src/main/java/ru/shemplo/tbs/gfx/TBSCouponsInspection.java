@@ -1,5 +1,6 @@
 package ru.shemplo.tbs.gfx;
 
+import static ru.shemplo.tbs.TBSConstants.*;
 import static ru.shemplo.tbs.gfx.TBSStyles.*;
 
 import java.time.LocalDate;
@@ -20,9 +21,11 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import ru.shemplo.tbs.MappingROProperty;
+import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.IBond;
 import ru.shemplo.tbs.entity.ICoupon;
 import ru.shemplo.tbs.entity.LinkedSymbolOrImage;
+import ru.shemplo.tbs.gfx.table.TBSTableCell;
 
 public class TBSCouponsInspection {
     
@@ -45,7 +48,7 @@ public class TBSCouponsInspection {
         table.setItems (FXCollections.observableArrayList (bond.getCoupons ()));
     }
     
-    private TableView <ICoupon> initializeTable (IBond bond) {
+    public static TableView <ICoupon> initializeTable (IBond bond) {
         final var table = new TableView <ICoupon> ();
         table.setBackground (new Background (new BackgroundFill (Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         table.getStylesheets ().setAll (STYLE_TABLES);
@@ -53,8 +56,7 @@ public class TBSCouponsInspection {
         table.setSelectionModel (null);
         table.setBorder (Border.EMPTY);
         
-        final var grThreshold = TBSStyles.<ICoupon, Number> threshold (0.0, 1e-6);
-        //final var sameMonth = TBSStyles.<ICoupon> sameMonth (NOW);
+        final var grThreshold = TBSStyles.<ICoupon, Number> thresholdNotBefore (0.0, 1e-6, NOW, TBSCouponsInspection::fetchDate);
         
         final var profile = TBSUIApplication.getInstance ().getProfile ();
         final LocalDate now = bond.getNow (), end = bond.getEnd ();
@@ -101,27 +103,11 @@ public class TBSCouponsInspection {
             .highlighter (grThreshold).converter (null)
             .build ());
         
-        /*
-        final var symbolColumn = makeTBSTableColumn ("", Coupon::getSymbol, false, Pos.BASELINE_CENTER, 50.0, null);
-        table.getColumns ().add (symbolColumn);
-        
-        final var dateColumn = makeTBSTableColumn ("Date", Coupon::getDate, false, 100.0, null);
-        table.getColumns ().add (dateColumn);
-        
-        final var amountColumn = makeTBSTableColumn ("Amount", Coupon::getAmount, false, 90.0, grThreshold);
-        table.getColumns ().add (amountColumn);
-        
-        final var reliableColumn = makeTBSTableColumn ("Reliable?", Coupon::isReliable, false, 90.0, null);
-        table.getColumns ().add (reliableColumn);
-        
-        final var profile = TBSUIApplication.getInstance ().getProfile ();
-        final LocalDate now = bond.getNow (), end = bond.getEnd ();
-        
-        final var creditColumn = makeTBSTableColumn ("Credit", c -> c.getCredit (profile, now, end), false, 90.0, grThreshold);
-        table.getColumns ().add (creditColumn);
-        */
-        
         return table;
+    }
+    
+    private static LocalDate fetchDate (TBSTableCell <ICoupon, ?> cell) {
+        return TBSUtils.mapIfNN (cell.getTableRow ().getItem (), ICoupon::getDate, FAR_PAST);
     }
     
 }

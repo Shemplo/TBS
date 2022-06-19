@@ -14,6 +14,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -28,6 +29,8 @@ import ru.shemplo.tbs.TBSLogWrapper;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.Bond;
 import ru.shemplo.tbs.entity.BondCreditRating;
+import ru.shemplo.tbs.entity.Coupon;
+import ru.shemplo.tbs.entity.ICoupon;
 import ru.shemplo.tbs.entity.IEmitter;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.shemplo.tbs.gfx.component.TileWithHeader;
@@ -35,9 +38,10 @@ import ru.tinkoff.piapi.core.exception.ApiRuntimeException;
 
 public class TBSBondDetails extends VBox {
     
-    private NumberField <Long> lotsInPortfolio, lotsIssued, lotSize, daysToOffer;
-    private NumberField <Double> nominalValue, lotValue, score, price;
+    private NumberField <Long> lotsInPortfolio, lotsIssued, lotSize, daysToOffer, daysToCoupon;
+    private NumberField <Double> nominalValue, lotValue, score, price, couponsTotal, couponsInflation;
     private NumberField <Integer> offers;
+    private TableView <ICoupon> coupons;
     private TextField ticker, figi, emitter, start, end, duration, offer;
     private ImageView emitterRating;
     private Text titleName, latinName, updatedDate;
@@ -118,6 +122,7 @@ public class TBSBondDetails extends VBox {
         titleRow.getChildren ().add (titleSeparator);
         
         final var reloadButton = new Button ("Update data");
+        reloadButton.setPadding (new Insets (4.0, 8.0, 4.0, 8.0));
         reloadButton.setOnAction (ae -> reloadBond ());
         reloadButton.setFocusTraversable (false);
         titleRow.getChildren ().add (reloadButton);
@@ -295,6 +300,38 @@ public class TBSBondDetails extends VBox {
                 )), 
             tile -> defaultTileCustomizer (tile, false)
         ));
+        
+        final var couponsRow = new HBox (8.0);
+        columnRight.getChildren ().add (couponsRow);
+        
+        couponsRow.getChildren ().add (TBSUIUtils.declareCustomized (
+            new TileWithHeader <> ("Coupons (total)", couponsTotal = TBSUIUtils.declareCustomized (
+                new NumberField <> (Double.class), tf -> defaultTextFiledCustomizer (tf, 180.0)
+            )), 
+            tile -> defaultTileCustomizer (tile, false)
+        ));
+        
+        couponsRow.getChildren ().add (TBSUIUtils.declareCustomized (
+            new TileWithHeader <> ("Coupons (infalted)", couponsInflation = TBSUIUtils.declareCustomized (
+                new NumberField <> (Double.class), tf -> defaultTextFiledCustomizer (tf, 180.0)
+            )), 
+            tile -> defaultTileCustomizer (tile, false)
+        ));
+        
+        couponsRow.getChildren ().add (TBSUIUtils.declareCustomized (
+                new TileWithHeader <> ("Days to next coupon", daysToCoupon = TBSUIUtils.declareCustomized (
+                    new NumberField <> (Long.class), tf -> defaultTextFiledCustomizer (tf, 122.0)
+                )), 
+            tile -> defaultTileCustomizer (tile, false)
+        ));
+        
+        coupons = TBSCouponsInspection.initializeTable (bond);
+        coupons.setFixedCellSize (24.0);
+        final var couponsAmount = Bindings.size (coupons.getItems ()).add (1.15);
+        coupons.prefHeightProperty ().bind (coupons.fixedCellSizeProperty ().multiply (couponsAmount));
+        coupons.minHeightProperty ().bind (coupons.prefHeightProperty ());
+        coupons.maxHeightProperty ().bind (coupons.prefHeightProperty ());
+        columnRight.getChildren ().add (coupons);
     }
     
     private void defaultTextFiledCustomizer (TextField field, double width) {
@@ -329,6 +366,9 @@ public class TBSBondDetails extends VBox {
             this.emitter.setText (TBSUtils.mapIfNN (emitter, IEmitter::getName, "(unknown)"));
             this.emitterRating.setImage (emitterRating.getIcon ());
             
+            price.setValue (bond.getLastPrice ());
+            score.setValue (bond.getScore ());
+            
             nominalValue.setValue (bond.getNominalValue ());
             lotsIssued.setValue (bond.getLotsIssued ());
             lotsInPortfolio.setValue (bond.getLots ());
@@ -344,8 +384,11 @@ public class TBSBondDetails extends VBox {
             offer.setText (TBSUtils.mapIfNN (nextOffer, LocalDate::toString, "(no offers)"));
             offers.setValue (bond.getOffers ().size ());
             
-            price.setValue (bond.getLastPrice ());
-            score.setValue (bond.getScore ());
+            couponsTotal.setValue (bond.getCoupons ().stream ().mapToDouble (Coupon::getAmount).sum ());
+            couponsInflation.setValue (bond.getCouponsCredit ());
+            daysToCoupon.setValue (bond.getDaysToCoupon ());
+            
+            coupons.getItems ().setAll (bond.getCoupons ());
         });
     }
     

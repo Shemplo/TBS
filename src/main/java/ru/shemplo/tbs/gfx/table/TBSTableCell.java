@@ -86,7 +86,7 @@ public class TBSTableCell <F, S> extends TableCell <F, S> {
         }
     }
     
-    protected String getNumberStringValue (Number number) {
+    public static String getNumberStringValue (Number number) {
         if (number instanceof Double || number instanceof Float) {                
             return String.format ("%.2f", number);
         } else {

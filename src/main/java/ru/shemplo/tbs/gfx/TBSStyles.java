@@ -3,6 +3,7 @@ package ru.shemplo.tbs.gfx;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
@@ -52,7 +53,7 @@ public class TBSStyles {
     public static final Color COLOR_NEGATIVE = Color.RED;
     public static final Color COLOR_NEUTRAL = Color.GRAY;
     
-    public static <O> Consumer <TBSTableCell <O, LinkedSymbolOrImage>> linkIcon () {
+    public static <F> Consumer <TBSTableCell <F, LinkedSymbolOrImage>> linkIcon () {
         return cell -> {
             final var view = cell.getGraphic ();
             if (view == null) { return; }
@@ -65,7 +66,7 @@ public class TBSStyles {
         };
     }
     
-    public static <O, T extends Number> Consumer <TBSTableCell <O, T>> threshold (T threshold, double precision) {
+    public static <F, T extends Number> Consumer <TBSTableCell <F, T>> threshold (T threshold, double precision) {
         final var tvalue = threshold.doubleValue ();
         return cell -> {
             final var difference = TBSUtils.aOrB (cell.getItem ().doubleValue (), 0.0) - tvalue;
@@ -79,9 +80,36 @@ public class TBSStyles {
         };
     }
     
-    public static <O> Consumer <TBSTableCell <O, LocalDate>> sameMonth (LocalDate now) {
+    public static <F, T extends Number> Consumer <TBSTableCell <F, T>> thresholdNotBefore (
+        T threshold, double precision, LocalDate after,
+        Function <TBSTableCell <F, T>, LocalDate> dateFetcher
+    ) {
+        final var tvalue = threshold.doubleValue ();
         return cell -> {
-            final var value = TBSUtils.aOrB (cell.getItem (), TBSConstants.FAR_PAST);
+            final var difference = TBSUtils.aOrB (cell.getItem ().doubleValue (), 0.0) - tvalue;
+            final var date = TBSUtils.aOrB (dateFetcher.apply (cell), TBSConstants.FAR_PAST);
+            if (date.isBefore (after)) {
+                cell.setTextFill (COLOR_NEUTRAL);
+            } else if (difference > precision) {
+                cell.setTextFill (COLOR_POSITIVE);
+            } else if (difference < -precision) {
+                cell.setTextFill (COLOR_NEGATIVE);
+            } else {                    
+                cell.setTextFill (COLOR_DEFAULT);
+            }
+        };
+    }
+    
+    public static <F> Consumer <TBSTableCell <F, LocalDate>> sameMonth (LocalDate now) {
+        return sameMonth (now, cell -> cell.getItem ());
+    }
+    
+    public static <F, V> Consumer <TBSTableCell <F, V>> sameMonth (
+        LocalDate now, 
+        Function <TBSTableCell <F, V>, LocalDate> dateFetcher
+    ) {
+        return cell -> {
+            final var value = TBSUtils.aOrB (dateFetcher.apply (cell), TBSConstants.FAR_PAST);
             final var withinMonth = value.getMonthValue () == now.getMonthValue ();
             final var days = now.until (value, ChronoUnit.DAYS);
             
@@ -101,7 +129,7 @@ public class TBSStyles {
         };
     }
     
-    public static <O> Consumer <TBSTableCell <O, CouponValueMode>> fixedCoupons () {
+    public static <F> Consumer <TBSTableCell <F, CouponValueMode>> fixedCoupons () {
         return cell -> {
             final var value = cell.getItem ();
             if (value == CouponValueMode.FIXED) {
@@ -114,7 +142,7 @@ public class TBSStyles {
         };
     }
     
-    public static <O> Consumer <TBSTableCell <O, BondCreditRating>> creditRating () {
+    public static <F> Consumer <TBSTableCell <F, BondCreditRating>> creditRating () {
         return cell -> {
             final var value = cell.getItem ();
             if (value == BondCreditRating.HIGH) {
