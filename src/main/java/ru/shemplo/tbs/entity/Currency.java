@@ -3,7 +3,7 @@ package ru.shemplo.tbs.entity;
 
 public enum Currency {
     
-    RUB, USD, EUR, GBP, CHF,
+    RUB, USD, EUR, GBP, CHF, CNY,
     
     UNKNOWN
     
