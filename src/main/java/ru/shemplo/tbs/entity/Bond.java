@@ -65,11 +65,9 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     
     // // End extended (detailed) version of bond
     
-    public Bond (IProfile profile, ru.tinkoff.piapi.contract.v1.Bond instrument, Boolean reload) {
+    public Bond (IProfile profile, ru.tinkoff.piapi.contract.v1.Bond instrument, Boolean detailed) {
         this (instrument.getTicker (), instrument.getFigi (), Currency.from (instrument.getCurrency ()), NOW, 0);
-        if (reload != null && reload.booleanValue ()) {
-            reload (profile, true);
-        }
+        reload (profile, detailed);
     }
     
     public Bond (IProfile profile, String ticker, Currency currency, Position ppos) {
