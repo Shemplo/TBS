@@ -153,7 +153,7 @@ public class TBSBondManager implements Serializable {
                         final var currency = bond.map (ru.tinkoff.piapi.contract.v1.Bond::getCurrency)
                             . map (Currency::from).orElse (null);
                         
-                        return new Bond (ticker, currency, ppos);
+                        return new Bond (profile, ticker, currency, ppos);
                     }).collect (Collectors.toList ());
             } catch (Exception e) {
                 log.error ("Failed to load portfolio bonds due to some unexpected error", e);
@@ -166,7 +166,7 @@ public class TBSBondManager implements Serializable {
                 log.info ("Loading data about bonds from Tinkoff and MOEX...");
                 scanned = client.getInstrumentsService ().getAllBondsSync ().stream ()
                     . filter (instrument -> profile.getCurrencies ().contains (Currency.from (instrument.getCurrency ()))).parallel ()
-                    . map (instr -> new Bond (instr, false)).peek (bond -> emitters.addEmitter (bond.getEmitterId (), bond.getCode ()))
+                    . map (instr -> new Bond (profile, instr, false)).peek (bond -> emitters.addEmitter (bond.getEmitterId (), bond.getCode ()))
                     . filter (profile::testBond)//.limit (profile.getMaxResults ())
                     . collect (Collectors.toList ());
             } catch (Exception e) {

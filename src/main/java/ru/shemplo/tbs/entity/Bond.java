@@ -2,6 +2,7 @@ package ru.shemplo.tbs.entity;
 
 import static ru.shemplo.tbs.TBSConstants.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -15,14 +16,19 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import ru.shemplo.tbs.Pair;
+import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSCurrencyManager;
 import ru.shemplo.tbs.TBSEmitterManager;
+import ru.shemplo.tbs.TBSLogWrapper;
 import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.moex.MOEXRequests;
 import ru.shemplo.tbs.moex.MOEXResposeReader;
 import ru.shemplo.tbs.moex.xml.Data;
 import ru.shemplo.tbs.moex.xml.Row;
+import ru.tinkoff.piapi.contract.v1.CandleInterval;
 import ru.tinkoff.piapi.core.models.Position;
+import ru.tinkoff.piapi.core.utils.MapperUtils;
 
 @Getter
 @ToString
@@ -52,20 +58,23 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     
     // // For extended (detailed) version of bond
     
+    private List <Pair <Date, Double>> historicalPrice;
     private long lotsIssued, lotSize;
     private String latinName;
     private double lotValue;
     
     // // End extended (detailed) version of bond
     
-    public Bond (ru.tinkoff.piapi.contract.v1.Bond instrument, Boolean reload) {
+    public Bond (IProfile profile, ru.tinkoff.piapi.contract.v1.Bond instrument, Boolean reload) {
         this (instrument.getTicker (), instrument.getFigi (), Currency.from (instrument.getCurrency ()), NOW, 0);
-        TBSUtils.doIfNN (reload, this::reload);
+        if (reload != null && reload.booleanValue ()) {
+            reload (profile, true);
+        }
     }
     
-    public Bond (String ticker, Currency currency, Position ppos) {
+    public Bond (IProfile profile, String ticker, Currency currency, Position ppos) {
         this (ticker, ppos.getFigi (), currency, FAR_PAST, ppos.getQuantityLots ().longValue ());
-        reload (false);
+        reload (profile, false);
     }
     
     private Bond (String ticker, String figi, Currency currency, LocalDate scoreNow, long lots) {
@@ -77,10 +86,10 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
     }
     
     public void reloadAndUpdateScore (IProfile profile, boolean detailed) {
-        reload (detailed); updateScore (profile);
+        reload (profile, detailed); updateScore (profile);
     }
     
-    public void reload (boolean detailed) {
+    public void reload (IProfile profile, boolean detailed) {
         final var MOEX_DESCRIPION_URL = MOEXRequests.makeBondDescriptionURLForMOEX (ticker);
         final var MOEX_COUPONS_URL = MOEXRequests.makeBondCouponsURLForMOEX (ticker);
         
@@ -150,6 +159,30 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
         }
         
         lastUpdated = new Date ();
+        
+        if (detailed) {
+            try {
+                final var logger = new TBSLogWrapper ();
+                final var client = TBSClient.getInstance ().getConnection (profile, logger);
+                
+                final var candles = client.getMarketDataService ().getCandlesSync (getFigi (), 
+                    lastUpdated.toInstant ().minus (60, ChronoUnit.DAYS), 
+                    lastUpdated.toInstant (), 
+                    CandleInterval.CANDLE_INTERVAL_DAY
+                );
+                
+                historicalPrice = candles.stream ().map (can -> {
+                    //System.out.println (new Date (can.getTime ().getSeconds () * 1000) + " " + can.getClose ());
+                    final var value = MapperUtils.quotationToBigDecimal (can.getClose ()).doubleValue () 
+                                    * nominalValue / 100.0;
+                    final var date = new Date (can.getTime ().getSeconds () * 1000);
+                    
+                    return Pair.of (date, value);
+                }).toList ();
+            } catch (IOException ioe) {
+                ioe.printStackTrace ();
+            }
+        }
     }
     
     public CouponValueMode getCouponValuesMode () {

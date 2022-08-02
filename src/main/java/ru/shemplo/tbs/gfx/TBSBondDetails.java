@@ -2,8 +2,10 @@ package ru.shemplo.tbs.gfx;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 
 import com.panemu.tiwulfx.control.NumberField;
 
@@ -11,6 +13,13 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Data;
+import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
@@ -21,9 +30,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import ru.shemplo.tbs.Pair;
+import ru.shemplo.tbs.RollingAverage;
 import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSBondDetailsManager;
-import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSEmitterManager;
 import ru.shemplo.tbs.TBSLogWrapper;
@@ -47,6 +57,7 @@ public class TBSBondDetails extends VBox {
     private ImageView emitterRating;
     private Text titleName, latinName, updatedDate;
     private Tab tab;
+    private XYChart <String, Number> priceChart;
     
     private IProfile profile;
     private Bond bond;
@@ -143,6 +154,22 @@ public class TBSBondDetails extends VBox {
         
         updatedDate = new Text ();
         underTitleRow.getChildren ().add (updatedDate);
+        
+        final var priceAxis = new NumberAxis ();
+        priceAxis.setForceZeroInRange (false);
+        
+        priceChart = new LineChart <> (new CategoryAxis (), priceAxis);
+        columnLeft.getChildren ().add (priceChart);
+        priceChart.setLegendSide (Side.TOP);
+        priceChart.setAnimated (false);
+        
+        final var originalPriceSeries = new Series <String, Number> ();
+        originalPriceSeries.setName ("Original price");
+        priceChart.getData ().add (originalPriceSeries);
+        
+        final var averagePriceSeries = new Series <String, Number> ();
+        averagePriceSeries.setName ("Rolling average price");
+        priceChart.getData ().add (averagePriceSeries);
         
         // Right column
         
@@ -369,6 +396,24 @@ public class TBSBondDetails extends VBox {
             latinName.setText (bond.getLatinName ());
             titleName.setText (bond.getName ());
             
+            final var originalPriceData = priceChart.getData ().get (0).getData ();
+            originalPriceData.clear ();
+            
+            final var averagePriceData = priceChart.getData ().get (1).getData ();
+            averagePriceData.clear ();
+            
+            final var originalPrice = TBSUtils.aOrB (bond.getHistoricalPrice (), List.<Pair <Date, Double>> of ());
+            final var average = new RollingAverage (7, false).addSequence (originalPrice.stream ().map (Pair::b).toList ()).finish ();
+            
+            for (int i = Math.max (0, originalPrice.size () - 30); i < originalPrice.size (); i++) {
+                final var dateNprice = originalPrice.get (i);
+                double value = dateNprice.b (), averageValue = average.get (i);
+                
+                final var date = LocalDate.from (dateNprice.a ().toInstant ().atZone (ZoneId.systemDefault ()));
+                averagePriceData.add (new Data <> (date.toString (), averageValue));
+                originalPriceData.add (new Data <> (date.toString (), value));
+            }
+            
             this.ticker.setText (bond.getCode ());
             figi.setText (bond.getFigi ());
             
@@ -409,7 +454,7 @@ public class TBSBondDetails extends VBox {
             bond.reloadAndUpdateScore (profile, true);
             updateLayout (bond);
             
-            TBSBondManager.getInstance ().dump (profile);
+            TBSBondDetailsManager.getInstance ().dump (profile);
         });
     }
     
@@ -425,7 +470,7 @@ public class TBSBondDetails extends VBox {
             . map (pos -> pos.getQuantity ().longValue ())
             . findFirst ().orElse (0L);
         
-        final var bond = new Bond (raw, true);
+        final var bond = new Bond (profile, raw, true);
         bond.updateScore (profile);
         bond.setLots (lots);
         return bond;
