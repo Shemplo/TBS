@@ -23,6 +23,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import ru.shemplo.tbs.TBSBackgroundExecutor;
+import ru.shemplo.tbs.TBSBondDetailsManager;
 import ru.shemplo.tbs.TBSBondManager;
 import ru.shemplo.tbs.TBSCurrencyManager;
 import ru.shemplo.tbs.TBSDumpService;
@@ -163,6 +164,7 @@ public class TBSScanLog {
     private void doOpenBonds (IProfile profile) {
         stage.close (); 
         
+        TBSBondDetailsManager.restore ();
         TBSPlanner.restore ();
         launcher.openTBSApplication (profile);
     }

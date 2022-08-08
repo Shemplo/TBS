@@ -180,23 +180,23 @@ public class TBSBondDetails extends VBox {
         columnRight.getChildren ().add (codesRow);
         
         codesRow.getChildren ().add (TBSUIUtils.declareCustomized (
-                new TileWithHeader <> ("Ticker", this.ticker = TBSUIUtils.declareCustomized (
-                    new TextField (), tf -> defaultTextFiledCustomizer (tf, 180.0)
-                )), 
+            new TileWithHeader <> ("Ticker", this.ticker = TBSUIUtils.declareCustomized (
+                new TextField (), tf -> defaultTextFiledCustomizer (tf, 180.0)
+            )), 
             tile -> defaultTileCustomizer (tile, true)
         ));
         
         codesRow.getChildren ().add (TBSUIUtils.declareCustomized (
-                new TileWithHeader <> ("FIGI", figi = TBSUIUtils.declareCustomized (
-                    new TextField (), tf -> defaultTextFiledCustomizer (tf, 180.0)
-                )), 
+            new TileWithHeader <> ("FIGI", figi = TBSUIUtils.declareCustomized (
+                new TextField (), tf -> defaultTextFiledCustomizer (tf, 180.0)
+            )), 
             tile -> defaultTileCustomizer (tile, false)
         ));
         
         codesRow.getChildren ().add (TBSUIUtils.declareCustomized (
-                new TileWithHeader <> ("Class code", TBSUIUtils.declareCustomized (
-                    new TextField ("TQCB"), tf -> defaultTextFiledCustomizer (tf, 122.0)
-                )), 
+            new TileWithHeader <> ("Class code", TBSUIUtils.declareCustomized (
+                new TextField ("TQCB"), tf -> defaultTextFiledCustomizer (tf, 122.0)
+            )), 
             tile -> defaultTileCustomizer (tile, false)
         ));
         
@@ -220,8 +220,8 @@ public class TBSBondDetails extends VBox {
         
         scoreRow.getChildren ().add (TBSUIUtils.declareCustomized (
             new TileWithHeader <> ("Score", score = TBSUIUtils.declareCustomized (
-                    new NumberField <> (Double.class), tf -> defaultTextFiledCustomizer (tf, 180.0)
-                    )), 
+                new NumberField <> (Double.class), tf -> defaultTextFiledCustomizer (tf, 180.0)
+            )), 
             tile -> defaultTileCustomizer (tile, true)
         ));
         
@@ -311,23 +311,23 @@ public class TBSBondDetails extends VBox {
         columnRight.getChildren ().add (offersRow);
         
         offersRow.getChildren ().add (TBSUIUtils.declareCustomized (
-                new TileWithHeader <> ("Next offer", offer = TBSUIUtils.declareCustomized (
-                    new TextField (), tf -> defaultTextFiledCustomizer (tf, 180.0)
-                )), 
+            new TileWithHeader <> ("Next offer", offer = TBSUIUtils.declareCustomized (
+                new TextField (), tf -> defaultTextFiledCustomizer (tf, 180.0)
+            )), 
             tile -> defaultTileCustomizer (tile, true)
         ));
         
         offersRow.getChildren ().add (TBSUIUtils.declareCustomized (
-                new TileWithHeader <> ("Days to next offer", daysToOffer = TBSUIUtils.declareCustomized (
-                    new NumberField <> (Long.class), tf -> defaultTextFiledCustomizer (tf, 180.0)
-                )), 
+            new TileWithHeader <> ("Days to next offer", daysToOffer = TBSUIUtils.declareCustomized (
+                new NumberField <> (Long.class), tf -> defaultTextFiledCustomizer (tf, 180.0)
+            )), 
             tile -> defaultTileCustomizer (tile, false)
         ));
         
         offersRow.getChildren ().add (TBSUIUtils.declareCustomized (
-                new TileWithHeader <> ("Total offers", offers = TBSUIUtils.declareCustomized (
-                    new NumberField <> (Integer.class), tf -> defaultTextFiledCustomizer (tf, 122.0)
-                )), 
+            new TileWithHeader <> ("Total offers", offers = TBSUIUtils.declareCustomized (
+                new NumberField <> (Integer.class), tf -> defaultTextFiledCustomizer (tf, 122.0)
+            )), 
             tile -> defaultTileCustomizer (tile, false)
         ));
         
@@ -349,9 +349,9 @@ public class TBSBondDetails extends VBox {
         ));
         
         couponsRow.getChildren ().add (TBSUIUtils.declareCustomized (
-                new TileWithHeader <> ("Days to next coupon", daysToCoupon = TBSUIUtils.declareCustomized (
-                    new NumberField <> (Long.class), tf -> defaultTextFiledCustomizer (tf, 122.0)
-                )), 
+            new TileWithHeader <> ("Days to next coupon", daysToCoupon = TBSUIUtils.declareCustomized (
+                new NumberField <> (Long.class), tf -> defaultTextFiledCustomizer (tf, 122.0)
+            )), 
             tile -> defaultTileCustomizer (tile, false)
         ));
         

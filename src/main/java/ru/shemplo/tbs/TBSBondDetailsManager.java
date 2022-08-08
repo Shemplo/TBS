@@ -37,12 +37,12 @@ public class TBSBondDetailsManager implements Serializable {
     private static final File DUMP_FILE = new File ("details.bin");
     
     public void dump (IProfile profile) {
-        TBSDumpService.getInstance ().dump (this, TBSBondDetailsManager.DUMP_FILE.getName ());
+        TBSDumpService.getInstance ().dump (this, DUMP_FILE.getName ());
     }
     
     public static void restore () {
         log.info ("Restoring bonds details from a binary file...");
-        TBSDumpService.getInstance ().restore (TBSBondDetailsManager.DUMP_FILE.getName ());
+        TBSDumpService.getInstance ().restore (DUMP_FILE.getName ());
     }
     
     private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
