@@ -25,12 +25,12 @@
     <opt>-Dfile.encoding=UTF-8</opt>
   </jre>
   <versionInfo>
-    <fileVersion>2.2.0.0</fileVersion>
-    <txtFileVersion>Coupons calendar</txtFileVersion>
+    <fileVersion>2.3.0.0</fileVersion>
+    <txtFileVersion>Bond details</txtFileVersion>
     <fileDescription>Tinkoff bonds scanner application</fileDescription>
     <copyright>https://github.com/Shemplo/TBS</copyright>
-    <productVersion>2.2.0.0</productVersion>
-    <txtProductVersion>TBS Coupons calendar</txtProductVersion>
+    <productVersion>2.3.0.0</productVersion>
+    <txtProductVersion>TBS Bond details</txtProductVersion>
     <productName>Tinkoff bonds scanner</productName>
     <companyName></companyName>
     <internalName>TBS</internalName>
