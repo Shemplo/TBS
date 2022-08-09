@@ -220,16 +220,16 @@ public class TBSLauncher extends Application {
         deleteProfileButton.setMnemonicParsing (true);
         buttonsColumn.getChildren ().add (deleteProfileButton);
         
-        openStatisticsButton = new Button ("Calculate _statistics");
-        openStatisticsButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
-        openStatisticsButton.setMnemonicParsing (true);
-        VBox.setMargin (openStatisticsButton, new Insets (8.0, 0.0, 0.0, 0.0));
-        buttonsColumn.getChildren ().add (openStatisticsButton);
-        
         openCouponsCalendarButton = new Button ("Open coupons _calendar");
         openCouponsCalendarButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
         openCouponsCalendarButton.setMnemonicParsing (true);
+        VBox.setMargin (openCouponsCalendarButton, new Insets (8.0, 0.0, 0.0, 0.0));
         buttonsColumn.getChildren ().add (openCouponsCalendarButton);
+        
+        openStatisticsButton = new Button ("Calculate _statistics");
+        openStatisticsButton.minWidthProperty ().bind (openScannedBondsButton.widthProperty ());
+        openStatisticsButton.setMnemonicParsing (true);
+        buttonsColumn.getChildren ().add (openStatisticsButton);
         
         final var setupColumn = new VBox (8.0);
         line.getChildren ().add (setupColumn);

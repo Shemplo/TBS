@@ -14,6 +14,7 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -97,6 +98,7 @@ public class TBSUIApplication extends Application {
         
         final var bondTickerField = new TextField ();
         bondTickerField.setFont (Font.font ("Consolas", 12.0));
+        bondTickerField.setTooltip (new Tooltip ("Type ticker and press <Enter> to open bond details"));
         bondTickerField.setMinWidth (200.0);
         
         final var bondTickerFieldTitle = new TileWithHeader <> ("Open bond details by ticker", bondTickerField);
