@@ -35,6 +35,7 @@ import ru.shemplo.tbs.entity.IProfile;
 import ru.shemplo.tbs.gfx.TBSApplicationIcons;
 import ru.shemplo.tbs.gfx.TBSStyles;
 import ru.shemplo.tbs.gfx.TBSUIUtils;
+import ru.tinkoff.piapi.core.exception.ApiRuntimeException;
 
 public class TBSScanLog {
     
@@ -118,6 +119,8 @@ public class TBSScanLog {
         
         TBSEmitterManager.restore ();
         TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
+            boolean success = false;
+            
             try {
                 logger.getLines ().clear ();
                 
@@ -146,17 +149,24 @@ public class TBSScanLog {
                 Files.writeString (LOG_FILE.toPath (), logArea.getText (), StandardOpenOption.TRUNCATE_EXISTING);
                 onScanFinished.run ();
                 
+                success = true;
+            } catch (ApiRuntimeException apire) {
+                logger.error ("Failed to scan bonds [Tinkoff API issue]", apire);                
+            } catch (Exception e) {
+                logger.error ("Failed to scan bonds [Unexpected issue]", e);
+            } finally {
+                final var successF = success;
                 Platform.runLater (() -> {
-                    openBonds.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenBonds (profile)));
-                    openBonds.setOnAction (ae -> doOpenBonds (profile));
+                    if (successF) {
+                        openBonds.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenBonds (profile)));                        
+                        openBonds.setOnAction (ae -> doOpenBonds (profile));
+                    }
                     
                     message.setText ("Log is saved to `scan.log` file, you can close this window");
                     isScanning.set (false);
                     
                     openBonds.requestFocus ();
                 });
-            } catch (Exception e) {
-                e.printStackTrace ();
             }
         });
     }
