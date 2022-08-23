@@ -42,7 +42,7 @@ public class TBSScanLog {
     private final TBSLauncher launcher;
     private final Stage stage;
         
-    private volatile SimpleBooleanProperty isScanning;
+    private volatile SimpleBooleanProperty isScanning, isError;
     private final TBSLogWrapper logger;
     private volatile Button openBonds;
     private volatile TextArea logArea;
@@ -57,6 +57,7 @@ public class TBSScanLog {
         final var scene = new Scene (root);
         
         isScanning = new SimpleBooleanProperty ();
+        isError = new SimpleBooleanProperty ();
         logger = new TBSLogWrapper ();
                 
         stage = new Stage ();
@@ -102,7 +103,7 @@ public class TBSScanLog {
         column.getChildren ().add (bottomLine);
         
         openBonds = new Button ("Open bonds");
-        openBonds.disableProperty ().bind (isScanning);
+        openBonds.disableProperty ().bind (Bindings.or (isScanning, isError));
         bottomLine.getChildren ().add (openBonds);
         
         bottomLine.getChildren ().add (message = new Text (
@@ -116,11 +117,10 @@ public class TBSScanLog {
     
     public void scan (IProfile profile, Runnable onScanFinished) {
         isScanning.set (true);
+        isError.set (false);
         
         TBSEmitterManager.restore ();
         TBSBackgroundExecutor.getInstance ().runInBackground (() -> {
-            boolean success = false;
-            
             try {
                 logger.getLines ().clear ();
                 
@@ -148,16 +148,15 @@ public class TBSScanLog {
                 
                 Files.writeString (LOG_FILE.toPath (), logArea.getText (), StandardOpenOption.TRUNCATE_EXISTING);
                 onScanFinished.run ();
-                
-                success = true;
             } catch (ApiRuntimeException apire) {
-                logger.error ("Failed to scan bonds [Tinkoff API issue]", apire);                
+                logger.error ("Failed to scan bonds [Tinkoff API error]", apire);
+                isError.set (true);
             } catch (Exception e) {
-                logger.error ("Failed to scan bonds [Unexpected issue]", e);
+                logger.error ("Failed to scan bonds [Unexpected error]", e);
+                isError.set (true);
             } finally {
-                final var successF = success;
                 Platform.runLater (() -> {
-                    if (successF) {
+                    if (!isError.get ()) {
                         openBonds.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenBonds (profile)));                        
                         openBonds.setOnAction (ae -> doOpenBonds (profile));
                     }
