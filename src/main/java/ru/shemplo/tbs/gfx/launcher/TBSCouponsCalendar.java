@@ -47,6 +47,7 @@ import ru.shemplo.tbs.gfx.TBSUIUtils;
 import ru.tinkoff.piapi.contract.v1.Bond;
 import ru.tinkoff.piapi.contract.v1.Coupon;
 import ru.tinkoff.piapi.contract.v1.OperationType;
+import ru.tinkoff.piapi.core.exception.ApiRuntimeException;
 import ru.tinkoff.piapi.core.utils.MapperUtils;
 
 public class TBSCouponsCalendar {
@@ -313,7 +314,7 @@ public class TBSCouponsCalendar {
                     table.getItems ().setAll (pendingCoupons);
                     stage.sizeToScene ();
                 });
-            } catch (IOException ioe) {
+            } catch (IOException | ApiRuntimeException ioe) {
                 logger.error ("Failed to load statistics", ioe);
             }
         });
