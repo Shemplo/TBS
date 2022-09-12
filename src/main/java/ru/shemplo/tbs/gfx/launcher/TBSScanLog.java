@@ -146,7 +146,11 @@ public class TBSScanLog {
                     TBSBondManager.DUMP_FILE.getName ()
                 );
                 
-                Files.writeString (LOG_FILE.toPath (), logArea.getText (), StandardOpenOption.TRUNCATE_EXISTING);
+                Files.writeString (
+                    LOG_FILE.toPath (), logArea.getText (), 
+                    StandardOpenOption.CREATE, 
+                    StandardOpenOption.TRUNCATE_EXISTING
+                );
                 onScanFinished.run ();
             } catch (ApiRuntimeException apire) {
                 logger.error ("Failed to scan bonds [Tinkoff API error]", apire);
