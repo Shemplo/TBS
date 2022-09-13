@@ -35,6 +35,7 @@ import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSConstants;
 import ru.shemplo.tbs.TBSLogWrapper;
+import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.shemplo.tbs.entity.OperationTypeCategory;
 import ru.shemplo.tbs.gfx.TBSApplicationIcons;
@@ -193,14 +194,14 @@ public class TBSStatistics {
     private static OperationTypeCategory fetchOperationTypeCategory (OperationType type) {
         return switch (type) {
             case 
-                OPERATION_TYPE_BENEFIT_TAX, 
-                OPERATION_TYPE_BENEFIT_TAX_PROGRESSIVE,
+                //OPERATION_TYPE_BENEFIT_TAX, 
+                //OPERATION_TYPE_BENEFIT_TAX_PROGRESSIVE,
                 OPERATION_TYPE_BOND_TAX, 
                 OPERATION_TYPE_BOND_TAX_PROGRESSIVE,
-                OPERATION_TYPE_DIVIDEND_TAX, 
-                OPERATION_TYPE_DIVIDEND_TAX_PROGRESSIVE,
-                OPERATION_TYPE_TAX, 
-                OPERATION_TYPE_TAX_PROGRESSIVE, 
+                //OPERATION_TYPE_DIVIDEND_TAX, 
+                //OPERATION_TYPE_DIVIDEND_TAX_PROGRESSIVE,
+                //OPERATION_TYPE_TAX, 
+                //OPERATION_TYPE_TAX_PROGRESSIVE, 
                 OPERATION_TYPE_TAX_REPO, 
                 OPERATION_TYPE_TAX_REPO_PROGRESSIVE,
                 OPERATION_TYPE_TAX_REPO_HOLD, 
@@ -318,7 +319,7 @@ public class TBSStatistics {
                 Platform.runLater (() -> commentT.setText ("Loading operations from Tinkoff..."));
                 type2operations = client.getOperationsService ()
                     . getExecutedOperationsSync (accounts.get (0).getId (), from, to).stream ()
-                    . filter (op -> "bond".equalsIgnoreCase (op.getInstrumentType ()))
+                    //. filter (op -> "bond".equalsIgnoreCase (op.getInstrumentType ()) || !TBSUtils.notBlank (op.getInstrumentType ()))
                     . filter (op -> fetchOperationTypeCategory (op.getOperationType ()) != null)
                     . collect (Collectors.groupingBy (op -> fetchOperationTypeCategory (op.getOperationType ())));
                 Platform.runLater (() -> commentT.setText ("Everything is done"));
