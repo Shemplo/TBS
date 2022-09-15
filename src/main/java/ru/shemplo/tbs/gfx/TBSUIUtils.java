@@ -17,6 +17,8 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Pair;
@@ -33,9 +35,16 @@ import ru.shemplo.tbs.gfx.table.TBSToggleTableCell;
 public class TBSUIUtils {
     
     public static Predicate <MouseEvent> SIMPLE_CLICK = me -> me.getButton () == MouseButton.PRIMARY && me.getClickCount () == 1;
+    public static Predicate <KeyEvent> ENTER_PRESSED = ke -> ke.getCode () == KeyCode.ENTER;
     
     public static void doIfSimpleClick (MouseEvent me, Runnable task) {
         if (SIMPLE_CLICK.test (me)) {
+            task.run ();
+        }
+    }
+    
+    public static void doIfEnterPressed (KeyEvent ke, Runnable task) {
+        if (ENTER_PRESSED.test (ke)) {
             task.run ();
         }
     }

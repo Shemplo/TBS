@@ -97,26 +97,26 @@ public class TBSLauncher extends Application {
         this.stage = stage;
         
         openScannedBondsButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenBonds ()));
-        openScannedBondsButton.setOnAction (me -> doOpenBonds ());
+        openScannedBondsButton.setOnKeyPressed (ke -> TBSUIUtils.doIfEnterPressed (ke, () -> doOpenBonds ()));
         
         openEmittertEditorButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenEmitters (scene)));
-        openEmittertEditorButton.setOnAction (ae -> doOpenEmitters (scene));
+        openEmittertEditorButton.setOnKeyPressed (ke -> TBSUIUtils.doIfEnterPressed (ke, () -> doOpenEmitters (scene)));
         
         final var profileProperty = profilesList.getSelectionModel ().selectedItemProperty ();
         openStatisticsButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenStatistics (scene, profileProperty)));
-        openStatisticsButton.setOnAction (ae -> doOpenStatistics (scene, profileProperty));
+        openStatisticsButton.setOnKeyPressed (ke -> TBSUIUtils.doIfEnterPressed (ke, () -> doOpenStatistics (scene, profileProperty)));
         
         openCouponsCalendarButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenPendingCoupons (scene, profileProperty)));
-        openCouponsCalendarButton.setOnAction (ae -> doOpenPendingCoupons (scene, profileProperty));
+        openCouponsCalendarButton.setOnKeyPressed (ke -> TBSUIUtils.doIfEnterPressed (ke, () -> doOpenPendingCoupons (scene, profileProperty)));
         
         startNewScanningButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doStartNewScanning (scene, profileProperty)));
-        startNewScanningButton.setOnAction (ae -> doStartNewScanning (scene, profileProperty));
+        startNewScanningButton.setOnKeyPressed (ke -> TBSUIUtils.doIfEnterPressed (ke, () -> doStartNewScanning (scene, profileProperty)));
         
         cloneProfileButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doClone (profileProperty)));
-        cloneProfileButton.setOnAction (ae -> doClone (profileProperty));
+        cloneProfileButton.setOnKeyPressed (ke -> TBSUIUtils.doIfEnterPressed (ke, () -> doClone (profileProperty)));
         
         deleteProfileButton.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doDelete (profileProperty)));
-        deleteProfileButton.setOnAction (ae -> doDelete (profileProperty));
+        deleteProfileButton.setOnKeyPressed (ke -> TBSUIUtils.doIfEnterPressed (ke, () -> doDelete (profileProperty)));
         
         scene.setOnKeyTyped (ke -> {
             final var ch = ke.getCharacter ().charAt (0);

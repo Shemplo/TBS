@@ -161,8 +161,8 @@ public class TBSScanLog {
             } finally {
                 Platform.runLater (() -> {
                     if (!isError.get ()) {
-                        openBonds.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenBonds (profile)));                        
-                        openBonds.setOnAction (ae -> doOpenBonds (profile));
+                        openBonds.setOnMouseClicked (me -> TBSUIUtils.doIfSimpleClick (me, () -> doOpenBonds (profile))); 
+                        openBonds.setOnKeyPressed (ke -> TBSUIUtils.doIfEnterPressed (ke, () -> doOpenBonds (profile)));
                     }
                     
                     message.setText ("Log is saved to `scan.log` file, you can close this window");
