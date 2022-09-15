@@ -35,7 +35,6 @@ import ru.shemplo.tbs.TBSBackgroundExecutor;
 import ru.shemplo.tbs.TBSClient;
 import ru.shemplo.tbs.TBSConstants;
 import ru.shemplo.tbs.TBSLogWrapper;
-import ru.shemplo.tbs.TBSUtils;
 import ru.shemplo.tbs.entity.IProfile;
 import ru.shemplo.tbs.entity.OperationTypeCategory;
 import ru.shemplo.tbs.gfx.TBSApplicationIcons;
