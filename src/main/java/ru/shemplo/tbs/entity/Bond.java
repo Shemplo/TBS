@@ -212,7 +212,10 @@ public class Bond extends AbstractObservableEntity <IBond> implements IBond {
         final var days = now.until (end, ChronoUnit.DAYS);
         
         reliableCoupons = coupons.stream ().map (Coupon::isReliable).reduce (Boolean::logicalAnd).orElse (true);
-        couponsCredit = coupons.stream ().mapToDouble (c -> c.getCredit (profile, now, end)).sum ();
+        couponsCredit = coupons.stream ()
+            . filter (c -> !now.isAfter (TBSUtils.aOrB (c.getRecord (), c.getDate ()))) // consider only coupons that can be payed after now
+            . mapToDouble (c -> c.getCredit (profile, now, end))
+            . sum ();
         
         final var inflationFactor =  Math.pow (1 + profile.getInflation (), days / 365.0);        
         nominalValueWithInflation = nominalValue / inflationFactor;
